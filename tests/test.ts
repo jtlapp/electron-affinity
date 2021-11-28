@@ -2,7 +2,7 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { ipcMain, BrowserWindow } from "electron";
 
-import { createWindow, ScriptRunner } from "./main_util";
+import { createWindow, ScriptRunner } from "./main";
 import serverApi from "./server_api";
 
 describe("basic IPC", () => {
@@ -23,9 +23,9 @@ describe("basic IPC", () => {
     const window = await createWindow();
     await runner.runScript(window, "client_side");
     runner.verifyTest("test 42", (result) => {
+      assert.equal(result.error, null);
       assert.equal(result.requestData, 21);
       assert.equal(result.replyData, 42);
-      assert.equal(result.error, null);
     });
     window.destroy();
   });

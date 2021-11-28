@@ -1,5 +1,5 @@
 import { IpcHandler, AsyncIpcHandler } from "../src/ipc_handler";
-import { ScriptRunner } from "./main_util";
+import { ScriptRunner } from "./main";
 
 class DoubleNumberIpc extends AsyncIpcHandler {
   runner: ScriptRunner;

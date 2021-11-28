@@ -1,12 +1,11 @@
 import { ipcRenderer } from "electron";
 
 import { ClientApi } from "../client_api";
+import { sendCall } from "../renderer";
 
 (async () => {
-  ipcRenderer.send("startingTest", "test 42");
-  const doubled = await ClientApi.doubleNumber(21);
-  ipcRenderer.send("replyData", doubled);
-  ipcRenderer.send("completedTest");
-
+  await sendCall("test 42", () => {
+    return ClientApi.doubleNumber(21);
+  });
   ipcRenderer.send("terminate");
 })();
