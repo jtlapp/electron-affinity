@@ -1,17 +1,22 @@
-import { IpcHandler, SyncIpcHandler } from "../src/ipc_handler";
+import { IpcHandler, AsyncIpcHandler } from "../src/ipc_handler";
+import { ScriptRunner } from "./main_util";
 
-class DoubleNumberIpc extends SyncIpcHandler {
-  constructor() {
+class DoubleNumberIpc extends AsyncIpcHandler {
+  runner: ScriptRunner;
+
+  constructor(runner: ScriptRunner) {
     super("double_number");
+    this.runner = runner;
   }
 
-  handler(n: number) {
+  async handler(n: number) {
+    this.runner.setRequestData(n);
     return n * 2;
   }
 }
 
-export default function (): IpcHandler[] {
+export default function (runner: ScriptRunner): IpcHandler[] {
   return [
-    new DoubleNumberIpc(), // multiline
+    new DoubleNumberIpc(runner), // multiline
   ];
 }
