@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "sourceRoot": "build",
+        "lib": [
+            "es2018", "dom"
+        ],
+        "outDir": "build",
+        "stripInternal": true,
+        "strict": true,
+        "pretty": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "noEmitOnError": true,
+        "allowSyntheticDefaultImports": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+    },
+    "include": [
+        "src/*",
+        "tests/**/*"
+    ],
+    "exclude": [
+        "node_modules/*",
+        "build/*",
+    ]
+}

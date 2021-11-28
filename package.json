@@ -1,0 +1,27 @@
+{
+  "name": "simple-typed-eipc",
+  "version": "0.1.0",
+  "description": "Simple Typed IPC for Electron",
+  "license": "MIT",
+  "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
+  "private": true,
+  "main": "./build/tests/test.js",
+  "scripts": {
+    "test": "tsc && shx cp tests/dummy.html build/tests && electron-mocha build/tests/test.js --timeout 8000"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.10",
+    "electron": "^16.0.2",
+    "electron-mocha": "^11.0.0",
+    "shx": "^0.3.3",
+    "source-map-support": "^0.5.21"
+  },
+  "keywords": [
+    "electron",
+    "ipc",
+    "typescript",
+    "typed"
+  ]
+}
