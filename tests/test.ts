@@ -2,15 +2,15 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { ipcMain, BrowserWindow } from "electron";
 
-import { createWindow, ScriptRunner } from "./main";
+import { createWindow, ResultCollector } from "./main";
 import serverApi from "./server_api";
 
 describe("basic IPC", () => {
-  const runner = new ScriptRunner();
+  const collector = new ResultCollector();
 
   before(async () => {
     const ipcHandlerSets = [
-      serverApi(runner), // multiline
+      serverApi(collector), // multiline
     ];
     ipcHandlerSets.forEach((handlerSet) => {
       handlerSet.forEach((handler) => {
@@ -19,10 +19,27 @@ describe("basic IPC", () => {
     });
   });
 
-  it("gets called and returns a value", async () => {
+  it("main calls renderer", async () => {
     const window = await createWindow();
-    await runner.runScript(window, "client_side");
-    runner.verifyTest("test 42", (result) => {
+    await collector.runScript(window, "call_renderer");
+
+    window.webContents.send("mainEvent", 100);
+    window.webContents.send("completedAll");
+
+    await collector.collectResults();
+    collector.verifyTest("mainEventTest", (result) => {
+      assert.equal(result.error, null);
+      assert.equal(result.requestData, 100);
+    });
+    window.destroy();
+  });
+
+  it("renderer calls main", async () => {
+    const window = await createWindow();
+    await collector.runScript(window, "call_main");
+    await collector.collectResults();
+
+    collector.verifyTest("test 42", (result) => {
       assert.equal(result.error, null);
       assert.equal(result.requestData, 21);
       assert.equal(result.replyData, 42);
@@ -33,6 +50,6 @@ describe("basic IPC", () => {
   after(() => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window) => window.destroy());
-    runner.destroy();
+    collector.destroy();
   });
 });

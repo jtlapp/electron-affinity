@@ -25,7 +25,7 @@ export class Result {
   verified = false;
 }
 
-export class ScriptRunner {
+export class ResultCollector {
   private currentResult = new Result();
   private results: Result[] = [];
   private abortError: any = null;
@@ -55,12 +55,7 @@ export class ScriptRunner {
     });
   }
 
-  async runScript(window: BrowserWindow, scriptName: string): Promise<void> {
-    this.currentResult = new Result();
-    this.results = [];
-    this.abortError = null;
-    this.completedAll = false;
-
+  async collectResults(): Promise<void> {
     const self = this;
     const waitForResult = (
       time: number,
@@ -74,33 +69,37 @@ export class ScriptRunner {
         } else if (self.completedAll) {
           resolve();
         } else if (time >= TEST_TIMEOUT_MILLIS) {
-          reject(Error(`Timed out waiting for '${scriptName}' results`));
+          reject(Error(`Timed out waiting for results`));
         } else {
           waitForResult(time, resolve, reject);
         }
       }, COMPLETION_CHECK_INTERVAL_MILLIS);
     };
 
+    return new Promise((resolve, reject) => waitForResult(0, resolve, reject));
+  }
+
+  async runScript(window: BrowserWindow, scriptName: string) {
+    this.currentResult = new Result();
+    this.results = [];
+    this.abortError = null;
+    this.completedAll = false;
+
     const scriptPath = join(
       __dirname,
       "../../build/tests/scripts",
       scriptName + ".js"
     );
-    window.webContents.executeJavaScript(`
+    await window.webContents.executeJavaScript(`
       try {
         require('${scriptPath}');
       } catch (err) {
         require('electron').ipcRenderer.send('terminate', err);
       }`);
-    return new Promise((resolve, reject) => waitForResult(0, resolve, reject));
   }
 
   setRequestData(data: any) {
     this.currentResult.requestData = data;
-  }
-
-  setReplyData(data: any) {
-    this.currentResult.replyData = data;
   }
 
   verifyTest(testName: string, assertFunc: (result: Result) => void): void {
