@@ -2,7 +2,7 @@ import { ipcRenderer } from "electron";
 
 import { testEvent } from "../renderer";
 
-testEvent("mainEvent", "mainEventTest");
+testEvent("demo_event", "demoEventTest");
 
 ipcRenderer.on("completed_all", () => {
   ipcRenderer.send("completed_all");
