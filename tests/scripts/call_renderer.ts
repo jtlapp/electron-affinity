@@ -1,9 +1,9 @@
 import { ipcRenderer } from "electron";
 
-import { receiveCall } from "../renderer";
+import { testEvent } from "../renderer";
 
-receiveCall("mainEvent", "mainEventTest");
+testEvent("mainEvent", "mainEventTest");
 
-ipcRenderer.on("completedAll", () => {
-  ipcRenderer.send("terminate");
+ipcRenderer.on("completed_all", () => {
+  ipcRenderer.send("completed_all");
 });

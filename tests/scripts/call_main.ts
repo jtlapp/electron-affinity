@@ -1,11 +1,11 @@
 import { ipcRenderer } from "electron";
 
 import { ClientApi } from "../client_api";
-import { sendCall } from "../renderer";
+import { testInvoke } from "../renderer";
 
 (async () => {
-  await sendCall("test 42", () => {
+  await testInvoke("test 42", () => {
     return ClientApi.doubleNumber(21);
   });
-  ipcRenderer.send("terminate");
+  ipcRenderer.send("completed_all");
 })();

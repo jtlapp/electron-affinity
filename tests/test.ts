@@ -24,7 +24,7 @@ describe("basic IPC", () => {
     await collector.runScript(window, "call_renderer");
 
     window.webContents.send("mainEvent", 100);
-    window.webContents.send("completedAll");
+    window.webContents.send("completed_all");
 
     await collector.collectResults();
     collector.verifyTest("mainEventTest", (result) => {

@@ -32,26 +32,25 @@ export class ResultCollector {
   private completedAll = false;
 
   constructor() {
-    ipcMain.on("startingTest", (_event, testName: string) => {
+    ipcMain.on("started_test", (_event, testName: string) => {
       this.currentResult.testName = testName;
     });
-    ipcMain.on("requestData", (_event, data: any) => {
+    ipcMain.on("request_data", (_event, data: any) => {
       this.currentResult.requestData = data;
     });
-    ipcMain.on("replyData", (_event, data: any) => {
+    ipcMain.on("reply_data", (_event, data: any) => {
       this.currentResult.replyData = data;
     });
-    ipcMain.on("completedTest", (_event, error: any) => {
+    ipcMain.on("completed_test", (_event, error: any) => {
       this.currentResult.error = error || null;
       this.results.push(this.currentResult);
       this.currentResult = new Result();
     });
-    ipcMain.on("terminate", (_event, error: any) => {
-      if (error) {
-        this.abortError = error;
-      } else {
-        this.completedAll = true;
-      }
+    ipcMain.on("completed_all", () => {
+      this.completedAll = true;
+    });
+    ipcMain.on("aborted", (_event, error: any) => {
+      this.abortError = error;
     });
   }
 
@@ -94,7 +93,7 @@ export class ResultCollector {
       try {
         require('${scriptPath}');
       } catch (err) {
-        require('electron').ipcRenderer.send('terminate', err);
+        require('electron').ipcRenderer.send('aborted', err);
       }`);
   }
 
@@ -129,11 +128,12 @@ export class ResultCollector {
 
   destroy() {
     [
-      "startingTest",
-      "requestData",
-      "replyData",
-      "completedTest",
-      "terminate",
+      "started_test",
+      "request_data",
+      "reply_data",
+      "completed_test",
+      "completed_all",
+      "aborted",
     ].forEach((eventName) => ipcMain.removeAllListeners(eventName));
   }
 }

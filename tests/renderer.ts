@@ -1,27 +1,27 @@
 import { ipcRenderer } from "electron";
 
-export function receiveCall(eventName: string, testName: string) {
+export function testEvent(eventName: string, testName: string) {
   ipcRenderer.on(eventName, (_event, args) => {
-    ipcRenderer.send("startingTest", testName);
+    ipcRenderer.send("started_test", testName);
     try {
-      ipcRenderer.send("requestData", args);
-      ipcRenderer.send("completedTest");
+      ipcRenderer.send("request_data", args);
+      ipcRenderer.send("completed_test");
     } catch (err) {
-      ipcRenderer.send("completedTest", err);
+      ipcRenderer.send("completed_test", err);
     }
   });
 }
 
-export async function sendCall(
+export async function testInvoke(
   testName: string,
   testFunc: () => Promise<any>
 ): Promise<void> {
-  ipcRenderer.send("startingTest", testName);
+  ipcRenderer.send("started_test", testName);
   try {
     const replyData = await testFunc();
-    ipcRenderer.send("replyData", replyData);
-    ipcRenderer.send("completedTest");
+    ipcRenderer.send("reply_data", replyData);
+    ipcRenderer.send("completed_test");
   } catch (err) {
-    ipcRenderer.send("completedTest", err);
+    ipcRenderer.send("completed_test", err);
   }
 }
