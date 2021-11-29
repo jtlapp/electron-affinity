@@ -7,8 +7,6 @@ const TEST_TIMEOUT_MILLIS = 5000;
 export async function createWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
     show: false,
-    width: 900,
-    height: 600,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
