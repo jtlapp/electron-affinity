@@ -56,9 +56,9 @@ export class ResultCollector {
     });
   }
 
-  async collectResults(): Promise<void> {
+  waitForResults(): Promise<void> {
     const self = this;
-    const waitForResult = (
+    const _waitForResults = (
       time: number,
       resolve: () => void,
       reject: (error: any) => void
@@ -72,15 +72,17 @@ export class ResultCollector {
         } else if (time >= TEST_TIMEOUT_MILLIS) {
           reject(Error(`Timed out waiting for results`));
         } else {
-          waitForResult(time, resolve, reject);
+          _waitForResults(time, resolve, reject);
         }
       }, COMPLETION_CHECK_INTERVAL_MILLIS);
     };
 
-    return new Promise((resolve, reject) => waitForResult(0, resolve, reject));
+    return new Promise((resolve, reject) =>
+      _waitForResults(0, resolve, reject)
+    );
   }
 
-  async runScript(window: BrowserWindow, scriptName: string) {
+  async runScriptInWindow(window: BrowserWindow, scriptName: string) {
     this.currentResult = new Result();
     this.results = [];
     this.abortError = null;
@@ -116,7 +118,7 @@ export class ResultCollector {
     );
   }
 
-  verifyDone(): void {
+  verifyAllDone(): void {
     let testNumber = 0;
     for (const result of this.results) {
       ++testNumber;

@@ -21,8 +21,8 @@ describe("renderer invoking main", () => {
     });
 
     window = await createWindow();
-    await collector.runScript(window, "invoke_tests");
-    await collector.collectResults();
+    await collector.runScriptInWindow(window, "invoke_tests");
+    await collector.waitForResults();
   });
 
   it("does demo invoke", async () => {
@@ -35,6 +35,7 @@ describe("renderer invoking main", () => {
 
   after(() => {
     if (window) window.destroy();
+    collector.verifyAllDone();
   });
 });
 
@@ -43,10 +44,10 @@ describe("main sending event to renderer", () => {
 
   before(async () => {
     window = await createWindow();
-    await collector.runScript(window, "event_tests");
+    await collector.runScriptInWindow(window, "event_tests");
     window.webContents.send("demo_event", 100);
     window.webContents.send("completed_all");
-    await collector.collectResults();
+    await collector.waitForResults();
   });
 
   it("receives demo event", async () => {
@@ -58,5 +59,6 @@ describe("main sending event to renderer", () => {
 
   after(() => {
     if (window) window.destroy();
+    collector.verifyAllDone();
   });
 });
