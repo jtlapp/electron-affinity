@@ -127,15 +127,4 @@ export class ResultCollector {
       }
     }
   }
-
-  destroy() {
-    [
-      "started_test",
-      "request_data",
-      "reply_data",
-      "completed_test",
-      "completed_all",
-      "aborted",
-    ].forEach((eventName) => ipcMain.removeAllListeners(eventName));
-  }
 }
