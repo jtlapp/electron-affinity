@@ -25,11 +25,21 @@ describe("renderer invoking main", () => {
     await collector.waitForResults();
   });
 
-  it("does demo invoke", async () => {
+  it("successful invoke", async () => {
     collector.verifyTest("test 42", (result) => {
       assert.equal(result.error, null);
       assert.equal(result.requestData, 21);
       assert.equal(result.replyData, 42);
+    });
+  });
+
+  it("invoke with FS error", async () => {
+    collector.verifyTest("test FS error", (result) => {
+      assert.notEqual(JSON.stringify(result.error), null);
+      assert.equal(result.error.code, "ENOENT");
+      assert.equal(result.error.syscall, "open");
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
     });
   });
 

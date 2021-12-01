@@ -1,0 +1,48 @@
+import { ipcMain } from "electron";
+
+export type InvokeApi = {
+  [ipcName: string]: (...args: any[]) => Promise<any>;
+};
+
+function assertInvokeApi<T extends InvokeApi>(template: T) {
+  return template;
+}
+
+const sampleInvokeApi = assertInvokeApi({
+  addNumbers: async (x: number, y: number) => {
+    return x + y;
+  },
+  redAlert: async () => {
+    console.log("do nothing");
+  },
+});
+
+import { IpcMain } from "electron";
+
+export abstract class InvokeIpcHandler {
+  channel: string;
+
+  constructor(channel: string) {
+    this.channel = channel;
+  }
+
+  register(ipcMain: IpcMain): void {
+    ipcMain.handle(this.channel, async (_event, request) => {
+      try {
+        // await before returning to keep Electron from writing errors
+        const response = await this.handler(request);
+        return response;
+      } catch (err) {
+        return err;
+      }
+    });
+  }
+
+  abstract handler(request: any): Promise<any>;
+}
+
+export function registerApi(api: InvokeApi): void {
+  for (const [funcName, func] of Object.entries(api)) {
+    ipcMain.handle("genapi_" + funcName, async (_event, args) => {});
+  }
+}

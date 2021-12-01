@@ -7,5 +7,8 @@ import { testInvoke } from "../renderer";
   await testInvoke("test 42", () => {
     return ClientApi.doubleNumber(21);
   });
+  await testInvoke("test FS error", () => {
+    return ClientApi.throwFSError();
+  });
   ipcRenderer.send("completed_all");
 })();

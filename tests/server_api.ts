@@ -1,5 +1,6 @@
 import { IpcHandler, AsyncIpcHandler } from "../src/ipc_handler";
 import { ResultCollector } from "./main";
+import * as fs from "fs";
 
 class DoubleNumberIpc extends AsyncIpcHandler {
   collector: ResultCollector;
@@ -15,8 +16,31 @@ class DoubleNumberIpc extends AsyncIpcHandler {
   }
 }
 
+class ThrowFSErrorIpc extends AsyncIpcHandler {
+  collector: ResultCollector;
+
+  constructor(collector: ResultCollector) {
+    super("throw_fs_error");
+    this.collector = collector;
+  }
+
+  async handler() {
+    fs.readFileSync("__nonexistant__.txt");
+  }
+}
+
 export default function (collector: ResultCollector): IpcHandler[] {
   return [
     new DoubleNumberIpc(collector), // multiline
+    new ThrowFSErrorIpc(collector),
   ];
 }
+
+// class CustomError extends Error {
+//   code: number;
+
+//   constructor(message: string) {
+//     super(message);
+//     this.code = 1001;
+//   }
+// }
