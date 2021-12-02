@@ -12,16 +12,4 @@ export class ClientIpc {
     }
     return response;
   }
-
-  static sendSync(channel: string, request?: any): any {
-    const response = ipcRenderer.sendSync(channel, request);
-    if (response.__eipc_error) {
-      const err = new Error(response.message);
-      delete response.__epic_class;
-      delete response.message;
-      Object.assign(err, response);
-      throw err;
-    }
-    return response;
-  }
 }
