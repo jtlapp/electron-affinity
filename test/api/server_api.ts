@@ -1,4 +1,4 @@
-import { IpcHandler, AsyncIpcHandler } from "../../src/ipc_handler";
+import { AsyncIpcHandler } from "../../src/ipc_handler";
 import { ResultCollector } from "../lib/main_util";
 import * as fs from "fs";
 
@@ -29,7 +29,7 @@ class ThrowFSErrorIpc extends AsyncIpcHandler {
   }
 }
 
-export default function (collector: ResultCollector): IpcHandler[] {
+export default function (collector: ResultCollector): AsyncIpcHandler[] {
   return [
     new DoubleNumberIpc(collector), // multiline
     new ThrowFSErrorIpc(collector),

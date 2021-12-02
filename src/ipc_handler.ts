@@ -1,18 +1,10 @@
 import { IpcMain } from "electron";
 
-export abstract class IpcHandler {
+export abstract class AsyncIpcHandler {
   channel: string;
 
   constructor(channel: string) {
     this.channel = channel;
-  }
-
-  abstract register(ipcMain: IpcMain): void;
-}
-
-export abstract class AsyncIpcHandler extends IpcHandler {
-  constructor(channel: string) {
-    super(channel);
   }
 
   register(ipcMain: IpcMain): void {
@@ -44,18 +36,4 @@ export abstract class AsyncIpcHandler extends IpcHandler {
   }
 
   abstract handler(request: any): Promise<any>;
-}
-
-export abstract class SyncIpcHandler extends IpcHandler {
-  constructor(channel: string) {
-    super(channel);
-  }
-
-  register(ipcMain: IpcMain): void {
-    ipcMain.on(this.channel, (event, request) => {
-      event.returnValue = this.handler(request);
-    });
-  }
-
-  abstract handler(request: any): any;
 }
