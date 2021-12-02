@@ -13,7 +13,7 @@ export async function createWindow(): Promise<BrowserWindow> {
     },
   });
 
-  await window.loadFile(join(__dirname, "dummy.html"));
+  await window.loadFile(join(__dirname, "../client/dummy.html"));
   return window;
 }
 
@@ -88,7 +88,7 @@ export class ResultCollector {
 
     const scriptPath = join(
       __dirname,
-      "../../build/tests/scripts",
+      "../../tests/client",
       scriptName + ".js"
     );
     await window.webContents.executeJavaScript(`

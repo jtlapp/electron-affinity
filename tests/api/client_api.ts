@@ -1,4 +1,4 @@
-import { ClientIpc } from "../src/client_ipc";
+import { ClientIpc } from "../../src/client_ipc";
 
 export class ClientApi {
   static doubleNumber(n: number): Promise<number> {

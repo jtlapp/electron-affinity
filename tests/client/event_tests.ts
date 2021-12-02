@@ -1,6 +1,6 @@
 import { ipcRenderer } from "electron";
 
-import { testEvent } from "../renderer";
+import { testEvent } from "../lib/renderer_util";
 
 testEvent("demo_event", "demoEventTest");
 

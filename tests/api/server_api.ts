@@ -1,5 +1,5 @@
-import { IpcHandler, AsyncIpcHandler } from "../src/ipc_handler";
-import { ResultCollector } from "./main";
+import { IpcHandler, AsyncIpcHandler } from "../../src/ipc_handler";
+import { ResultCollector } from "../lib/main_util";
 import * as fs from "fs";
 
 class DoubleNumberIpc extends AsyncIpcHandler {

@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 
-import { ClientApi } from "../client_api";
-import { testInvoke } from "../renderer";
+import { ClientApi } from "../api/client_api";
+import { testInvoke } from "../lib/renderer_util";
 
 (async () => {
   await testInvoke("test 42", () => {

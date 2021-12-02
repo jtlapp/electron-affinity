@@ -2,8 +2,8 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { ipcMain, BrowserWindow } from "electron";
 
-import { createWindow, ResultCollector } from "./main";
-import serverApi from "./server_api";
+import { createWindow, ResultCollector } from "./lib/main_util";
+import serverApi from "./api/server_api";
 
 const collector = new ResultCollector();
 
