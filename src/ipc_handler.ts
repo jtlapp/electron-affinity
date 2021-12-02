@@ -8,10 +8,10 @@ export abstract class AsyncIpcHandler {
   }
 
   register(ipcMain: IpcMain): void {
-    ipcMain.handle(this.channel, async (_event, request) => {
+    ipcMain.handle(this.channel, async (_event, args: any[]) => {
       try {
         //await before returning to keep Electron from writing errors
-        const response = await this.handler(request);
+        const response = await this.handler(...args);
         return response;
       } catch (err: any) {
         // Electron will throw an instance of Error either thrown from
@@ -35,5 +35,5 @@ export abstract class AsyncIpcHandler {
     });
   }
 
-  abstract handler(request: any): Promise<any>;
+  abstract handler(...args: any[]): Promise<any>;
 }

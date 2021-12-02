@@ -25,16 +25,24 @@ describe("renderer invoking main", () => {
     await collector.waitForResults();
   });
 
-  it("successful invoke", async () => {
-    collector.verifyTest("test 42", (result) => {
+  it("single-parameter invoke", async () => {
+    collector.verifyTest("single param", (result) => {
       assert.equal(result.error, null);
-      assert.equal(result.requestData, 21);
+      assert.deepEqual(result.requestData, [21]);
       assert.equal(result.replyData, 42);
     });
   });
 
-  it("invoke with FS error", async () => {
-    collector.verifyTest("test FS error", (result) => {
+  it("multi-parameter invoke", async () => {
+    collector.verifyTest("multi param", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [5, 10]);
+      assert.equal(result.replyData, 15);
+    });
+  });
+
+  it("invoke with structured error", async () => {
+    collector.verifyTest("structured error", (result) => {
       assert.notEqual(JSON.stringify(result.error), null);
       assert.equal(result.error.code, "ENOENT");
       assert.equal(result.error.syscall, "open");

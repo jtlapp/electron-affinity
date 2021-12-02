@@ -10,9 +10,23 @@ class DoubleNumberIpc extends AsyncIpcHandler {
     this.collector = collector;
   }
 
-  async handler(n: number) {
-    this.collector.setRequestData(n);
-    return n * 2;
+  async handler(x: number) {
+    this.collector.setRequestData([x]);
+    return x * 2;
+  }
+}
+
+class SumNumbersIpc extends AsyncIpcHandler {
+  collector: ResultCollector;
+
+  constructor(collector: ResultCollector) {
+    super("sum_numbers");
+    this.collector = collector;
+  }
+
+  async handler(x: number, y: number) {
+    this.collector.setRequestData([x, y]);
+    return x + y;
   }
 }
 
@@ -32,6 +46,7 @@ class ThrowFSErrorIpc extends AsyncIpcHandler {
 export default function (collector: ResultCollector): AsyncIpcHandler[] {
   return [
     new DoubleNumberIpc(collector), // multiline
+    new SumNumbersIpc(collector),
     new ThrowFSErrorIpc(collector),
   ];
 }
