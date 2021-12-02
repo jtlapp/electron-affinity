@@ -86,11 +86,7 @@ export class ResultCollector {
     this.abortError = null;
     this.completedAll = false;
 
-    const scriptPath = join(
-      __dirname,
-      "../../tests/client",
-      scriptName + ".js"
-    );
+    const scriptPath = join(__dirname, "../../test/client", scriptName + ".js");
     await window.webContents.executeJavaScript(`
       try {
         require('${scriptPath}');
