@@ -1,15 +1,24 @@
 import { ipcRenderer } from "electron";
 
+import { Recovery } from "./recovery";
+
 export class ClientIpc {
-  static async sendAsync(channel: string, args?: any[]): Promise<any> {
-    const response = await ipcRenderer.invoke(channel, args);
-    if (response.__eipc_error) {
-      const err = new Error(response.message);
-      delete response.__epic_class;
-      delete response.message;
-      Object.assign(err, response);
-      throw err;
+  recoveryFunc?: Recovery.RecoveryFunction;
+
+  constructor(recoveryFunc?: Recovery.RecoveryFunction) {
+    this.recoveryFunc = recoveryFunc;
+  }
+
+  async sendAsync(channel: string, args?: any[]): Promise<any> {
+    if (args !== undefined) {
+      for (const arg of args) {
+        Recovery.prepareArgument(arg);
+      }
     }
-    return response;
+    let response = await ipcRenderer.invoke(channel, args);
+    if (Recovery.wasThrownError(response)) {
+      throw Recovery.recoverThrownError(response, this.recoveryFunc);
+    }
+    return Recovery.recoverArgument(response, this.recoveryFunc);
   }
 }

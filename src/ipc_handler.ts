@@ -1,36 +1,31 @@
 import { IpcMain } from "electron";
 
+import { Recovery } from "./recovery";
+
 export abstract class AsyncIpcHandler {
   channel: string;
+  recoveryFunc?: Recovery.RecoveryFunction;
 
-  constructor(channel: string) {
+  constructor(channel: string, recoveryFunc?: Recovery.RecoveryFunction) {
     this.channel = channel;
+    this.recoveryFunc = recoveryFunc;
   }
 
   register(ipcMain: IpcMain): void {
     ipcMain.handle(this.channel, async (_event, args: any[]) => {
       try {
+        if (this.recoveryFunc !== undefined) {
+          for (let i = 0; i < args.length; ++i) {
+            args[i] = Recovery.recoverArgument(args[i], this.recoveryFunc);
+          }
+        }
         //await before returning to keep Electron from writing errors
         const response = await this.handler(...args);
-        return response;
+        return Recovery.prepareArgument(response);
       } catch (err: any) {
-        // Electron will throw an instance of Error either thrown from
-        // here or returned from here, but that instance will only carry
-        // the message property and no other properties. In order to
-        // retain the error properties, I have to return an object that
-        // is not an instance of error. However, I'm intentionally not
-        // preserving the stack trace for use by the client.
-
         // TODO: I should probably provide a way to show that stack
         // trace in case it's an error requiring debugging.
-        return Object.assign(
-          {
-            __eipc_error: true,
-            __epic_class: err.constructor.name,
-            message: err.message,
-          },
-          err
-        );
+        return Recovery.prepareThrownError(err);
       }
     });
   }

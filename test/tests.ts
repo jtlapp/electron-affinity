@@ -4,8 +4,9 @@ import { ipcMain, BrowserWindow } from "electron";
 
 import { createWindow, ResultCollector } from "./lib/main_util";
 import serverApi from "./api/server_api";
+import { Catter, recoverClass } from "./api/classes";
 
-const collector = new ResultCollector();
+const collector = new ResultCollector(recoverClass);
 
 describe("renderer invoking main", () => {
   let window: BrowserWindow;
@@ -41,11 +42,39 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("invoke with structured error", async () => {
+  it("sending class instance", async () => {
+    collector.verifyTest("send class instance", (result) => {
+      assert.equal(result.error, null);
+      assert.ok(result.requestData[0] instanceof Catter);
+      assert.equal(result.replyData, "thisthat");
+    });
+  });
+
+  it("getting class instance", async () => {
+    collector.verifyTest("get class instance", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, ["this", "that"]);
+      assert.ok(result.replyData instanceof Catter);
+      assert.equal(result.replyData.cat(), "thisthat");
+    });
+  });
+
+  it("invoke throwing plain error", async () => {
+    collector.verifyTest("plain error", (result) => {
+      assert.ok(result.error instanceof Error);
+      assert.equal(result.error.message, "Just a plain error");
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
+  it("invoke throwing structured error", async () => {
     collector.verifyTest("structured error", (result) => {
-      assert.notEqual(JSON.stringify(result.error), null);
-      assert.equal(result.error.code, "ENOENT");
-      assert.equal(result.error.syscall, "open");
+      const error = result.error as any;
+      assert.ok(error instanceof Error);
+      assert.ok(typeof error.message == "string");
+      assert.equal((error as any).code, "ENOENT");
+      assert.equal((error as any).syscall, "open");
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });

@@ -1,6 +1,8 @@
 import { ipcMain, BrowserWindow } from "electron";
 import { join } from "path";
 
+import { Recovery } from "../../src/recovery";
+
 const COMPLETION_CHECK_INTERVAL_MILLIS = 100;
 const TEST_TIMEOUT_MILLIS = 5000;
 
@@ -31,18 +33,30 @@ export class ResultCollector {
   private abortError: any = null;
   private completedAll = false;
 
-  constructor() {
+  constructor(recoverFunc: Recovery.RecoveryFunction) {
     ipcMain.on("started_test", (_event, testName: string) => {
       this.currentResult.testName = testName;
     });
     ipcMain.on("request_data", (_event, data: any) => {
-      this.currentResult.requestData = data;
+      this.currentResult.requestData = Recovery.recoverArgument(
+        data,
+        recoverFunc
+      );
     });
     ipcMain.on("reply_data", (_event, data: any) => {
-      this.currentResult.replyData = data;
+      this.currentResult.replyData = Recovery.recoverArgument(
+        data,
+        recoverFunc
+      );
     });
     ipcMain.on("completed_test", (_event, error: any) => {
-      this.currentResult.error = error || null;
+      this.currentResult.error = null;
+      if (error) {
+        this.currentResult.error = Recovery.recoverThrownError(
+          error,
+          recoverFunc
+        );
+      }
       this.results.push(this.currentResult);
       this.currentResult = new Result();
     });
