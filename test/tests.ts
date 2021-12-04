@@ -97,7 +97,10 @@ describe("renderer invoking main", () => {
       assert.ok(error instanceof CustomError);
       assert.equal(error.message, "bad thing");
       assert.equal(error.code, 99);
-      assert.equal(result.error.stack, "Error: bad thing\n\tin main process");
+      assert.equal(
+        result.error.stack,
+        "CustomError: bad thing\n\tin main process"
+      );
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });

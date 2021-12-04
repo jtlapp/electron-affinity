@@ -57,7 +57,7 @@ export namespace Recovery {
       error = Object.assign(new Error(message), error);
     }
     // Drop stack trace for main process.
-    error.stack = `Error: ${error.message}\n\tin main process`;
+    error.stack = `${error.constructor.name}: ${error.message}\n\tin main process`;
     return error;
   }
 }
