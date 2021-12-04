@@ -3,6 +3,17 @@ import { AsyncIpcHandler } from "../../src/ipc_handler";
 import { ResultCollector } from "../lib/main_util";
 import { recoverClass, Catter, CustomError } from "./classes";
 
+class NoReplyNoErrorIpc extends AsyncIpcHandler {
+  collector: ResultCollector;
+
+  constructor(collector: ResultCollector) {
+    super("no_reply_no_error");
+    this.collector = collector;
+  }
+
+  async handler() {}
+}
+
 class DoubleNumberIpc extends AsyncIpcHandler {
   collector: ResultCollector;
 
@@ -100,7 +111,8 @@ class ThrowCustomErrorIpc extends AsyncIpcHandler {
 
 export default function (collector: ResultCollector): AsyncIpcHandler[] {
   return [
-    new DoubleNumberIpc(collector), // multiline
+    new NoReplyNoErrorIpc(collector), // multiline
+    new DoubleNumberIpc(collector),
     new SumNumbersIpc(collector),
     new SendCatterIpc(collector),
     new MakeCatterIpc(collector),
@@ -109,12 +121,3 @@ export default function (collector: ResultCollector): AsyncIpcHandler[] {
     new ThrowCustomErrorIpc(collector),
   ];
 }
-
-// class CustomError extends Error {
-//   code: number;
-
-//   constructor(message: string) {
-//     super(message);
-//     this.code = 1001;
-//   }
-// }

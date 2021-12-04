@@ -28,14 +28,14 @@ export namespace Recovery {
   }
 
   export function wasThrownError(error: any): boolean {
-    return error.__eipc_thrown !== undefined;
+    return error != undefined && error.__eipc_thrown !== undefined;
   }
 
   export function recoverArgument(
     arg: any,
     recoveryFunc?: RecoveryFunction
   ): any {
-    if (arg.__eipc_class !== undefined) {
+    if (arg !== undefined && arg.__eipc_class !== undefined) {
       const className = arg.__eipc_class;
       delete arg.__eipc_class;
       if (recoveryFunc !== undefined) {

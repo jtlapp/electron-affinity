@@ -5,6 +5,10 @@ import { Catter, recoverClass } from "./classes";
 const clientIpc = new ClientIpc(recoverClass);
 
 export class ClientApi {
+  static noReplyNoError(): Promise<number> {
+    return clientIpc.sendAsync("no_reply_no_error", []);
+  }
+
   static doubleNumber(x: number): Promise<number> {
     return clientIpc.sendAsync("double_number", [x]);
   }

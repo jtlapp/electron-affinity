@@ -27,6 +27,14 @@ describe("renderer invoking main", () => {
     await collector.waitForResults();
   });
 
+  test("invoke with no reply and no error", async () => {
+    collector.verifyTest("no reply no error", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
   test("single-parameter invoke", async () => {
     collector.verifyTest("single param", (result) => {
       assert.equal(result.error, null);

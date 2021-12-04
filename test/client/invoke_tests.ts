@@ -5,6 +5,9 @@ import { Catter } from "../api/classes";
 import { testInvoke } from "../lib/renderer_util";
 
 (async () => {
+  await testInvoke("no reply no error", () => {
+    return ClientApi.noReplyNoError();
+  });
   await testInvoke("single param", () => {
     return ClientApi.doubleNumber(21);
   });
