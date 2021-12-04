@@ -10,6 +10,7 @@ const collector = new ResultCollector(recoverClass);
 
 describe("renderer invoking main", () => {
   let window: BrowserWindow;
+  const test = it;
 
   before(async () => {
     const ipcHandlerSets = [
@@ -26,7 +27,7 @@ describe("renderer invoking main", () => {
     await collector.waitForResults();
   });
 
-  it("single-parameter invoke", async () => {
+  test("single-parameter invoke", async () => {
     collector.verifyTest("single param", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [21]);
@@ -34,7 +35,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("multi-parameter invoke", async () => {
+  test("multi-parameter invoke", async () => {
     collector.verifyTest("multi param", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [5, 10]);
@@ -42,7 +43,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("sending class instance", async () => {
+  test("sending class instance", async () => {
     collector.verifyTest("send class instance", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
@@ -50,7 +51,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("getting class instance", async () => {
+  test("getting class instance", async () => {
     collector.verifyTest("get class instance", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
@@ -59,7 +60,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("invoke throwing plain error", async () => {
+  test("invoke throwing plain error", async () => {
     collector.verifyTest("plain error", (result) => {
       assert.ok(result.error instanceof Error);
       assert.equal(result.error.message, "Just a plain error");
@@ -68,7 +69,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("invoke throwing structured error", async () => {
+  test("invoke throwing structured error", async () => {
     collector.verifyTest("structured error", (result) => {
       const error = result.error as any;
       assert.ok(error instanceof Error);
@@ -80,7 +81,7 @@ describe("renderer invoking main", () => {
     });
   });
 
-  it("invoke throwing custom error", async () => {
+  test("invoke throwing custom error", async () => {
     collector.verifyTest("custom error", (result) => {
       const error = result.error as any;
       assert.ok(error instanceof CustomError);
