@@ -20,8 +20,11 @@ import { testInvoke } from "../lib/renderer_util";
   await testInvoke("get class instance", () => {
     return ClientApi.makeCatter("this", "that");
   });
+  await testInvoke("all good", () => {
+    return ClientApi.allGoodOrNot(true);
+  });
   await testInvoke("plain error", () => {
-    return ClientApi.throwPlainError();
+    return ClientApi.allGoodOrNot(false);
   });
   await testInvoke("structured error", () => {
     return ClientApi.throwFSError();

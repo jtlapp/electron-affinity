@@ -65,6 +65,14 @@ describe("renderer invoking main", () => {
     });
   });
 
+  test("conditional error succeeding", async () => {
+    collector.verifyTest("all good", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [true]);
+      assert.equal(result.replyData, "all good");
+    });
+  });
+
   test("invoke throwing plain error", async () => {
     collector.verifyTest("plain error", (result) => {
       assert.ok(result.error instanceof Error);
@@ -73,7 +81,7 @@ describe("renderer invoking main", () => {
         result.error.stack,
         "Error: Just a plain error\n\tin main process"
       );
-      assert.equal(result.requestData, undefined);
+      assert.deepEqual(result.requestData, [false]);
       assert.equal(result.replyData, undefined);
     });
   });

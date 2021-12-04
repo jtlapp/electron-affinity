@@ -34,12 +34,16 @@ export const ServerApi = assertServerApi(
       return new Catter(s1, s2);
     }
 
-    async throwPlainError() {
-      throw Error("Just a plain error");
+    async allGoodOrNot(succeed: boolean) {
+      this._setRequestData(succeed);
+      if (!succeed) {
+        throw Error("Just a plain error");
+      }
+      return "all good";
     }
 
     async throwFSError() {
-      fs.readFileSync("__nonexistant__.txt");
+      fs.readFileSync("__nonexistant_file__");
     }
 
     async throwCustomError(message: string, code: number) {

@@ -24,8 +24,8 @@ export class ClientApi {
     return clientIpc.sendAsync("method-makeCatter", [s1, s2]);
   }
 
-  static throwPlainError(): Promise<number> {
-    return clientIpc.sendAsync("method-throwPlainError");
+  static allGoodOrNot(succeed: boolean): Promise<number> {
+    return clientIpc.sendAsync("method-allGoodOrNot", [succeed]);
   }
 
   static throwFSError(): Promise<number> {
