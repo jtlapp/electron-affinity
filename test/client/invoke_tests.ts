@@ -23,5 +23,8 @@ import { testInvoke } from "../lib/renderer_util";
   await testInvoke("structured error", () => {
     return ClientApi.throwFSError();
   });
+  await testInvoke("custom error", () => {
+    return ClientApi.throwCustomError("bad thing", 99);
+  });
   ipcRenderer.send("completed_all");
 })();

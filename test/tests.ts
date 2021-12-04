@@ -4,7 +4,7 @@ import { ipcMain, BrowserWindow } from "electron";
 
 import { createWindow, ResultCollector } from "./lib/main_util";
 import serverApi from "./api/server_api";
-import { Catter, recoverClass } from "./api/classes";
+import { Catter, CustomError, recoverClass } from "./api/classes";
 
 const collector = new ResultCollector(recoverClass);
 
@@ -75,6 +75,17 @@ describe("renderer invoking main", () => {
       assert.ok(typeof error.message == "string");
       assert.equal((error as any).code, "ENOENT");
       assert.equal((error as any).syscall, "open");
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
+  it("invoke throwing custom error", async () => {
+    collector.verifyTest("custom error", (result) => {
+      const error = result.error as any;
+      assert.ok(error instanceof CustomError);
+      assert.equal(error.message, "bad thing");
+      assert.equal(error.code, 99);
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });

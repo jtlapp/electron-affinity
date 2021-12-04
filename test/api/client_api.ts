@@ -31,4 +31,8 @@ export class ClientApi {
   static throwFSError(): Promise<number> {
     return clientIpc.sendAsync("throw_fs_error");
   }
+
+  static throwCustomError(message: string, code: number): Promise<number> {
+    return clientIpc.sendAsync("throw_custom_error", [message, code]);
+  }
 }

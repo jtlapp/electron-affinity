@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { AsyncIpcHandler } from "../../src/ipc_handler";
 import { ResultCollector } from "../lib/main_util";
-import { recoverClass, Catter } from "./classes";
+import { recoverClass, Catter, CustomError } from "./classes";
 
 class DoubleNumberIpc extends AsyncIpcHandler {
   collector: ResultCollector;
@@ -85,6 +85,19 @@ class ThrowFSErrorIpc extends AsyncIpcHandler {
   }
 }
 
+class ThrowCustomErrorIpc extends AsyncIpcHandler {
+  collector: ResultCollector;
+
+  constructor(collector: ResultCollector) {
+    super("throw_custom_error");
+    this.collector = collector;
+  }
+
+  async handler(message: string, code: number) {
+    throw new CustomError(message, code);
+  }
+}
+
 export default function (collector: ResultCollector): AsyncIpcHandler[] {
   return [
     new DoubleNumberIpc(collector), // multiline
@@ -93,6 +106,7 @@ export default function (collector: ResultCollector): AsyncIpcHandler[] {
     new MakeCatterIpc(collector),
     new ThrowPlainErrorIpc(collector),
     new ThrowFSErrorIpc(collector),
+    new ThrowCustomErrorIpc(collector),
   ];
 }
 

@@ -3,7 +3,7 @@
         "sourceMap": true,
         "sourceRoot": "build",
         "lib": [
-            "es2018", "dom"
+            "esnext", "dom"
         ],
         "outDir": "build",
         "stripInternal": true,

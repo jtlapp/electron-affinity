@@ -22,6 +22,8 @@ export class CustomError extends Error {
   constructor(message: string, code: number) {
     super(message);
     this.code = code;
+    // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, CustomError.prototype);
   }
 
   static recover(obj: any): CustomError {
