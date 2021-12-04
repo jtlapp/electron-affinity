@@ -1,27 +1,24 @@
 import "source-map-support/register";
 import * as assert from "assert";
-import { ipcMain, BrowserWindow } from "electron";
+import { BrowserWindow } from "electron";
 
+import { registerServerApi } from "../src/ipc";
 import { createWindow, ResultCollector } from "./lib/main_util";
-import serverApi from "./api/server_api";
+import { ServerApi } from "./api/server_api";
 import { Catter, CustomError, recoverClass } from "./api/classes";
 
+// import { setIpcErrorLogger } from "../src/ipc";
+// setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));
+
 const collector = new ResultCollector(recoverClass);
+const serverApi = new ServerApi(collector);
+registerServerApi(serverApi, recoverClass);
 
 describe("renderer invoking main", () => {
   let window: BrowserWindow;
   const test = it;
 
   before(async () => {
-    const ipcHandlerSets = [
-      serverApi(collector), // multiline
-    ];
-    ipcHandlerSets.forEach((handlerSet) => {
-      handlerSet.forEach((handler) => {
-        handler.register(ipcMain);
-      });
-    });
-
     window = await createWindow();
     await collector.runScriptInWindow(window, "invoke_tests");
     await collector.waitForResults();
@@ -72,6 +69,10 @@ describe("renderer invoking main", () => {
     collector.verifyTest("plain error", (result) => {
       assert.ok(result.error instanceof Error);
       assert.equal(result.error.message, "Just a plain error");
+      assert.equal(
+        result.error.stack,
+        "Error: Just a plain error\n\tin main process"
+      );
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });
@@ -84,6 +85,7 @@ describe("renderer invoking main", () => {
       assert.ok(typeof error.message == "string");
       assert.equal((error as any).code, "ENOENT");
       assert.equal((error as any).syscall, "open");
+      assert.ok((error as any).stack.includes("in main process"));
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });
@@ -95,6 +97,7 @@ describe("renderer invoking main", () => {
       assert.ok(error instanceof CustomError);
       assert.equal(error.message, "bad thing");
       assert.equal(error.code, 99);
+      assert.equal(result.error.stack, "Error: bad thing\n\tin main process");
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });

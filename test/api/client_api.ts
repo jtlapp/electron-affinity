@@ -5,34 +5,34 @@ const clientIpc = new ClientIpc(recoverClass);
 
 export class ClientApi {
   static noReplyNoError(): Promise<number> {
-    return clientIpc.sendAsync("no_reply_no_error", []);
+    return clientIpc.sendAsync("method-noReplyNoError", []);
   }
 
   static doubleNumber(x: number): Promise<number> {
-    return clientIpc.sendAsync("double_number", [x]);
+    return clientIpc.sendAsync("method-doubleNumber", [x]);
   }
 
   static sumNumbers(x: number, y: number): Promise<number> {
-    return clientIpc.sendAsync("sum_numbers", [x, y]);
+    return clientIpc.sendAsync("method-sumNumbers", [x, y]);
   }
 
   static sendCatter(catter: Catter): Promise<string> {
-    return clientIpc.sendAsync("send_catter", [catter]);
+    return clientIpc.sendAsync("method-sendCatter", [catter]);
   }
 
   static async makeCatter(s1: string, s2: string): Promise<Catter> {
-    return clientIpc.sendAsync("make_catter", [s1, s2]);
+    return clientIpc.sendAsync("method-makeCatter", [s1, s2]);
   }
 
   static throwPlainError(): Promise<number> {
-    return clientIpc.sendAsync("throw_plain_error");
+    return clientIpc.sendAsync("method-throwPlainError");
   }
 
   static throwFSError(): Promise<number> {
-    return clientIpc.sendAsync("throw_fs_error");
+    return clientIpc.sendAsync("method-throwFSError");
   }
 
   static throwCustomError(message: string, code: number): Promise<number> {
-    return clientIpc.sendAsync("throw_custom_error", [message, code]);
+    return clientIpc.sendAsync("method-throwCustomError", [message, code]);
   }
 }

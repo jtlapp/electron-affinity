@@ -51,11 +51,13 @@ export namespace Recovery {
   ): Error {
     delete error.__eipc_thrown;
     error = recoverArgument(error, recoveryFunc);
-    if (error instanceof Error) {
-      return error;
+    if (!(error instanceof Error)) {
+      const message = error.message;
+      delete error.message;
+      error = Object.assign(new Error(message), error);
     }
-    const message = error.message;
-    delete error.message;
-    return Object.assign(new Error(message), error);
+    // Drop stack trace for main process.
+    error.stack = `Error: ${error.message}\n\tin main process`;
+    return error;
   }
 }
