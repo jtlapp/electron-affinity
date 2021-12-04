@@ -21,7 +21,7 @@ export class ClientApi {
   }
 
   static async makeCatter(s1: string, s2: string): Promise<Catter> {
-    return await clientIpc.sendAsync("make_catter", [s1, s2]);
+    return clientIpc.sendAsync("make_catter", [s1, s2]);
   }
 
   static throwPlainError(): Promise<number> {
