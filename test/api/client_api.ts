@@ -1,5 +1,4 @@
 import { ClientIpc } from "../../src/client_ipc";
-import { Recovery } from "../../src/recovery";
 import { Catter, recoverClass } from "./classes";
 
 const clientIpc = new ClientIpc(recoverClass);
@@ -22,10 +21,7 @@ export class ClientApi {
   }
 
   static async makeCatter(s1: string, s2: string): Promise<Catter> {
-    return Recovery.recoverArgument(
-      await clientIpc.sendAsync("make_catter", [s1, s2]),
-      recoverClass
-    );
+    return await clientIpc.sendAsync("make_catter", [s1, s2]);
   }
 
   static throwPlainError(): Promise<number> {
