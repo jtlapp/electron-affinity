@@ -15,22 +15,22 @@ export const ServerApi = assertServerApi(
     async noReplyNoError() {}
 
     async doubleNumber(x: number) {
-      this._setRequestData([x]);
+      this._setRequestData(x);
       return x * 2;
     }
 
     async sumNumbers(x: number, y: number) {
-      this._setRequestData([x, y]);
+      this._setRequestData(x, y);
       return x + y;
     }
 
     async sendCatter(catter: Catter) {
-      this._setRequestData([catter]);
+      this._setRequestData(catter);
       return catter.cat();
     }
 
     async makeCatter(s1: string, s2: string) {
-      this._setRequestData([s1, s2]);
+      this._setRequestData(s1, s2);
       return new Catter(s1, s2);
     }
 
@@ -46,7 +46,7 @@ export const ServerApi = assertServerApi(
       throw new CustomError(message, code);
     }
 
-    _setRequestData(args: any[]) {
+    _setRequestData(...args: any[]) {
       this._collector.setRequestData(args);
     }
   }
