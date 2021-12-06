@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-import { assertServerApi } from "../../src/ipc";
+import { assertServerApi } from "../../src/server_ipc";
 import { ResultCollector } from "../lib/main_util";
 import { Catter, CustomError } from "./classes";
 

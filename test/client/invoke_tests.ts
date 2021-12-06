@@ -1,36 +1,42 @@
 import { ipcRenderer } from "electron";
 
-import { ClientApi } from "../api/client_api";
-import { Catter } from "../api/classes";
+import { bindIpcApi } from "../../src/client_ipc";
+import { ServerApi } from "../api/server_api";
+import { Catter, recoverClass } from "../api/classes";
 import { testInvoke } from "../lib/renderer_util";
 
 (async () => {
+  const clientApi = await bindIpcApi<typeof ServerApi>(
+    "ServerApi",
+    recoverClass
+  );
+
   await testInvoke("no reply no error", () => {
-    return ClientApi.noReplyNoError();
+    return clientApi.noReplyNoError();
   });
   await testInvoke("single param", () => {
-    return ClientApi.doubleNumber(21);
+    return clientApi.doubleNumber(21);
   });
   await testInvoke("multi param", () => {
-    return ClientApi.sumNumbers(5, 10);
+    return clientApi.sumNumbers(5, 10);
   });
   await testInvoke("send class instance", () => {
-    return ClientApi.sendCatter(new Catter("this", "that"));
+    return clientApi.sendCatter(new Catter("this", "that"));
   });
   await testInvoke("get class instance", () => {
-    return ClientApi.makeCatter("this", "that");
+    return clientApi.makeCatter("this", "that");
   });
   await testInvoke("all good", () => {
-    return ClientApi.allGoodOrNot(true);
+    return clientApi.allGoodOrNot(true);
   });
   await testInvoke("plain error", () => {
-    return ClientApi.allGoodOrNot(false);
+    return clientApi.allGoodOrNot(false);
   });
   await testInvoke("structured error", () => {
-    return ClientApi.throwFSError();
+    return clientApi.throwFSError();
   });
   await testInvoke("custom error", () => {
-    return ClientApi.throwCustomError("bad thing", 99);
+    return clientApi.throwCustomError("bad thing", 99);
   });
   ipcRenderer.send("completed_all");
 })();

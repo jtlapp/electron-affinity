@@ -2,7 +2,7 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
-import { registerServerApi } from "../src/ipc";
+import { exposeServerApi } from "../src/server_ipc";
 import { createWindow, ResultCollector } from "./lib/main_util";
 import { ServerApi } from "./api/server_api";
 import { Catter, CustomError, recoverClass } from "./api/classes";
@@ -12,7 +12,6 @@ import { Catter, CustomError, recoverClass } from "./api/classes";
 
 const collector = new ResultCollector(recoverClass);
 const serverApi = new ServerApi(collector);
-registerServerApi(serverApi, recoverClass);
 
 describe("renderer invoking main", () => {
   let window: BrowserWindow;
@@ -20,6 +19,7 @@ describe("renderer invoking main", () => {
 
   before(async () => {
     window = await createWindow();
+    exposeServerApi(window, serverApi, recoverClass);
     await collector.runScriptInWindow(window, "invoke_tests");
     await collector.waitForResults();
   });
@@ -125,6 +125,7 @@ describe("main sending event to renderer", () => {
 
   before(async () => {
     window = await createWindow();
+    exposeServerApi(window, serverApi, recoverClass);
     await collector.runScriptInWindow(window, "event_tests");
     window.webContents.send("demo_event", 100);
     window.webContents.send("completed_all");
