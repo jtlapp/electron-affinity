@@ -1,22 +1,20 @@
 export const EXPOSE_API_EVENT = "expose_class_api";
 
-type PrivateProperty<P> = P extends `_${string}`
+export type PrivateProperty<P> = P extends `_${string}`
   ? P
   : P extends `#${string}`
   ? P
   : never;
 
-type PublicProperty<P> = P extends PrivateProperty<P>
+export type PublicProperty<P> = P extends PrivateProperty<P>
   ? never
   : P extends string
   ? P
   : never;
 
-export type InvokeApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K>
-    ? (...args: any[]) => Promise<any>
-    : any;
-};
+export type ReturnsPromise<M> = M extends (...args: any[]) => Promise<any>
+  ? M
+  : never;
 
 export interface ApiRegistration {
   className: string;

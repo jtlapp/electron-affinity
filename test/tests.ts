@@ -4,14 +4,14 @@ import { BrowserWindow } from "electron";
 
 import { exposeServerApi } from "../src/server_ipc";
 import { createWindow, ResultCollector } from "./lib/main_util";
-import { ServerApi } from "./api/server_api";
+import { TestApi1 } from "./api/test_api_1";
 import { Catter, CustomError, recoverClass } from "./api/classes";
 
 // import { setIpcErrorLogger } from "../src/ipc";
 // setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));
 
 const collector = new ResultCollector(recoverClass);
-const serverApi = new ServerApi(collector);
+const serverApi = new TestApi1(collector);
 
 describe("renderer invoking main", () => {
   let window: BrowserWindow;

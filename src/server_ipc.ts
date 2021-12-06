@@ -4,24 +4,19 @@ import {
   EXPOSE_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
-  InvokeApi,
+  PublicProperty,
+  ReturnsPromise,
   toIpcName,
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
 
-type InvokeApiClass<T extends InvokeApi<T>> = {
-  new (...args: [any]): T;
-};
-
 let _registrationMap: ApiRegistrationMap = {};
 
-export function assertServerApi<T extends InvokeApi<T>>(
-  serverApiClass: InvokeApiClass<T>
-) {
-  return serverApiClass;
-}
+export type ServerInvokeApi<T> = {
+  [K in keyof T]: K extends PublicProperty<K> ? ReturnsPromise<T[K]> : any;
+};
 
-export function exposeServerApi<T extends InvokeApi<T>>(
+export function exposeServerApi<T extends ServerInvokeApi<T>>(
   toWindow: BrowserWindow,
   serverApi: T,
   recoveryFunc?: Recovery.RecoveryFunction

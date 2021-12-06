@@ -1,15 +1,12 @@
 import { ipcRenderer } from "electron";
 
 import { bindIpcApi } from "../../src/client_ipc";
-import { ServerApi } from "../api/server_api";
+import { TestApi1 } from "../api/test_api_1";
 import { Catter, recoverClass } from "../api/classes";
 import { testInvoke } from "../lib/renderer_util";
 
 (async () => {
-  const clientApi = await bindIpcApi<typeof ServerApi>(
-    "ServerApi",
-    recoverClass
-  );
+  const clientApi = await bindIpcApi<TestApi1>("TestApi1", recoverClass);
 
   await testInvoke("no reply no error", () => {
     return clientApi.noReplyNoError();
