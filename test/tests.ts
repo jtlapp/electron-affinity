@@ -19,8 +19,8 @@ describe("renderer invoking main", () => {
 
   before(async () => {
     window = await createWindow();
-    exposeServerApi(window, serverApi, recoverClass);
     await collector.runScriptInWindow(window, "invoke_tests");
+    exposeServerApi(window, serverApi, recoverClass);
     await collector.waitForResults();
   });
 

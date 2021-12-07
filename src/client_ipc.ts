@@ -54,12 +54,11 @@ function _attemptBindIpcApi<T>(
   apiClassName: string,
   recoveryFunc?: Recovery.RecoveryFunction
 ): void {
-  // Wait to receive the API registration, if we don't have it yet.
-
   const methodNames = _registrationMap[apiClassName] as [
     keyof ClientInvokeApi<T>
   ];
   if (methodNames === undefined) {
+    // Wait to receive the API registration.
     if (elapsedMillis >= _awaitApiTimeoutMillis) {
       throw Error(`Timed out waiting to bind IPC API '${apiClassName}'`);
     }
@@ -73,29 +72,28 @@ function _attemptBindIpcApi<T>(
         ),
       AWAIT_API_RETRY_MILLIS
     );
-  }
-
-  // Generate the client API after receiving the API registration.
-
-  const clientApi = {} as ClientInvokeApi<T>;
-  for (const methodName of methodNames) {
-    const typedMethodName: keyof ClientInvokeApi<T> = methodName;
-    clientApi[typedMethodName] = (async (...args: any[]) => {
-      if (args !== undefined) {
-        for (const arg of args) {
-          Recovery.prepareArgument(arg);
+  } else {
+    // Generate the client API after receiving the API registration.
+    const clientApi = {} as ClientInvokeApi<T>;
+    for (const methodName of methodNames) {
+      const typedMethodName: keyof ClientInvokeApi<T> = methodName;
+      clientApi[typedMethodName] = (async (...args: any[]) => {
+        if (args !== undefined) {
+          for (const arg of args) {
+            Recovery.prepareArgument(arg);
+          }
         }
-      }
-      let response = await ipcRenderer.invoke(
-        toIpcName(apiClassName, methodName as string),
-        args
-      );
-      if (Recovery.wasThrownError(response)) {
-        throw Recovery.recoverThrownError(response, recoveryFunc);
-      }
-      return Recovery.recoverArgument(response, recoveryFunc);
-    }) as any; // typescript can't confirm the method signature
+        let response = await ipcRenderer.invoke(
+          toIpcName(apiClassName, methodName as string),
+          args
+        );
+        if (Recovery.wasThrownError(response)) {
+          throw Recovery.recoverThrownError(response, recoveryFunc);
+        }
+        return Recovery.recoverArgument(response, recoveryFunc);
+      }) as any; // typescript can't confirm the method signature
+    }
+    _clientApis[apiClassName] = clientApi;
+    resolve(clientApi);
   }
-  _clientApis[apiClassName] = clientApi;
-  resolve(clientApi);
 }
