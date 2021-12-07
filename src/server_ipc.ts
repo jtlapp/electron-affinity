@@ -2,15 +2,19 @@ import { ipcMain, BrowserWindow } from "electron";
 
 import {
   EXPOSE_API_EVENT,
+  BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
   PublicProperty,
   ReturnsPromise,
   toIpcName,
+  retryUntilTimeout,
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
 
 let _registrationMap: ApiRegistrationMap = {};
+let _boundApis: Record<string, boolean> = {};
+let _awaitBindingTimeoutMillis = 500;
 
 export type ServerInvokeApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? ReturnsPromise<T[K]> : any;
@@ -22,6 +26,11 @@ export function exposeServerApi<T extends ServerInvokeApi<T>>(
   recoveryFunc?: Recovery.RecoveryFunction
 ) {
   const apiClassName = serverApi.constructor.name;
+  if (Object.keys(_registrationMap).length == 0) {
+    ipcMain.on(BOUND_API_EVENT, (_event, boundApiName: string) => {
+      _boundApis[boundApiName] = true;
+    });
+  }
   if (_registrationMap[apiClassName] === undefined) {
     const methodNames: string[] = [];
     for (const methodName in serverApi) {
@@ -55,10 +64,22 @@ export function exposeServerApi<T extends ServerInvokeApi<T>>(
     }
     _registrationMap[apiClassName] = methodNames;
   }
-  toWindow.webContents.send(EXPOSE_API_EVENT, {
-    className: apiClassName,
-    methodNames: _registrationMap[apiClassName],
-  } as ApiRegistration);
+  // TODO: test this
+  retryUntilTimeout(
+    0,
+    () => {
+      if (_boundApis[apiClassName]) {
+        return true;
+      }
+      toWindow.webContents.send(EXPOSE_API_EVENT, {
+        className: apiClassName,
+        methodNames: _registrationMap[apiClassName],
+      } as ApiRegistration);
+      return false;
+    },
+    _awaitBindingTimeoutMillis,
+    `Timed out waiting for bound IPC API '${apiClassName}'`
+  );
 }
 
 let _errorLoggerFunc: (err: Error) => void;

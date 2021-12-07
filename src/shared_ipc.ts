@@ -1,4 +1,5 @@
 export const EXPOSE_API_EVENT = "expose_class_api";
+export const BOUND_API_EVENT = "bound_class_api";
 
 const RETRY_MILLIS = 50;
 

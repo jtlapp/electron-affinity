@@ -2,6 +2,7 @@ import { ipcRenderer } from "electron";
 
 import {
   EXPOSE_API_EVENT,
+  BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
   PublicProperty,
@@ -41,6 +42,7 @@ export function bindIpcApi<T>(
     if (api !== undefined) {
       resolve(api);
     } else {
+      // TODO: test this
       retryUntilTimeout(
         0,
         () => {
@@ -85,5 +87,6 @@ function _attemptBindIpcApi<T>(
   }
   _clientApis[apiClassName] = clientApi;
   resolve(clientApi);
+  ipcRenderer.send(BOUND_API_EVENT, apiClassName);
   return true;
 }
