@@ -6,15 +6,13 @@ import {
   ApiRegistrationMap,
   PublicProperty,
   ReturnsPromise,
+  retryUntilTimeout,
   toIpcName,
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
 
-// TODO: Look for typescript way to get instance type from class
-
 // TODO: Should I have client API invocation timeouts?
 
-const AWAIT_API_RETRY_MILLIS = 50;
 const _registrationMap: ApiRegistrationMap = {};
 const _clientApis: Record<string, ClientInvokeApi<any>> = {};
 let _awaitApiTimeoutMillis = 500;
@@ -43,57 +41,49 @@ export function bindIpcApi<T>(
     if (api !== undefined) {
       resolve(api);
     } else {
-      _attemptBindIpcApi<T>(resolve, 0, apiClassName, recoveryFunc);
+      retryUntilTimeout(
+        0,
+        () => {
+          return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
+        },
+        _awaitApiTimeoutMillis,
+        `Timed out waiting to bind IPC API '${apiClassName}'`
+      );
     }
   });
 }
 
 function _attemptBindIpcApi<T>(
-  resolve: (clientApi: ClientInvokeApi<T>) => void,
-  elapsedMillis: number,
   apiClassName: string,
-  recoveryFunc?: Recovery.RecoveryFunction
-): void {
+  recoveryFunc: Recovery.RecoveryFunction | undefined,
+  resolve: (clientApi: ClientInvokeApi<T>) => void
+): boolean {
   const methodNames = _registrationMap[apiClassName] as [
     keyof ClientInvokeApi<T>
   ];
   if (methodNames === undefined) {
-    // Wait to receive the API registration.
-    if (elapsedMillis >= _awaitApiTimeoutMillis) {
-      throw Error(`Timed out waiting to bind IPC API '${apiClassName}'`);
-    }
-    setTimeout(
-      () =>
-        _attemptBindIpcApi<T>(
-          resolve,
-          elapsedMillis + AWAIT_API_RETRY_MILLIS,
-          apiClassName,
-          recoveryFunc
-        ),
-      AWAIT_API_RETRY_MILLIS
-    );
-  } else {
-    // Generate the client API after receiving the API registration.
-    const clientApi = {} as ClientInvokeApi<T>;
-    for (const methodName of methodNames) {
-      const typedMethodName: keyof ClientInvokeApi<T> = methodName;
-      clientApi[typedMethodName] = (async (...args: any[]) => {
-        if (args !== undefined) {
-          for (const arg of args) {
-            Recovery.prepareArgument(arg);
-          }
-        }
-        let response = await ipcRenderer.invoke(
-          toIpcName(apiClassName, methodName as string),
-          args
-        );
-        if (Recovery.wasThrownError(response)) {
-          throw Recovery.recoverThrownError(response, recoveryFunc);
-        }
-        return Recovery.recoverArgument(response, recoveryFunc);
-      }) as any; // typescript can't confirm the method signature
-    }
-    _clientApis[apiClassName] = clientApi;
-    resolve(clientApi);
+    return false;
   }
+  const clientApi = {} as ClientInvokeApi<T>;
+  for (const methodName of methodNames) {
+    const typedMethodName: keyof ClientInvokeApi<T> = methodName;
+    clientApi[typedMethodName] = (async (...args: any[]) => {
+      if (args !== undefined) {
+        for (const arg of args) {
+          Recovery.prepareArgument(arg);
+        }
+      }
+      let response = await ipcRenderer.invoke(
+        toIpcName(apiClassName, methodName as string),
+        args
+      );
+      if (Recovery.wasThrownError(response)) {
+        throw Recovery.recoverThrownError(response, recoveryFunc);
+      }
+      return Recovery.recoverArgument(response, recoveryFunc);
+    }) as any; // typescript can't confirm the method signature
+  }
+  _clientApis[apiClassName] = clientApi;
+  resolve(clientApi);
+  return true;
 }
