@@ -1,15 +1,9 @@
 import * as fs from "fs";
 
-import { ResultCollector } from "../lib/main_util";
+import { TestApi } from "./test_api";
 import { Catter, CustomError } from "./classes";
 
-export class TestApi1 {
-  _collector: ResultCollector;
-
-  constructor(collector: ResultCollector) {
-    this._collector = collector;
-  }
-
+export class TestApi1 extends TestApi {
   async noReplyNoError() {}
 
   async doubleNumber(x: number) {
@@ -22,22 +16,26 @@ export class TestApi1 {
     return x + y;
   }
 
-  async sendCatter(catter: Catter) {
+  async sendCatter1(catter: Catter) {
     this._setRequestData(catter);
     return catter.cat();
   }
 
-  async makeCatter(s1: string, s2: string) {
+  async makeCatter1(s1: string, s2: string) {
     this._setRequestData(s1, s2);
     return new Catter(s1, s2);
   }
 
-  async allGoodOrNot(succeed: boolean) {
+  async allGoodOrNot1(succeed: boolean) {
     this._setRequestData(succeed);
     if (!succeed) {
       throw Error("Just a plain error");
     }
     return "all good";
+  }
+
+  async sameMethodUniqueReply() {
+    return "API 1";
   }
 
   async throwFSError() {
@@ -46,9 +44,5 @@ export class TestApi1 {
 
   async throwCustomError(message: string, code: number) {
     throw new CustomError(message, code);
-  }
-
-  _setRequestData(...args: any[]) {
-    this._collector.setRequestData(args);
   }
 }
