@@ -1,2 +1,2 @@
-# simple-typed-eipc
+# electron-ipc-methods
 Simple Typed IPC for Electron

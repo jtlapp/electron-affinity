@@ -1,5 +1,5 @@
 {
-  "name": "simple-typed-eipc",
+  "name": "electron-ipc-methods",
   "version": "0.1.0",
   "description": "Simple Typed IPC for Electron",
   "license": "MIT",
