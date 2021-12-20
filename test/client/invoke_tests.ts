@@ -3,7 +3,7 @@ import { ipcRenderer } from "electron";
 import { bindIpcApi } from "../../src/client_ipc";
 import { TestApi1 } from "../api/test_api_1";
 import { TestApi2 } from "../api/test_api_2";
-import { Catter, recoverClass } from "../api/classes";
+import { Catter, recoverClass } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";
 
 (async () => {

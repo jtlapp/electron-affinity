@@ -1,5 +1,5 @@
 import { TestApi } from "./test_api";
-import { Catter } from "./classes";
+import { Catter } from "../lib/shared_util";
 
 export class TestApi2 extends TestApi {
   async sendCatter2(catter: Catter) {

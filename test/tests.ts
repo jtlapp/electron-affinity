@@ -6,7 +6,7 @@ import { exposeServerApi } from "../src/server_ipc";
 import { createWindow, ResultCollector } from "./lib/main_util";
 import { TestApi1 } from "./api/test_api_1";
 import { TestApi2 } from "./api/test_api_2";
-import { Catter, CustomError, recoverClass } from "./api/classes";
+import { Catter, CustomError, recoverClass } from "./lib/shared_util";
 
 // import { setIpcErrorLogger } from "../src/ipc";
 // setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));

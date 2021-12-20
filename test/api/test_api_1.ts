@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 import { TestApi } from "./test_api";
-import { Catter, CustomError } from "./classes";
+import { Catter, CustomError } from "../lib/shared_util";
 
 export class TestApi1 extends TestApi {
   async noReplyNoError() {}
