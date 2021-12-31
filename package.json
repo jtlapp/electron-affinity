@@ -7,7 +7,7 @@
   "private": true,
   "main": "./build/test/tests.js",
   "scripts": {
-    "test": "tsc && shx cp test/client/dummy.html build/test/client && electron-mocha build/test/tests.js --timeout 8000"
+    "test": "tsc && shx cp test/client/dummy.html build/test/client && ./test/run-series.sh"
   },
   "dependencies": {},
   "devDependencies": {
