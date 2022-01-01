@@ -2,7 +2,7 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
-import { exposeMainApi } from "../src/server_ipc";
+import { exposeMainApi } from "../src";
 import { createWindow, ResultCollector } from "./lib/main_util";
 import { TestApi1 } from "./api/test_api_1";
 import { TestApi2 } from "./api/test_api_2";

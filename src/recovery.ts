@@ -1,4 +1,8 @@
 export namespace Recovery {
+  export type RecoverableClass<C> = {
+    recover(obj: { [key: string]: any }): C;
+  };
+
   export type RecoveryFunction = (
     className: string,
     arg: { [key: string]: any }

@@ -1,4 +1,4 @@
-import { RecoverableClass } from "../../src/shared_ipc";
+import { RecoverableClass } from "../../src";
 
 export class Catter {
   s1: string;
