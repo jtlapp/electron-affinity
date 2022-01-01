@@ -6,7 +6,6 @@ import {
   ApiRegistration,
   ApiRegistrationMap,
   PublicProperty,
-  ReturnsPromise,
   toIpcName,
   retryUntilTimeout,
 } from "./shared_ipc";
@@ -16,13 +15,40 @@ let _registrationMap: ApiRegistrationMap = {};
 let _boundApis: Record<string, boolean> = {};
 let _awaitBindingTimeoutMillis = 500;
 
-export type ServerInvokeApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K> ? ReturnsPromise<T[K]> : any;
+export type ElectronMainApi<T> = {
+  [K in keyof T]: K extends PublicProperty<K>
+    ? (...args: any[]) => Promise<any>
+    : any;
 };
 
-export function exposeServerApi<T extends ServerInvokeApi<T>>(
+/*
+I rejected the following more-flexible approach to exposing APIs
+because it's awkward looking, which would be a barrier to adoption.
+TypeScript does not (at present) provide a direct way to ensure that
+every element of an array conforms to a particular structure while
+also allowing the elements to have different properties. See:
+https://github.com/microsoft/TypeScript/issues/7481#issuecomment-968220900
+https://github.com/microsoft/TypeScript/issues/7481#issuecomment-1003504754
+
+type CheckedApi = { [key: string]: (...args: any[]) => Promise<any> };
+function checkApi<T extends ServerApi<T>>(api: T) {
+  return api as CheckedApi;
+}
+class Api1 {
+  async func1() {}
+}
+class Api2 {
+  async func2() {}
+}
+function exposeApis(_apis: CheckedApi[]) {}
+const api1 = new Api1();
+const api2 = new Api2();
+exposeApis([checkApi(api1), checkApi(api2)]);
+*/
+
+export function exposeMainApi<T>(
   toWindow: BrowserWindow,
-  serverApi: T,
+  serverApi: ElectronMainApi<T>,
   recoveryFunc?: Recovery.RecoveryFunction
 ) {
   const apiClassName = serverApi.constructor.name;

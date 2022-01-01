@@ -6,7 +6,6 @@ import {
   ApiRegistration,
   ApiRegistrationMap,
   PublicProperty,
-  ReturnsPromise,
   retryUntilTimeout,
   toIpcName,
 } from "./shared_ipc";
@@ -15,11 +14,15 @@ import { Recovery } from "./recovery";
 // TODO: Should I have client API invocation timeouts?
 
 const _registrationMap: ApiRegistrationMap = {};
-const _clientApis: Record<string, ClientInvokeApi<any>> = {};
+const _clientApis: Record<string, MainApiBinding<any>> = {};
 let _awaitApiTimeoutMillis = 500;
 let _listeningForApis = false;
 
-export type ClientInvokeApi<T> = {
+export type ReturnsPromise<M> = M extends (...args: any[]) => Promise<any>
+  ? M
+  : never;
+
+export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: ReturnsPromise<T[K]>;
 };
 
@@ -30,7 +33,7 @@ export function setBindIpcApiTimeout(millis: number): void {
 export function bindIpcApi<T>(
   apiClassName: string,
   recoveryFunc?: Recovery.RecoveryFunction
-): Promise<ClientInvokeApi<T>> {
+): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
     ipcRenderer.on(EXPOSE_API_EVENT, (_event, api: ApiRegistration) => {
       _registrationMap[api.className] = api.methodNames;
@@ -58,17 +61,17 @@ export function bindIpcApi<T>(
 function _attemptBindIpcApi<T>(
   apiClassName: string,
   recoveryFunc: Recovery.RecoveryFunction | undefined,
-  resolve: (clientApi: ClientInvokeApi<T>) => void
+  resolve: (clientApi: MainApiBinding<T>) => void
 ): boolean {
   const methodNames = _registrationMap[apiClassName] as [
-    keyof ClientInvokeApi<T>
+    keyof MainApiBinding<T>
   ];
   if (methodNames === undefined) {
     return false;
   }
-  const clientApi = {} as ClientInvokeApi<T>;
+  const clientApi = {} as MainApiBinding<T>;
   for (const methodName of methodNames) {
-    const typedMethodName: keyof ClientInvokeApi<T> = methodName;
+    const typedMethodName: keyof MainApiBinding<T> = methodName;
     clientApi[typedMethodName] = (async (...args: any[]) => {
       if (args !== undefined) {
         for (const arg of args) {

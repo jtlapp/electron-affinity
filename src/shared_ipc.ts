@@ -15,10 +15,6 @@ export type PublicProperty<P> = P extends PrivateProperty<P>
   ? P
   : never;
 
-export type ReturnsPromise<M> = M extends (...args: any[]) => Promise<any>
-  ? M
-  : never;
-
 export interface ApiRegistration {
   className: string;
   methodNames: string[];

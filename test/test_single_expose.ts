@@ -1,7 +1,7 @@
 import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
-import { exposeServerApi } from "../src/server_ipc";
+import { exposeMainApi } from "../src/server_ipc";
 import { createWindow, ResultCollector } from "./lib/main_util";
 import { TestApi1 } from "./api/test_api_1";
 import { TestApi2 } from "./api/test_api_2";
@@ -24,8 +24,8 @@ describe("single exposure of APIs", () => {
       window = await createWindow();
       await collector.runScriptInWindow(window, "invoke_tests");
       // TODO: single-exposure functionality not written yet
-      exposeServerApi(window, serverApi1, recoverClass);
-      exposeServerApi(window, serverApi2, recoverClass);
+      exposeMainApi(window, serverApi1, recoverClass);
+      exposeMainApi(window, serverApi2, recoverClass);
       await collector.waitForResults();
     });
 
