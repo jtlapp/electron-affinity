@@ -26,7 +26,7 @@ export function setBindIpcApiTimeout(millis: number): void {
   _awaitApiTimeoutMillis = millis;
 }
 
-export function bindIpcApi<T>(
+export function bindMainApi<T>(
   apiClassName: string,
   recoveryFunc?: Recovery.RecoveryFunction
 ): Promise<MainApiBinding<T>> {
