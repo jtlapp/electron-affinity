@@ -18,12 +18,8 @@ const _clientApis: Record<string, MainApiBinding<any>> = {};
 let _awaitApiTimeoutMillis = 500;
 let _listeningForApis = false;
 
-export type ReturnsPromise<M> = M extends (...args: any[]) => Promise<any>
-  ? M
-  : never;
-
 export type MainApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: ReturnsPromise<T[K]>;
+  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
 
 export function setBindIpcApiTimeout(millis: number): void {
