@@ -22,6 +22,11 @@ export interface ApiRegistration {
 
 export type ApiRegistrationMap = Record<string, string[]>;
 
+export type RecoverableClass<C> = {
+  new (...args: any[]): C;
+  recover(obj: { [key: string]: any }): C;
+};
+
 export function toIpcName(apiClassName: string, methodName: string) {
   return `${apiClassName}:${methodName}`;
 }

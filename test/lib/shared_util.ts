@@ -1,3 +1,5 @@
+import { RecoverableClass } from "../../src/shared_ipc";
+
 export class Catter {
   s1: string;
   s2: string;
@@ -31,17 +33,12 @@ export class CustomError extends Error {
   }
 }
 
-type RecoverableClass<C> = {
-  new (...args: any[]): C;
-  recover(obj: { [key: string]: any }): C;
-};
-
 const recoveryMap: Record<string, RecoverableClass<any>> = {
   Catter,
   CustomError,
 };
 
-export function recoverClass(className: string, obj: { [key: string]: any }) {
+export function recoverer(className: string, obj: { [key: string]: any }) {
   const recoverableClass = recoveryMap[className];
   return recoverableClass === undefined
     ? obj

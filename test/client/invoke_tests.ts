@@ -3,12 +3,12 @@ import { ipcRenderer } from "electron";
 import { bindMainApi } from "../../src/client_ipc";
 import { TestApi1 } from "../api/test_api_1";
 import { TestApi2 } from "../api/test_api_2";
-import { Catter, recoverClass } from "../lib/shared_util";
+import { Catter, recoverer } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";
 
 (async () => {
-  const testApi1 = await bindMainApi<TestApi1>("TestApi1", recoverClass);
-  const testApi2 = await bindMainApi<TestApi2>("TestApi2", recoverClass);
+  const testApi1 = await bindMainApi<TestApi1>("TestApi1", recoverer);
+  const testApi2 = await bindMainApi<TestApi2>("TestApi2", recoverer);
 
   // Invoke API 1
 
