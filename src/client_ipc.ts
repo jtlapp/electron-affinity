@@ -11,10 +11,10 @@ import {
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
 
-// TODO: Should I have client API invocation timeouts?
+// TODO: Should I have bound API invocation timeouts?
 
 const _registrationMap: ApiRegistrationMap = {};
-const _clientApis: Record<string, MainApiBinding<any>> = {};
+const _boundApis: Record<string, MainApiBinding<any>> = {};
 let _awaitApiTimeoutMillis = 500;
 let _listeningForApis = false;
 
@@ -37,7 +37,7 @@ export function bindMainApi<T>(
     _listeningForApis = true;
   }
   return new Promise((resolve) => {
-    const api = _clientApis[apiClassName];
+    const api = _boundApis[apiClassName];
     if (api !== undefined) {
       resolve(api);
     } else {
@@ -57,7 +57,7 @@ export function bindMainApi<T>(
 function _attemptBindIpcApi<T>(
   apiClassName: string,
   recoveryFunc: Recovery.RecoveryFunction | undefined,
-  resolve: (clientApi: MainApiBinding<T>) => void
+  resolve: (boundApi: MainApiBinding<T>) => void
 ): boolean {
   const methodNames = _registrationMap[apiClassName] as [
     keyof MainApiBinding<T>
@@ -65,10 +65,10 @@ function _attemptBindIpcApi<T>(
   if (methodNames === undefined) {
     return false;
   }
-  const clientApi = {} as MainApiBinding<T>;
+  const boundApi = {} as MainApiBinding<T>;
   for (const methodName of methodNames) {
     const typedMethodName: keyof MainApiBinding<T> = methodName;
-    clientApi[typedMethodName] = (async (...args: any[]) => {
+    boundApi[typedMethodName] = (async (...args: any[]) => {
       if (args !== undefined) {
         for (const arg of args) {
           Recovery.prepareArgument(arg);
@@ -84,8 +84,8 @@ function _attemptBindIpcApi<T>(
       return Recovery.recoverArgument(response, recoveryFunc);
     }) as any; // typescript can't confirm the method signature
   }
-  _clientApis[apiClassName] = clientApi;
-  resolve(clientApi);
+  _boundApis[apiClassName] = boundApi;
+  resolve(boundApi);
   ipcRenderer.send(BOUND_API_EVENT, apiClassName);
   return true;
 }
