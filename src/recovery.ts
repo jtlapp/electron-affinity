@@ -1,11 +1,12 @@
 export namespace Recovery {
   export type RecoverableClass<C> = {
-    recover(obj: { [key: string]: any }): C;
+    // static method of the class returning an instance of the class
+    recover(obj: Record<string, any>): C;
   };
 
   export type RecoveryFunction = (
     className: string,
-    arg: { [key: string]: any }
+    arg: Record<string, any>
   ) => any;
 
   export function prepareArgument(arg: any): any {

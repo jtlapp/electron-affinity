@@ -30,8 +30,8 @@ also allowing the elements to have different properties. See:
 https://github.com/microsoft/TypeScript/issues/7481#issuecomment-968220900
 https://github.com/microsoft/TypeScript/issues/7481#issuecomment-1003504754
 
-type CheckedApi = { [key: string]: (...args: any[]) => Promise<any> };
-function checkApi<T extends ServerApi<T>>(api: T) {
+type CheckedApi = Record<string, (...args: any[]) => Promise<any>>;
+function checkApi<T extends ElectronMainApi<T>>(api: T) {
   return api as CheckedApi;
 }
 class Api1 {

@@ -38,7 +38,7 @@ const recoveryMap: Record<string, RecoverableClass<any>> = {
   CustomError,
 };
 
-export function recoverer(className: string, obj: { [key: string]: any }) {
+export function recoverer(className: string, obj: Record<string, any>) {
   const recoverableClass = recoveryMap[className];
   return recoverableClass === undefined
     ? obj
