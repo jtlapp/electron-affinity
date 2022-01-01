@@ -10,6 +10,8 @@ import {
   retryUntilTimeout,
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
+// Use the publicly-exposed RecoveryFunction type
+import { RecoveryFunction } from "./index";
 
 let _registrationMap: ApiRegistrationMap = {};
 let _boundApis: Record<string, boolean> = {};
@@ -49,7 +51,7 @@ exposeApis([checkApi(api1), checkApi(api2)]);
 export function exposeMainApi<T>(
   toWindow: BrowserWindow,
   serverApi: ElectronMainApi<T>,
-  recoveryFunc?: Recovery.RecoveryFunction
+  recoveryFunc?: RecoveryFunction
 ) {
   const apiClassName = serverApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
