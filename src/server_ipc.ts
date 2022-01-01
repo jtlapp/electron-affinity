@@ -73,9 +73,8 @@ export function exposeMainApi<T>(
                   }
                 }
                 //await before returning to keep Electron from writing errors
-                // TODO: combine the next two lines
-                const response = await method.bind(serverApi)(...args);
-                return Recovery.prepareArgument(response);
+                const replyValue = await method.bind(serverApi)(...args);
+                return Recovery.prepareArgument(replyValue);
               } catch (err: any) {
                 if (_errorLoggerFunc !== undefined) {
                   _errorLoggerFunc(err);
