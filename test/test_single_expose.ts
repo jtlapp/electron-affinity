@@ -13,8 +13,8 @@ import verifyApi2 from "./api/verify_api_2";
 // setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));
 
 const collector = new ResultCollector(recoverer);
-const serverApi1 = new TestApi1(collector);
-const serverApi2 = new TestApi2(collector);
+const testApi1 = new TestApi1(collector);
+const testApi2 = new TestApi2(collector);
 
 describe("single exposure of APIs", () => {
   describe("renderer invoking main", () => {
@@ -24,8 +24,8 @@ describe("single exposure of APIs", () => {
       window = await createWindow();
       await collector.runScriptInWindow(window, "invoke_tests");
       // TODO: single-exposure functionality not written yet
-      exposeMainApi(window, serverApi1, recoverer);
-      exposeMainApi(window, serverApi2, recoverer);
+      exposeMainApi(window, testApi1, recoverer);
+      exposeMainApi(window, testApi2, recoverer);
       await collector.waitForResults();
     });
 

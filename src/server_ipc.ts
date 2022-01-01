@@ -50,10 +50,10 @@ exposeApis([checkApi(api1), checkApi(api2)]);
 
 export function exposeMainApi<T>(
   toWindow: BrowserWindow,
-  serverApi: ElectronMainApi<T>,
+  mainApi: ElectronMainApi<T>,
   recoveryFunc?: RecoveryFunction
 ) {
-  const apiClassName = serverApi.constructor.name;
+  const apiClassName = mainApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
     ipcMain.on(BOUND_API_EVENT, (_event, boundApiName: string) => {
       _boundApis[boundApiName] = true;
@@ -61,9 +61,9 @@ export function exposeMainApi<T>(
   }
   if (_registrationMap[apiClassName] === undefined) {
     const methodNames: string[] = [];
-    for (const methodName in serverApi) {
+    for (const methodName in mainApi) {
       if (methodName[0] != "_" && methodName[0] != "#") {
-        const method = serverApi[methodName];
+        const method = mainApi[methodName];
         if (typeof method == "function") {
           ipcMain.handle(
             toIpcName(apiClassName, methodName),
@@ -75,7 +75,7 @@ export function exposeMainApi<T>(
                   }
                 }
                 //await before returning to keep Electron from writing errors
-                const replyValue = await method.bind(serverApi)(...args);
+                const replyValue = await method.bind(mainApi)(...args);
                 return Recovery.prepareArgument(replyValue);
               } catch (err: any) {
                 if (_errorLoggerFunc !== undefined) {
