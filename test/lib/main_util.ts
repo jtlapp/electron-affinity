@@ -70,7 +70,7 @@ export class ResultCollector {
       try {
         require('${scriptPath}');
       } catch (err) {
-        require('electron').ipcRenderer.send('aborted', err);
+        require('electron').ipcRenderer.send('test_aborted', err);
       }`);
   }
 
@@ -142,7 +142,7 @@ export function createResultCollector(recoveryFunc: Recovery.RecoveryFunction) {
   ipcMain.on("completed_all", () => {
     resultCollector.completedAll = true;
   });
-  ipcMain.on("aborted", (_event, error: any) => {
+  ipcMain.on("test_aborted", (_event, error: any) => {
     resultCollector.abortError = error;
   });
 

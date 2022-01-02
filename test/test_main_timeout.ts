@@ -1,19 +1,19 @@
-import { join } from "path";
+import * as path from "path";
+import * as assert from "assert";
 import { exec } from "child_process";
-import { fail } from "assert";
 
 const EXEC_TIMEOUT_MILLIS = 4000;
 const test = it;
 
-const rootPath = join(__dirname, "../../");
-const mochaPath = join(rootPath, "node_modules/.bin/electron-mocha");
-const testScript = join(rootPath, "build/test/_test_main_timeout.js");
+const rootPath = path.join(__dirname, "../../");
+const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
+const testScript = path.join(rootPath, "build/test/_test_main_timeout.js");
 const command = `node ${mochaPath} ${testScript} --timeout 8000`;
 
 describe("window does not bind to main API", () => {
   test("main times out", (done) => {
     const timer = setTimeout(
-      () => fail("Timed out waiting on child process"),
+      () => assert.fail("Timed out waiting on child process"),
       EXEC_TIMEOUT_MILLIS
     );
 
@@ -30,7 +30,7 @@ describe("window does not bind to main API", () => {
           done(err);
         }
       } else {
-        fail("Child process unexpectedly completed");
+        assert.fail("Child process unexpectedly completed");
       }
     });
   });
