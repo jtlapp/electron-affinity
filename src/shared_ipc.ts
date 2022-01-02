@@ -1,7 +1,8 @@
 export const EXPOSE_API_EVENT = "expose_class_api";
 export const BOUND_API_EVENT = "bound_class_api";
 
-const RETRY_MILLIS = 50;
+const _RETRY_MILLIS = 50;
+let _bindingTimeoutMillis = 500;
 
 export type PrivateProperty<P> = P extends `_${string}`
   ? P
@@ -26,25 +27,27 @@ export function toIpcName(apiClassName: string, methodName: string) {
   return `${apiClassName}:${methodName}`;
 }
 
+export function setIpcBindingTimeout(millis: number): void {
+  _bindingTimeoutMillis = millis;
+}
+
 export function retryUntilTimeout(
   elapsedMillis: number,
   attemptFunc: () => boolean,
-  timeoutMillis: number,
   timeoutMessage: string
 ): void {
   if (!attemptFunc()) {
-    if (elapsedMillis >= timeoutMillis) {
+    if (elapsedMillis >= _bindingTimeoutMillis) {
       throw Error(timeoutMessage);
     }
     setTimeout(
       () =>
         retryUntilTimeout(
-          elapsedMillis + RETRY_MILLIS,
+          elapsedMillis + _RETRY_MILLIS,
           attemptFunc,
-          timeoutMillis,
           timeoutMessage
         ),
-      RETRY_MILLIS
+      _RETRY_MILLIS
     );
   }
 }

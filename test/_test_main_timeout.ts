@@ -3,7 +3,7 @@ import "source-map-support/register";
 import { exposeMainApi } from "../src";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
-import { recoverer } from "./lib/shared_util";
+import { recoverer, sleep } from "./lib/shared_util";
 
 const DURATION_MILLIS = 5000;
 
@@ -15,9 +15,7 @@ it("waits for main to timeout", async () => {
   // client never binds to the main API
   exposeMainApi(window1, mainApi1, recoverer);
 
-  await new Promise<void>((resolve) => {
-    setTimeout(() => resolve(), DURATION_MILLIS);
-  });
+  await sleep(DURATION_MILLIS);
 
   if (window1) window1.destroy();
 });

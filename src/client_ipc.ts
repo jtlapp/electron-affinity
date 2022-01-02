@@ -15,16 +15,11 @@ import { Recovery } from "./recovery";
 
 const _registrationMap: ApiRegistrationMap = {};
 const _boundApis: Record<string, MainApiBinding<any>> = {};
-let _awaitApiTimeoutMillis = 500;
 let _listeningForApis = false;
 
 export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
-
-export function setBindIpcApiTimeout(millis: number): void {
-  _awaitApiTimeoutMillis = millis;
-}
 
 export function bindMainApi<T>(
   apiClassName: string,
@@ -47,7 +42,6 @@ export function bindMainApi<T>(
         () => {
           return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
         },
-        _awaitApiTimeoutMillis,
         `Timed out waiting to bind IPC API '${apiClassName}'`
       );
     }

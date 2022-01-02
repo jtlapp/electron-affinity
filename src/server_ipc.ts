@@ -15,17 +15,12 @@ import { RecoveryFunction } from "./index";
 
 let _registrationMap: ApiRegistrationMap = {};
 let _boundApisByWindowID: Record<number, Record<string, boolean>> = {};
-let _awaitBindingTimeoutMillis = 500;
 
 export type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
     ? (...args: any[]) => Promise<any>
     : any;
 };
-
-export function setBindIpcApiTimeout(millis: number): void {
-  _awaitBindingTimeoutMillis = millis;
-}
 
 /*
 I rejected the following more-flexible approach to exposing APIs
@@ -114,7 +109,6 @@ export function exposeMainApi<T>(
       } as ApiRegistration);
       return false;
     },
-    _awaitBindingTimeoutMillis,
     `Timed out waiting for bound IPC API '${apiClassName}'`
   );
 }

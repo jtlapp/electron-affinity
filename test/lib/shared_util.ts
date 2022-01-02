@@ -44,3 +44,9 @@ export function recoverer(className: string, obj: Record<string, any>) {
     ? obj
     : recoverableClass["recover"](obj);
 }
+
+export async function sleep(delayMillis: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(() => resolve(), delayMillis);
+  });
+}
