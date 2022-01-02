@@ -1,6 +1,6 @@
 import { join } from "path";
 import { exec } from "child_process";
-import assert from "assert";
+import { fail } from "assert";
 
 const EXEC_TIMEOUT_MILLIS = 4000;
 const test = it;
@@ -13,7 +13,7 @@ const command = `node ${mochaPath} ${testScript} --timeout 8000`;
 describe("window does not bind to main API", () => {
   test("main times out", (done) => {
     const timer = setTimeout(
-      () => assert.fail("Timed out waiting on child process"),
+      () => fail("Timed out waiting on child process"),
       EXEC_TIMEOUT_MILLIS
     );
     exec(command, (err, stdout, _stderr) => {
@@ -25,7 +25,7 @@ describe("window does not bind to main API", () => {
           done(err);
         }
       } else {
-        assert.fail("Child process unexpectedly completed");
+        fail("Child process unexpectedly completed");
       }
     });
   });
