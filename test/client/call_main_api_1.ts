@@ -17,16 +17,16 @@ export async function callMainApi1(winTag: string) {
   await testInvoke(winTag + "multi param (api1)", () => {
     return mainApi1.sumNumbers(5, 10);
   });
-  await testInvoke(winTag + "send class instance 1 (api1)", () => {
+  await testInvoke(winTag + "send class instance (api1)", () => {
     return mainApi1.sendCatter1(new Catter("this", "that"));
   });
-  await testInvoke(winTag + "get class instance 1 (api1)", () => {
+  await testInvoke(winTag + "get class instance (api1)", () => {
     return mainApi1.makeCatter1("this", "that");
   });
-  await testInvoke(winTag + "all good 1 (api1)", () => {
+  await testInvoke(winTag + "all good (api1)", () => {
     return mainApi1.allGoodOrNot1(true);
   });
-  await testInvoke(winTag + "plain error 1 (api1)", () => {
+  await testInvoke(winTag + "plain error (api1)", () => {
     return mainApi1.allGoodOrNot1(false);
   });
   await testInvoke(winTag + "same method (api1)", () => {

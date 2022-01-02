@@ -9,7 +9,7 @@ export default (winTag: string, collector: ResultCollector) => {
   winTag = winTag + " ";
 
   test(winTag + "sending class instance (api2)", async () => {
-    collector.verifyTest(winTag + "send class instance 2 (api2)", (result) => {
+    collector.verifyTest(winTag + "send class instance (api2)", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
       assert.equal(result.replyData, "thisthat");
@@ -17,7 +17,7 @@ export default (winTag: string, collector: ResultCollector) => {
   });
 
   test(winTag + "getting class instance (api2)", async () => {
-    collector.verifyTest(winTag + "get class instance 2 (api2)", (result) => {
+    collector.verifyTest(winTag + "get class instance (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
       assert.ok(result.replyData instanceof Catter);
@@ -26,7 +26,7 @@ export default (winTag: string, collector: ResultCollector) => {
   });
 
   test(winTag + "conditional error succeeding (api2)", async () => {
-    collector.verifyTest(winTag + "all good 2 (api2)", (result) => {
+    collector.verifyTest(winTag + "all good (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [true]);
       assert.equal(result.replyData, "all good");
@@ -34,7 +34,7 @@ export default (winTag: string, collector: ResultCollector) => {
   });
 
   test(winTag + "invoke throwing plain error (api2)", async () => {
-    collector.verifyTest(winTag + "plain error 2 (api2)", (result) => {
+    collector.verifyTest(winTag + "plain error (api2)", (result) => {
       assert.ok(result.error instanceof Error);
       assert.equal(result.error.message, "Just a plain error");
       assert.equal(

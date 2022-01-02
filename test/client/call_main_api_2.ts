@@ -8,16 +8,16 @@ export async function callMainApi2(winTag: string) {
 
   const mainApi2 = await bindMainApi<MainApi2>("MainApi2", recoverer);
 
-  await testInvoke(winTag + "send class instance 2 (api2)", () => {
+  await testInvoke(winTag + "send class instance (api2)", () => {
     return mainApi2.sendCatter2(new Catter("this", "that"));
   });
-  await testInvoke(winTag + "get class instance 2 (api2)", () => {
+  await testInvoke(winTag + "get class instance (api2)", () => {
     return mainApi2.makeCatter2("this", "that");
   });
-  await testInvoke(winTag + "all good 2 (api2)", () => {
+  await testInvoke(winTag + "all good (api2)", () => {
     return mainApi2.allGoodOrNot2(true);
   });
-  await testInvoke(winTag + "plain error 2 (api2)", () => {
+  await testInvoke(winTag + "plain error (api2)", () => {
     return mainApi2.allGoodOrNot2(false);
   });
   await testInvoke(winTag + "same method (api2)", () => {

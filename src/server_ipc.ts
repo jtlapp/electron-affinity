@@ -23,6 +23,10 @@ export type ElectronMainApi<T> = {
     : any;
 };
 
+export function setBindIpcApiTimeout(millis: number): void {
+  _awaitBindingTimeoutMillis = millis;
+}
+
 /*
 I rejected the following more-flexible approach to exposing APIs
 because it's awkward looking, which would be a barrier to adoption.
