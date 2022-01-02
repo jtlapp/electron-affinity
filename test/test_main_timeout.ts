@@ -10,7 +10,7 @@ const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 const testScript = path.join(rootPath, "build/test/_test_main_timeout.js");
 const command = `node ${mochaPath} ${testScript} --timeout 8000`;
 
-describe("window does not bind to main API", () => {
+describe("window does not bind to API", () => {
   test("main times out", (done) => {
     const timer = setTimeout(
       () => assert.fail("Timed out waiting on child process"),

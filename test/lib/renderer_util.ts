@@ -30,3 +30,13 @@ export async function testInvoke(
     ipcRenderer.send("completed_test", Recovery.prepareThrownError(err));
   }
 }
+
+export function reportErrorsToMain(winTag: string) {
+  window.onerror = (message) => {
+    ipcRenderer.send("test_aborted", `${winTag}: ${message}`);
+  };
+}
+
+export function windowFinished() {
+  ipcRenderer.send("completed_all");
+}

@@ -1,11 +1,8 @@
-import { ipcRenderer } from "electron";
-
+import { reportErrorsToMain, windowFinished } from "../lib/renderer_util";
 import { callMainApi1 } from "./call_main_api_1";
 
 (async () => {
-  window.onerror = (message) => {
-    ipcRenderer.send("test_aborted", "win1: " + message);
-  };
+  reportErrorsToMain("win1");
   await callMainApi1("win1");
-  ipcRenderer.send("completed_all");
+  windowFinished();
 })();
