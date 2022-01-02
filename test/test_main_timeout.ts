@@ -16,6 +16,11 @@ describe("window does not bind to main API", () => {
       () => fail("Timed out waiting on child process"),
       EXEC_TIMEOUT_MILLIS
     );
+
+    // I was unable to override the uncaught exception in electron-mocha,
+    // neither via process.removeAllListeners() + process.on() nor via
+    // process.prependOnceListener(), so I test the output of electron-mocha.
+
     exec(command, (err, stdout, _stderr) => {
       clearTimeout(timer);
       if (err) {
