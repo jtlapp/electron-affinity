@@ -1,8 +1,7 @@
 import { reportErrorsToMain, windowFinished } from "../lib/renderer_util";
+import { INITIAL_DELAY_MILLIS } from "../lib/config";
 import { sleep } from "../lib/shared_util";
 import { callMainApi2 } from "./call_main_api_2";
-
-const INITIAL_DELAY_MILLIS = 2500;
 
 (async () => {
   reportErrorsToMain("win1");

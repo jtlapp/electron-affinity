@@ -7,7 +7,7 @@ const test = it;
 
 const rootPath = path.join(__dirname, "../../");
 const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
-const testScript = path.join(rootPath, "build/test/_test_main_timeout.js");
+const testScript = path.join(rootPath, "build/test/client/main_timeout.js");
 const command = `node ${mochaPath} ${testScript} --timeout 8000`;
 
 describe("window does not bind to API", () => {
@@ -24,13 +24,13 @@ describe("window does not bind to API", () => {
     exec(command, (err, stdout, _stderr) => {
       clearTimeout(timer);
       if (err) {
-        if (stdout.includes("Timed out waiting for bound IPC API 'MainApi1'")) {
+        if (stdout.includes("Timed out waiting for bound IPC API 'MainApi2'")) {
           done();
         } else {
-          done(err);
+          done(Error(err + "..." + stdout));
         }
       } else {
-        assert.fail("Child process unexpectedly completed");
+        assert.fail("Child process unexpectedly completed..." + stdout);
       }
     });
   });

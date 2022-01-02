@@ -1,0 +1,1 @@
+export const INITIAL_DELAY_MILLIS = 2500;
