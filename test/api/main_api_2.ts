@@ -1,7 +1,7 @@
-import { TestApi } from "./test_api";
+import { TestableApi } from "./testable_api";
 import { Catter } from "../lib/shared_util";
 
-export class TestApi2 extends TestApi {
+export class MainApi2 extends TestableApi {
   async sendCatter2(catter: Catter) {
     this._setRequestData(catter);
     return catter.cat();

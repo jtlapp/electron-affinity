@@ -5,17 +5,19 @@ import { ResultCollector } from "../lib/main_util";
 
 const test = it;
 
-export default (collector: ResultCollector) => {
-  test("sending class instance via API 2", async () => {
-    collector.verifyTest("send class instance 2", (result) => {
+export default (winTag: string, collector: ResultCollector) => {
+  winTag = winTag + " ";
+
+  test(winTag + "sending class instance (api2)", async () => {
+    collector.verifyTest(winTag + "send class instance 2 (api2)", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
       assert.equal(result.replyData, "thisthat");
     });
   });
 
-  test("getting class instance via API 2", async () => {
-    collector.verifyTest("get class instance 2", (result) => {
+  test(winTag + "getting class instance (api2)", async () => {
+    collector.verifyTest(winTag + "get class instance 2 (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
       assert.ok(result.replyData instanceof Catter);
@@ -23,16 +25,16 @@ export default (collector: ResultCollector) => {
     });
   });
 
-  test("conditional error succeeding via API 2", async () => {
-    collector.verifyTest("all good 2", (result) => {
+  test(winTag + "conditional error succeeding (api2)", async () => {
+    collector.verifyTest(winTag + "all good 2 (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [true]);
       assert.equal(result.replyData, "all good");
     });
   });
 
-  test("invoke throwing plain error via API 2", async () => {
-    collector.verifyTest("plain error 2", (result) => {
+  test(winTag + "invoke throwing plain error (api2)", async () => {
+    collector.verifyTest(winTag + "plain error 2 (api2)", (result) => {
       assert.ok(result.error instanceof Error);
       assert.equal(result.error.message, "Just a plain error");
       assert.equal(
@@ -44,8 +46,8 @@ export default (collector: ResultCollector) => {
     });
   });
 
-  test("invoke same method name via API 2", async () => {
-    collector.verifyTest("same method api 2", (result) => {
+  test(winTag + "invoke same method name (api2)", async () => {
+    collector.verifyTest(winTag + "same method (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, null);
       assert.equal(result.replyData, "API 2");

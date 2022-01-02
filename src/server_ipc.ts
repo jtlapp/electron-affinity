@@ -14,7 +14,7 @@ import { Recovery } from "./recovery";
 import { RecoveryFunction } from "./index";
 
 let _registrationMap: ApiRegistrationMap = {};
-let _boundApis: Record<string, boolean> = {};
+let _boundApisByWindowID: Record<number, Record<string, boolean>> = {};
 let _awaitBindingTimeoutMillis = 500;
 
 export type ElectronMainApi<T> = {
@@ -56,7 +56,12 @@ export function exposeMainApi<T>(
   const apiClassName = mainApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
     ipcMain.on(BOUND_API_EVENT, (_event, boundApiName: string) => {
-      _boundApis[boundApiName] = true;
+      let windowApis = _boundApisByWindowID[toWindow.id];
+      if (windowApis === undefined) {
+        windowApis = {};
+        _boundApisByWindowID[toWindow.id] = windowApis;
+      }
+      windowApis[boundApiName] = true;
     });
   }
   if (_registrationMap[apiClassName] === undefined) {
@@ -95,7 +100,8 @@ export function exposeMainApi<T>(
   retryUntilTimeout(
     0,
     () => {
-      if (_boundApis[apiClassName]) {
+      const windowApis = _boundApisByWindowID[toWindow.id];
+      if (windowApis !== undefined && windowApis[apiClassName]) {
         return true;
       }
       toWindow.webContents.send(EXPOSE_API_EVENT, {

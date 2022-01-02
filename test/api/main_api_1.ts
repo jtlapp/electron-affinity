@@ -1,9 +1,9 @@
 import * as fs from "fs";
 
-import { TestApi } from "./test_api";
+import { TestableApi } from "./testable_api";
 import { Catter, CustomError } from "../lib/shared_util";
 
-export class TestApi1 extends TestApi {
+export class MainApi1 extends TestableApi {
   async noReplyNoError() {}
 
   async doubleNumber(x: number) {

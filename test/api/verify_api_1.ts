@@ -5,41 +5,43 @@ import { ResultCollector } from "../lib/main_util";
 
 const test = it;
 
-export default (collector: ResultCollector) => {
-  test("invoke with no reply and no error", async () => {
-    collector.verifyTest("no reply no error", (result) => {
+export default (winTag: string, collector: ResultCollector) => {
+  winTag = winTag + " ";
+
+  test(winTag + "invoke with no reply and no error (api1)", async () => {
+    collector.verifyTest(winTag + "no reply no error (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });
   });
 
-  test("single-parameter invoke", async () => {
-    collector.verifyTest("single param", (result) => {
+  test(winTag + "single-parameter invoke (api1)", async () => {
+    collector.verifyTest(winTag + "single param (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [21]);
       assert.equal(result.replyData, 42);
     });
   });
 
-  test("multi-parameter invoke", async () => {
-    collector.verifyTest("multi param", (result) => {
+  test(winTag + "multi-parameter invoke (api1)", async () => {
+    collector.verifyTest(winTag + "multi param (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [5, 10]);
       assert.equal(result.replyData, 15);
     });
   });
 
-  test("sending class instance via API 1", async () => {
-    collector.verifyTest("send class instance 1", (result) => {
+  test(winTag + "sending class instance (api1)", async () => {
+    collector.verifyTest(winTag + "send class instance 1 (api1)", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
       assert.equal(result.replyData, "thisthat");
     });
   });
 
-  test("getting class instance via API 1", async () => {
-    collector.verifyTest("get class instance 1", (result) => {
+  test(winTag + "getting class instance (api1)", async () => {
+    collector.verifyTest(winTag + "get class instance 1 (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
       assert.ok(result.replyData instanceof Catter);
@@ -47,16 +49,16 @@ export default (collector: ResultCollector) => {
     });
   });
 
-  test("conditional error succeeding via API 1", async () => {
-    collector.verifyTest("all good 1", (result) => {
+  test(winTag + "conditional error succeeding (api1)", async () => {
+    collector.verifyTest(winTag + "all good 1 (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [true]);
       assert.equal(result.replyData, "all good");
     });
   });
 
-  test("invoke throwing plain error via API 1", async () => {
-    collector.verifyTest("plain error 1", (result) => {
+  test(winTag + "invoke throwing plain error (api1)", async () => {
+    collector.verifyTest(winTag + "plain error 1 (api1)", (result) => {
       assert.ok(result.error instanceof Error);
       assert.equal(result.error.message, "Just a plain error");
       assert.equal(
@@ -68,16 +70,16 @@ export default (collector: ResultCollector) => {
     });
   });
 
-  test("invoke same method name via API 1", async () => {
-    collector.verifyTest("same method api 1", (result) => {
+  test(winTag + "invoke same method name (api1)", async () => {
+    collector.verifyTest(winTag + "same method (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, null);
       assert.equal(result.replyData, "API 1");
     });
   });
 
-  test("invoke throwing structured error", async () => {
-    collector.verifyTest("structured error", (result) => {
+  test(winTag + "invoke throwing structured error (api1)", async () => {
+    collector.verifyTest(winTag + "structured error (api1)", (result) => {
       const error = result.error as any;
       assert.ok(error instanceof Error);
       assert.ok(typeof error.message == "string");
@@ -89,8 +91,8 @@ export default (collector: ResultCollector) => {
     });
   });
 
-  test("invoke throwing custom error", async () => {
-    collector.verifyTest("custom error", (result) => {
+  test(winTag + "invoke throwing custom error (api1)", async () => {
+    collector.verifyTest(winTag + "custom error (api1)", (result) => {
       const error = result.error as any;
       assert.ok(error instanceof CustomError);
       assert.equal(error.message, "bad thing");

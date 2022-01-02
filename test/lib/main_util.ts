@@ -28,45 +28,10 @@ export class Result {
 }
 
 export class ResultCollector {
-  private currentResult = new Result();
-  private results: Result[] = [];
-  private abortError: any = null;
-  private completedAll = false;
-
-  constructor(recoverFunc: Recovery.RecoveryFunction) {
-    ipcMain.on("started_test", (_event, testName: string) => {
-      this.currentResult.testName = testName;
-    });
-    ipcMain.on("request_data", (_event, data: any) => {
-      this.currentResult.requestData = Recovery.recoverArgument(
-        data,
-        recoverFunc
-      );
-    });
-    ipcMain.on("reply_data", (_event, data: any) => {
-      this.currentResult.replyData = Recovery.recoverArgument(
-        data,
-        recoverFunc
-      );
-    });
-    ipcMain.on("completed_test", (_event, error: any) => {
-      this.currentResult.error = null;
-      if (error) {
-        this.currentResult.error = Recovery.recoverThrownError(
-          error,
-          recoverFunc
-        );
-      }
-      this.results.push(this.currentResult);
-      this.currentResult = new Result();
-    });
-    ipcMain.on("completed_all", () => {
-      this.completedAll = true;
-    });
-    ipcMain.on("aborted", (_event, error: any) => {
-      this.abortError = error;
-    });
-  }
+  currentResult = new Result();
+  results: Result[] = [];
+  abortError: any = null;
+  completedAll = false;
 
   waitForResults(): Promise<void> {
     const self = this;
@@ -137,4 +102,49 @@ export class ResultCollector {
       }
     }
   }
+}
+
+// Only one result collector for each Electron instance.
+let resultCollector: ResultCollector;
+
+export function createResultCollector(recoveryFunc: Recovery.RecoveryFunction) {
+  if (resultCollector !== undefined) {
+    throw Error("Only call createResultCollector() once");
+  }
+  resultCollector = new ResultCollector();
+
+  ipcMain.on("started_test", (_event, testName: string) => {
+    resultCollector.currentResult.testName = testName;
+  });
+  ipcMain.on("request_data", (_event, data: any) => {
+    resultCollector.currentResult.requestData = Recovery.recoverArgument(
+      data,
+      recoveryFunc
+    );
+  });
+  ipcMain.on("reply_data", (_event, data: any) => {
+    resultCollector.currentResult.replyData = Recovery.recoverArgument(
+      data,
+      recoveryFunc
+    );
+  });
+  ipcMain.on("completed_test", (_event, error: any) => {
+    resultCollector.currentResult.error = null;
+    if (error) {
+      resultCollector.currentResult.error = Recovery.recoverThrownError(
+        error,
+        recoveryFunc
+      );
+    }
+    resultCollector.results.push(resultCollector.currentResult);
+    resultCollector.currentResult = new Result();
+  });
+  ipcMain.on("completed_all", () => {
+    resultCollector.completedAll = true;
+  });
+  ipcMain.on("aborted", (_event, error: any) => {
+    resultCollector.abortError = error;
+  });
+
+  return resultCollector;
 }
