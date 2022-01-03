@@ -2,7 +2,7 @@ import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
 import { exposeMainApi, setIpcBindingTimeout } from "../src";
-import { INITIAL_DELAY_MILLIS } from "./lib/config";
+import { WINDOW_INITIAL_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";
 import { recoverer } from "./lib/shared_util";
@@ -20,7 +20,7 @@ describe("one exposed API with delayed binding", () => {
 
     before(async () => {
       window1 = await createWindow();
-      setIpcBindingTimeout(INITIAL_DELAY_MILLIS + 1000);
+      setIpcBindingTimeout(WINDOW_INITIAL_DELAY_MILLIS + 1000);
       exposeMainApi(window1, mainApi2, recoverer);
       await resultCollector.runScriptInWindow(window1, "win1_api_2_delayed");
       await resultCollector.waitForResults();

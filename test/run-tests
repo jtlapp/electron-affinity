@@ -2,5 +2,5 @@
 node_modules/.bin/electron-mocha build/test/test_single_api.js --timeout 8000
 node_modules/.bin/electron-mocha build/test/test_two_windows.js --timeout 8000
 node_modules/.bin/mocha build/test/test_main_timeout.js --timeout 8000
-node_modules/.bin/electron-mocha build/test/test_window_delay.js --timeout 8000
-node_modules/.bin/electron-mocha build/test/test_window_timeout.js --timeout 8000
+node_modules/.bin/electron-mocha build/test/test_main_patience.js --timeout 8000
+node_modules/.bin/electron-mocha build/test/test_window_patience.js --timeout 8000
