@@ -5,7 +5,7 @@ import { BrowserWindow } from "electron";
 const test = it;
 
 import { exposeMainApi } from "../src";
-import { MAIN_INITIAL_DELAY_MILLIS } from "./lib/config";
+import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";
 import verifyApi2 from "./api/verify_api_2";
@@ -15,19 +15,19 @@ const resultCollector = createResultCollector(recoverer);
 
 describe("patience of renderer for recieving main APIs", () => {
   const mainApi2 = new MainApi2(resultCollector);
-  let window1: BrowserWindow;
-  let window2: BrowserWindow;
 
   describe("window waits for main API and successfully binds", () => {
+    let window1: BrowserWindow;
+
     before(async () => {
       window1 = await createWindow();
-      await resultCollector.runScriptInWindow(window1, "win2_api_2_patient");
-      await sleep(MAIN_INITIAL_DELAY_MILLIS);
+      await resultCollector.runScriptInWindow(window1, "win1_api_2_patient");
+      await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
       exposeMainApi(window1, mainApi2, recoverer);
       await resultCollector.waitForResults();
     });
 
-    verifyApi2("win2", resultCollector);
+    verifyApi2("win1", resultCollector);
 
     after(() => {
       if (window1) window1.destroy();
@@ -36,13 +36,18 @@ describe("patience of renderer for recieving main APIs", () => {
   });
 
   describe("main takes too long to send API", () => {
-    before(async () => {
-      window2 = await createWindow();
-      await resultCollector.runScriptInWindow(window2, "win2_api_2_patient");
-    });
+    let window2: BrowserWindow;
+
+    // This must be the last test because it eventually times out for failure
+    // for a window to bind to an API, ending Electron with an uncaught error.
+    // I haven't been able to intercept uncaught errors in electron-mocha.
 
     test("window times out", async () => {
-      await sleep(MAIN_INITIAL_DELAY_MILLIS * 2);
+      window2 = await createWindow();
+      // Run the window1 script again on window2 to be sure that its' the
+      // change in timing that prevents the binding.
+      await resultCollector.runScriptInWindow(window2, "win1_api_2_patient");
+      await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
       exposeMainApi(window2, mainApi2, recoverer);
       try {
         await resultCollector.waitForResults();
@@ -50,13 +55,10 @@ describe("patience of renderer for recieving main APIs", () => {
       } catch (err: any) {
         assert.equal(
           err,
-          "win2: Uncaught Error: Timed out waiting to bind IPC API 'MainApi2'"
+          "win1: Uncaught Error: Timed out waiting to bind main API 'MainApi2'"
         );
       }
-    });
-
-    after(() => {
-      if (window2) window2.destroy();
+      // Don't close window2; its exception destroys it.
     });
   });
 });

@@ -5,6 +5,7 @@ import {
   BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
+  ApiBinding,
   PublicProperty,
   retryUntilTimeout,
   toIpcName,
@@ -16,6 +17,7 @@ import { Recovery } from "./recovery";
 const _registrationMap: ApiRegistrationMap = {};
 const _boundApis: Record<string, MainApiBinding<any>> = {};
 let _listeningForApis = false;
+let _windowID: number;
 
 export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
@@ -27,6 +29,7 @@ export function bindMainApi<T>(
 ): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
     ipcRenderer.on(EXPOSE_API_EVENT, (_event, api: ApiRegistration) => {
+      _windowID = api.windowID;
       _registrationMap[api.className] = api.methodNames;
     });
     _listeningForApis = true;
@@ -42,7 +45,7 @@ export function bindMainApi<T>(
         () => {
           return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
         },
-        `Timed out waiting to bind IPC API '${apiClassName}'`
+        `Timed out waiting to bind main API '${apiClassName}'`
       );
     }
   });
@@ -68,7 +71,7 @@ function _attemptBindIpcApi<T>(
           Recovery.prepareArgument(arg);
         }
       }
-      let response = await ipcRenderer.invoke(
+      const response = await ipcRenderer.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
@@ -80,6 +83,10 @@ function _attemptBindIpcApi<T>(
   }
   _boundApis[apiClassName] = boundApi;
   resolve(boundApi);
-  ipcRenderer.send(BOUND_API_EVENT, apiClassName);
+  const binding: ApiBinding = {
+    windowID: _windowID,
+    className: apiClassName,
+  };
+  ipcRenderer.send(BOUND_API_EVENT, binding);
   return true;
 }

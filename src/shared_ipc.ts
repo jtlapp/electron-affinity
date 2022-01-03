@@ -16,10 +16,16 @@ export type PublicProperty<P> = P extends PrivateProperty<P>
   ? P
   : never;
 
-export interface ApiRegistration {
+export type ApiRegistration = {
+  windowID: number;
   className: string;
   methodNames: string[];
-}
+};
+
+export type ApiBinding = {
+  windowID: number;
+  className: string;
+};
 
 export type ApiRegistrationMap = Record<string, string[]>;
 

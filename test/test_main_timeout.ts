@@ -24,7 +24,9 @@ describe("window does not bind to API", () => {
     exec(command, (err, stdout, _stderr) => {
       clearTimeout(timer);
       if (err) {
-        if (stdout.includes("Timed out waiting for bound IPC API 'MainApi2'")) {
+        if (
+          stdout.includes("Timed out waiting for main API 'MainApi2' to bind")
+        ) {
           done();
         } else {
           done(Error(err + "..." + stdout));

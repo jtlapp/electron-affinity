@@ -5,6 +5,7 @@ import {
   BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
+  ApiBinding,
   PublicProperty,
   toIpcName,
   retryUntilTimeout,
@@ -54,13 +55,13 @@ export function exposeMainApi<T>(
 ) {
   const apiClassName = mainApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
-    ipcMain.on(BOUND_API_EVENT, (_event, boundApiName: string) => {
-      let windowApis = _boundApisByWindowID[toWindow.id];
+    ipcMain.on(BOUND_API_EVENT, (_event, binding: ApiBinding) => {
+      let windowApis = _boundApisByWindowID[binding.windowID];
       if (windowApis === undefined) {
         windowApis = {};
-        _boundApisByWindowID[toWindow.id] = windowApis;
+        _boundApisByWindowID[binding.windowID] = windowApis;
       }
-      windowApis[boundApiName] = true;
+      windowApis[binding.className] = true;
     });
   }
   if (_registrationMap[apiClassName] === undefined) {
@@ -95,7 +96,6 @@ export function exposeMainApi<T>(
     }
     _registrationMap[apiClassName] = methodNames;
   }
-  // TODO: test this
   retryUntilTimeout(
     0,
     () => {
@@ -103,13 +103,15 @@ export function exposeMainApi<T>(
       if (windowApis !== undefined && windowApis[apiClassName]) {
         return true;
       }
-      toWindow.webContents.send(EXPOSE_API_EVENT, {
+      const registration: ApiRegistration = {
+        windowID: toWindow.id,
         className: apiClassName,
         methodNames: _registrationMap[apiClassName],
-      } as ApiRegistration);
+      };
+      toWindow.webContents.send(EXPOSE_API_EVENT, registration);
       return false;
     },
-    `Timed out waiting for bound IPC API '${apiClassName}'`
+    `Timed out waiting for main API '${apiClassName}' to bind to window ${toWindow.id}`
   );
 }
 
