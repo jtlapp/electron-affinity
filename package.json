@@ -4,7 +4,7 @@
   "description": "IPC via simple methods in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
-  "private": true,
+  "private": false,
   "main": "./build/test/tests.js",
   "scripts": {
     "test": "tsc && shx cp test/client/dummy.html build/test/client && ./test/run-tests"
