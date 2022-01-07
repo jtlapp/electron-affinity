@@ -1,11 +1,11 @@
 {
   "name": "electron-ipc-methods",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "IPC via simple methods in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "private": false,
-  "main": "./build/src/index.js",
+  "main": "./build/src/index",
   "typings": "./build/src/index",
   "files": [
     "build/src"
