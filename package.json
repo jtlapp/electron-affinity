@@ -1,7 +1,7 @@
 {
   "name": "electron-ipc-methods",
   "version": "0.1.0",
-  "description": "Simple Typed IPC for Electron",
+  "description": "IPC via simple methods in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "private": true,
