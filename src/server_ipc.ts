@@ -96,9 +96,13 @@ export function exposeMainApi<T>(
     }
     _registrationMap[apiClassName] = methodNames;
   }
+
   retryUntilTimeout(
     0,
     () => {
+      if (toWindow.isDestroyed()) {
+        return true;
+      }
       const windowApis = _boundApisByWindowID[toWindow.id];
       if (windowApis !== undefined && windowApis[apiClassName]) {
         return true;

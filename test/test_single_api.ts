@@ -20,7 +20,6 @@ describe("one exposed API", () => {
     before(async () => {
       window1 = await createWindow();
       await resultCollector.runScriptInWindow(window1, "win1_api_1");
-      // TODO: Also test exposing API after client initiates binding.
       exposeMainApi(window1, mainApi1, recoverer);
       await resultCollector.waitForResults();
     });

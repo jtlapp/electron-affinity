@@ -59,7 +59,6 @@ function bindMainApi(apiClassName, recoveryFunc) {
             resolve(api);
         }
         else {
-            // TODO: test this
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
             }, "Timed out waiting to bind main API '" + apiClassName + "'");

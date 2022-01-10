@@ -39,7 +39,6 @@ export function bindMainApi<T>(
     if (api !== undefined) {
       resolve(api);
     } else {
-      // TODO: test this
       retryUntilTimeout(
         0,
         () => {
