@@ -1,0 +1,20 @@
+import "source-map-support/register";
+
+import { exposeMainApi, setIpcBindingTimeout } from "../../src";
+import { ACCEPTABLE_DELAY_MILLIS } from "../lib/config";
+import { createWindow, createResultCollector } from "../lib/main_util";
+import { MainApi2 } from "../api/main_api_2";
+import { recoverer } from "../lib/shared_util";
+import { sleep } from "../lib/shared_util";
+
+const resultCollector = createResultCollector(recoverer);
+const mainApi2 = new MainApi2(resultCollector);
+
+it("waits for main to timeout on window destroyed", async () => {
+  const window1 = await createWindow();
+  setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
+  exposeMainApi(window1, mainApi2, recoverer);
+  await resultCollector.runScriptInWindow(window1, "win1_destroyed");
+  if (window1) window1.destroy();
+  await sleep(ACCEPTABLE_DELAY_MILLIS);
+});

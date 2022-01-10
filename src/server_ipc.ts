@@ -100,9 +100,8 @@ export function exposeMainApi<T>(
   retryUntilTimeout(
     0,
     () => {
-      // TODO: Add a test for this check
       if (toWindow.isDestroyed()) {
-        return true;
+        throw Error(`Window destroyed before binding to '${apiClassName}'`);
       }
       const windowApis = _boundApisByWindowID[toWindow.id];
       if (windowApis !== undefined && windowApis[apiClassName]) {

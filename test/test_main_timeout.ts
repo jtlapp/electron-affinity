@@ -10,23 +10,35 @@ const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 
 describe("window does not bind to API", () => {
   test("main times out waiting for first window binding", (done) => {
-    const script = path.join(
-      rootPath,
-      "build/test/client/win1_main_timeout.js"
+    verifyTimeout(
+      "win1_main_timeout",
+      "Timed out waiting for main API 'MainApi2' to bind",
+      done
     );
-    verifyTimeout(script, done);
   });
 
   test("main times out waiting for second window binding of same API", (done) => {
-    const script = path.join(
-      rootPath,
-      "build/test/client/win2_main_timeout.js"
+    verifyTimeout(
+      "win2_main_timeout",
+      "Timed out waiting for main API 'MainApi2' to bind",
+      done
     );
-    verifyTimeout(script, done);
+  });
+
+  test("window destruction aborts binding", (done) => {
+    verifyTimeout(
+      "main_win_destroyed",
+      "Window destroyed before binding to 'MainApi2'",
+      done
+    );
   });
 });
 
-function verifyTimeout(testScript: string, done: Mocha.Done): void {
+function verifyTimeout(
+  scriptName: string,
+  expectedErrorText: string,
+  done: Mocha.Done
+): void {
   // I was unable to override the uncaught exception in electron-mocha,
   // neither via process.removeAllListeners() + process.on() nor via
   // process.prependOnceListener(), so I test the output of electron-mocha.
@@ -35,19 +47,25 @@ function verifyTimeout(testScript: string, done: Mocha.Done): void {
     () => assert.fail("Timed out waiting on child process"),
     EXEC_TIMEOUT_MILLIS
   );
-  const command = `node ${mochaPath} ${testScript} --timeout 8000`;
-  exec(command, (err, stdout, _stderr) => {
+  const scriptPath = path.join(
+    rootPath,
+    "build/test/client",
+    scriptName + ".js"
+  );
+  const command = `node ${mochaPath} ${scriptPath} --timeout 8000`;
+  exec(command, (err, stdout, stderr) => {
     clearTimeout(timer);
-    if (err) {
-      if (
-        stdout.includes("Timed out waiting for main API 'MainApi2' to bind")
-      ) {
-        done();
-      } else {
-        done(Error(err + "..." + stdout));
-      }
+    if (
+      stdout.includes(expectedErrorText) ||
+      stderr.includes(expectedErrorText)
+    ) {
+      done();
     } else {
-      assert.fail("Child process unexpectedly completed..." + stdout);
+      if (err) {
+        done(Error(err + "..." + stdout));
+      } else {
+        assert.fail("Child process unexpectedly completed..." + stdout);
+      }
     }
   });
 }
