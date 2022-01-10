@@ -60,12 +60,10 @@ function verifyTimeout(
       stderr.includes(expectedErrorText)
     ) {
       done();
+    } else if (err) {
+      done(Error(err + "..." + stdout));
     } else {
-      if (err) {
-        done(Error(err + "..." + stdout));
-      } else {
-        assert.fail("Child process unexpectedly completed..." + stdout);
-      }
+      assert.fail("Child process unexpectedly completed..." + stdout);
     }
   });
 }
