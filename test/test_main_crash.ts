@@ -8,9 +8,9 @@ const test = it;
 const rootPath = path.join(__dirname, "../../");
 const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 
-describe("window does not bind to API", () => {
+describe("when main should crash with an error", () => {
   test("main times out waiting for first window binding", (done) => {
-    verifyTimeout(
+    verifyCrash(
       "win1_main_timeout",
       "Timed out waiting for main API 'MainApi2' to bind",
       done
@@ -18,7 +18,7 @@ describe("window does not bind to API", () => {
   });
 
   test("main times out waiting for second window binding of same API", (done) => {
-    verifyTimeout(
+    verifyCrash(
       "win2_main_timeout",
       "Timed out waiting for main API 'MainApi2' to bind",
       done
@@ -26,7 +26,7 @@ describe("window does not bind to API", () => {
   });
 
   test("window destruction aborts binding", (done) => {
-    verifyTimeout(
+    verifyCrash(
       "main_win_destroyed",
       "Window destroyed before binding to 'MainApi2'",
       done
@@ -34,7 +34,7 @@ describe("window does not bind to API", () => {
   });
 });
 
-function verifyTimeout(
+function verifyCrash(
   scriptName: string,
   expectedErrorText: string,
   done: Mocha.Done
