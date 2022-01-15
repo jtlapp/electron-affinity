@@ -91,13 +91,13 @@ export function exposeMainApi<T>(
                 const replyValue = await method.bind(mainApi)(...args);
                 return Recovery.prepareArgument(replyValue);
               } catch (err: any) {
-                if (!(err instanceof PassThroughError)) {
-                  throw err;
+                if (err instanceof PassThroughError) {
+                  return Recovery.prepareThrownError(err.passedError);
                 }
                 if (_errorLoggerFunc !== undefined) {
-                  _errorLoggerFunc(err.passedError);
+                  _errorLoggerFunc(err);
                 }
-                return Recovery.prepareThrownError(err.passedError);
+                throw err;
               }
             }
           );

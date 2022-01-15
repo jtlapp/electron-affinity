@@ -10,8 +10,8 @@ import { recoverer } from "./lib/shared_util";
 import verifyApi1 from "./api/verify_api_1";
 import verifyApi2 from "./api/verify_api_2";
 
-// import { setIpcErrorLogger } from "../src/ipc";
-// setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));
+// import { dumpMainApiErrors } from "./lib/main_util";
+// dumpMainApiErrors();
 
 const resultCollector = createResultCollector(recoverer);
 

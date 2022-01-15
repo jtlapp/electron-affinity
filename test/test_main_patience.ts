@@ -8,8 +8,8 @@ import { MainApi2 } from "./api/main_api_2";
 import { recoverer } from "./lib/shared_util";
 import verifyApi2 from "./api/verify_api_2";
 
-// import { setIpcErrorLogger } from "../src/ipc";
-// setIpcErrorLogger((err) => console.log("\n(MAIN IPC ERROR) " + err.stack));
+// import { dumpMainApiErrors } from "./lib/main_util";
+// dumpMainApiErrors();
 
 const resultCollector = createResultCollector(recoverer);
 const mainApi2 = new MainApi2(resultCollector);

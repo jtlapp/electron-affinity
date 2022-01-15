@@ -2,6 +2,7 @@ import { ipcMain, BrowserWindow } from "electron";
 import { join } from "path";
 
 import { Recovery } from "../../src/recovery";
+import { setIpcErrorLogger } from "../../src/server_ipc";
 
 const COMPLETION_CHECK_INTERVAL_MILLIS = 100;
 const TEST_TIMEOUT_MILLIS = 5000;
@@ -147,4 +148,8 @@ export function createResultCollector(recoveryFunc: Recovery.RecoveryFunction) {
   });
 
   return resultCollector;
+}
+
+export function dumpMainApiErrors() {
+  setIpcErrorLogger((err) => console.log("\n(MAIN API ERROR) " + err.stack));
 }

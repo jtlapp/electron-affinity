@@ -109,13 +109,13 @@ function exposeMainApi(toWindow, mainApi, recoveryFunc) {
                                     return [2 /*return*/, recovery_1.Recovery.prepareArgument(replyValue)];
                                 case 2:
                                     err_1 = _a.sent();
-                                    if (!(err_1 instanceof PassThroughError)) {
-                                        throw err_1;
+                                    if (err_1 instanceof PassThroughError) {
+                                        return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.passedError)];
                                     }
                                     if (_errorLoggerFunc !== undefined) {
-                                        _errorLoggerFunc(err_1.passedError);
+                                        _errorLoggerFunc(err_1);
                                     }
-                                    return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.passedError)];
+                                    throw err_1;
                                 case 3: return [2 /*return*/];
                             }
                         });
