@@ -36,12 +36,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.setIpcErrorLogger = exports.exposeMainApi = void 0;
+exports.setIpcErrorLogger = exports.exposeMainApi = exports.PassThroughError = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var recovery_1 = require("./recovery");
 var _registrationMap = {};
 var _boundApisByWindowID = {};
+var PassThroughError = /** @class */ (function () {
+    function PassThroughError(passedError) {
+        this.passedError = passedError;
+    }
+    return PassThroughError;
+}());
+exports.PassThroughError = PassThroughError;
 /*
 I rejected the following more-flexible approach to exposing APIs
 because it's awkward looking, which would be a barrier to adoption.
@@ -102,10 +109,13 @@ function exposeMainApi(toWindow, mainApi, recoveryFunc) {
                                     return [2 /*return*/, recovery_1.Recovery.prepareArgument(replyValue)];
                                 case 2:
                                     err_1 = _a.sent();
-                                    if (_errorLoggerFunc !== undefined) {
-                                        _errorLoggerFunc(err_1);
+                                    if (!(err_1 instanceof PassThroughError)) {
+                                        throw err_1;
                                     }
-                                    return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1)];
+                                    if (_errorLoggerFunc !== undefined) {
+                                        _errorLoggerFunc(err_1.passedError);
+                                    }
+                                    return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.passedError)];
                                 case 3: return [2 /*return*/];
                             }
                         });

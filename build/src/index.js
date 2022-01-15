@@ -7,9 +7,10 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     o[k2] = m[k];
 }));
 exports.__esModule = true;
-exports.setIpcBindingTimeout = exports.bindMainApi = exports.exposeMainApi = void 0;
+exports.setIpcBindingTimeout = exports.bindMainApi = exports.PassThroughError = exports.exposeMainApi = void 0;
 var server_ipc_1 = require("./server_ipc");
 __createBinding(exports, server_ipc_1, "exposeMainApi");
+__createBinding(exports, server_ipc_1, "PassThroughError");
 var client_ipc_1 = require("./client_ipc");
 __createBinding(exports, client_ipc_1, "bindMainApi");
 var shared_ipc_1 = require("./shared_ipc");

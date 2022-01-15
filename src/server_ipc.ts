@@ -23,6 +23,14 @@ export type ElectronMainApi<T> = {
     : any;
 };
 
+export class PassThroughError {
+  passedError: Error;
+
+  constructor(passedError: Error) {
+    this.passedError = passedError;
+  }
+}
+
 /*
 I rejected the following more-flexible approach to exposing APIs
 because it's awkward looking, which would be a barrier to adoption.
@@ -83,10 +91,13 @@ export function exposeMainApi<T>(
                 const replyValue = await method.bind(mainApi)(...args);
                 return Recovery.prepareArgument(replyValue);
               } catch (err: any) {
-                if (_errorLoggerFunc !== undefined) {
-                  _errorLoggerFunc(err);
+                if (!(err instanceof PassThroughError)) {
+                  throw err;
                 }
-                return Recovery.prepareThrownError(err);
+                if (_errorLoggerFunc !== undefined) {
+                  _errorLoggerFunc(err.passedError);
+                }
+                return Recovery.prepareThrownError(err.passedError);
               }
             }
           );

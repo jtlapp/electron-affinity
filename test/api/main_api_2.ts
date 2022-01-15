@@ -1,3 +1,4 @@
+import { PassThroughError } from "../../src/index";
 import { TestableApi } from "./testable_api";
 import { Catter } from "../lib/shared_util";
 
@@ -15,7 +16,7 @@ export class MainApi2 extends TestableApi {
   async allGoodOrNot2(succeed: boolean) {
     this._setRequestData(succeed);
     if (!succeed) {
-      throw Error("Just a plain error");
+      throw new PassThroughError(Error("Just a plain error"));
     }
     return "all good";
   }
