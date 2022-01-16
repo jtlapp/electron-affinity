@@ -10,6 +10,9 @@ import { Restorer } from "./restorer";
 export type RestorableClass<T> = Restorer.RestorableClass<T>;
 export type RestorerFunction = Restorer.RestorerFunction;
 
+/**
+ * Type of the bound API returned by an asynchronous function T.
+ */
 export type AwaitedType<T> = T extends (...args: any[]) => Promise<infer R>
   ? R
   : never;
