@@ -61,14 +61,14 @@ export class PassThroughError {
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
  * @param restorer Optional function for restoring the classes of
- *    arguments passed from the window. Instances of classes passed as
- *    arguments but not restored arrive as untyped structures.
+ *    arguments passed to main. Instances of classes not restored arrive
+ *    as untyped structures.
  */
 export function exposeMainApi<T>(
   toWindow: BrowserWindow,
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
-) {
+): void {
   const apiClassName = mainApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
     ipcMain.on(BOUND_API_EVENT, (_event, binding: ApiBinding) => {
@@ -92,15 +92,15 @@ export function exposeMainApi<T>(
               try {
                 if (restorer !== undefined && args !== undefined) {
                   for (let i = 0; i < args.length; ++i) {
-                    args[i] = Restorer.restoreArgument(args[i], restorer);
+                    args[i] = Restorer.restoreValue(args[i], restorer);
                   }
                 }
                 //await before returning to keep Electron from writing errors
                 const replyValue = await method.bind(mainApi)(...args);
-                return Restorer.prepareArgument(replyValue);
+                return Restorer.makeRestorable(replyValue);
               } catch (err: any) {
                 if (err instanceof PassThroughError) {
-                  return Restorer.prepareThrownError(err.errorToPass);
+                  return Restorer.makeReturnedError(err.errorToPass);
                 }
                 if (_errorLoggerFunc !== undefined) {
                   _errorLoggerFunc(err);
@@ -141,7 +141,7 @@ export function exposeMainApi<T>(
 /**
  * Receives errors thrown in APIs not wrapped in PassThroughError.
  */
-export function setIpcErrorLogger(loggerFunc: (err: Error) => void) {
+export function setIpcErrorLogger(loggerFunc: (err: Error) => void): void {
   _errorLoggerFunc = loggerFunc;
 }
 

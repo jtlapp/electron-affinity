@@ -1,16 +1,21 @@
 "use strict";
+/**
+ * Support for restoring the classes of arguments and return values.
+ */
 exports.__esModule = true;
 exports.Restorer = void 0;
 var Restorer;
 (function (Restorer) {
-    function prepareArgument(arg) {
-        if (typeof arg == "object") {
-            arg.__eipc_class = arg.constructor.name;
+    // Makes an object restorable to its class by marking it with its class.
+    function makeRestorable(obj) {
+        if (typeof obj == "object") {
+            obj.__eipc_class = obj.constructor.name;
         }
-        return arg;
+        return obj;
     }
-    Restorer.prepareArgument = prepareArgument;
-    function prepareThrownError(error) {
+    Restorer.makeRestorable = makeRestorable;
+    // Makes an error returnable to the caller for restoration.
+    function makeReturnedError(error) {
         // Electron will throw an instance of Error either thrown from
         // here or returned from here, but that instance will only carry
         // the message property and no other properties. In order to
@@ -20,27 +25,30 @@ var Restorer;
         return Object.assign({
             __eipc_thrown: true,
             message: error.message
-        }, prepareArgument(error));
+        }, makeRestorable(error));
     }
-    Restorer.prepareThrownError = prepareThrownError;
+    Restorer.makeReturnedError = makeReturnedError;
+    // Determines whether a returned value is actually a thrown error.
     function wasThrownError(error) {
         return error != undefined && error.__eipc_thrown !== undefined;
     }
     Restorer.wasThrownError = wasThrownError;
-    function restoreArgument(arg, restorer) {
-        if (arg !== undefined && arg.__eipc_class !== undefined) {
-            var className = arg.__eipc_class;
-            delete arg.__eipc_class;
+    // Restores the class of an argument or return value when possible.
+    function restoreValue(obj, restorer) {
+        if (obj !== undefined && obj.__eipc_class !== undefined) {
+            var className = obj.__eipc_class;
+            delete obj.__eipc_class;
             if (restorer !== undefined) {
-                arg = restorer(className, arg);
+                obj = restorer(className, obj);
             }
         }
-        return arg;
+        return obj;
     }
-    Restorer.restoreArgument = restoreArgument;
+    Restorer.restoreValue = restoreValue;
+    // Restores an error returned via IPC.
     function restoreThrownError(error, restorer) {
         delete error.__eipc_thrown;
-        error = restoreArgument(error, restorer);
+        error = restoreValue(error, restorer);
         if (!(error instanceof Error)) {
             var message = error.message;
             delete error.message;

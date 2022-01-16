@@ -39,7 +39,10 @@ export type MainApiBinding<T> = {
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param restorer Optional TBD
+ * @param restorer Optional function for restoring the classes of returned
+ *    values to the classes they had when transmitted by main. Instances of
+ *    classes not restored arrive as untyped structures.
+ * @returns An API of type T that can be called as if T were local.
  */
 export function bindMainApi<T>(
   apiClassName: string,
@@ -86,7 +89,7 @@ function _attemptBindIpcApi<T>(
     boundApi[typedMethodName] = (async (...args: any[]) => {
       if (args !== undefined) {
         for (const arg of args) {
-          Restorer.prepareArgument(arg);
+          Restorer.makeRestorable(arg);
         }
       }
       const response = await ipcRenderer.invoke(
@@ -96,7 +99,7 @@ function _attemptBindIpcApi<T>(
       if (Restorer.wasThrownError(response)) {
         throw Restorer.restoreThrownError(response, restorer);
       }
-      return Restorer.restoreArgument(response, restorer);
+      return Restorer.restoreValue(response, restorer);
     }) as any; // typescript can't confirm the method signature
   }
   _boundApis[apiClassName] = boundApi;

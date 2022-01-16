@@ -56,7 +56,10 @@ var _windowID;
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param restorer Optional TBD
+ * @param restorer Optional function for restoring the classes of returned
+ *    values to the classes they had when transmitted by main. Instances of
+ *    classes not restored arrive as untyped structures.
+ * @returns An API of type T that can be called as if T were local.
  */
 function bindMainApi(apiClassName, restorer) {
     if (!_listeningForApis) {
@@ -102,7 +105,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
                             if (args !== undefined) {
                                 for (_a = 0, args_1 = args; _a < args_1.length; _a++) {
                                     arg = args_1[_a];
-                                    restorer_1.Restorer.prepareArgument(arg);
+                                    restorer_1.Restorer.makeRestorable(arg);
                                 }
                             }
                             return [4 /*yield*/, electron_1.ipcRenderer.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
@@ -111,7 +114,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
                             if (restorer_1.Restorer.wasThrownError(response)) {
                                 throw restorer_1.Restorer.restoreThrownError(response, restorer);
                             }
-                            return [2 /*return*/, restorer_1.Restorer.restoreArgument(response, restorer)];
+                            return [2 /*return*/, restorer_1.Restorer.restoreValue(response, restorer)];
                     }
                 });
             });

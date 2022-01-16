@@ -52,7 +52,7 @@ export type ApiBinding = {
 export type ApiRegistrationMap = Record<string, string[]>;
 
 // Constructs an API-specific IPC name for a method.
-export function toIpcName(apiClassName: string, methodName: string) {
+export function toIpcName(apiClassName: string, methodName: string): string {
   return `${apiClassName}:${methodName}`;
 }
 

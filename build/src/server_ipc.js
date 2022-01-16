@@ -69,8 +69,8 @@ exports.PassThroughError = PassThroughError;
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
  * @param restorer Optional function for restoring the classes of
- *    arguments passed from the window. Instances of classes passed as
- *    arguments but not restored arrive as untyped structures.
+ *    arguments passed to main. Instances of classes not restored arrive
+ *    as untyped structures.
  */
 function exposeMainApi(toWindow, mainApi, restorer) {
     var _this = this;
@@ -99,17 +99,17 @@ function exposeMainApi(toWindow, mainApi, restorer) {
                                     _a.trys.push([0, 2, , 3]);
                                     if (restorer !== undefined && args !== undefined) {
                                         for (i = 0; i < args.length; ++i) {
-                                            args[i] = restorer_1.Restorer.restoreArgument(args[i], restorer);
+                                            args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
                                         }
                                     }
                                     return [4 /*yield*/, method_1.bind(mainApi).apply(void 0, args)];
                                 case 1:
                                     replyValue = _a.sent();
-                                    return [2 /*return*/, restorer_1.Restorer.prepareArgument(replyValue)];
+                                    return [2 /*return*/, restorer_1.Restorer.makeRestorable(replyValue)];
                                 case 2:
                                     err_1 = _a.sent();
                                     if (err_1 instanceof PassThroughError) {
-                                        return [2 /*return*/, restorer_1.Restorer.prepareThrownError(err_1.errorToPass)];
+                                        return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToPass)];
                                     }
                                     if (_errorLoggerFunc !== undefined) {
                                         _errorLoggerFunc(err_1);

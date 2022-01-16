@@ -17,6 +17,9 @@ export declare type MainApiBinding<T> = {
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param restorer Optional TBD
+ * @param restorer Optional function for restoring the classes of returned
+ *    values to the classes they had when transmitted by main. Instances of
+ *    classes not restored arrive as untyped structures.
+ * @returns An API of type T that can be called as if T were local.
  */
 export declare function bindMainApi<T>(apiClassName: string, restorer?: Restorer.RestorerFunction): Promise<MainApiBinding<T>>;

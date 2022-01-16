@@ -118,13 +118,13 @@ export function createResultCollector(restorer: Restorer.RestorerFunction) {
     resultCollector.currentResult.testName = testName;
   });
   ipcMain.on("request_data", (_event, data: any) => {
-    resultCollector.currentResult.requestData = Restorer.restoreArgument(
+    resultCollector.currentResult.requestData = Restorer.restoreValue(
       data,
       restorer
     );
   });
   ipcMain.on("reply_data", (_event, data: any) => {
-    resultCollector.currentResult.replyData = Restorer.restoreArgument(
+    resultCollector.currentResult.replyData = Restorer.restoreValue(
       data,
       restorer
     );

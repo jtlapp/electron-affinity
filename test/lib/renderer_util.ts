@@ -7,12 +7,12 @@ export function testEvent(eventName: string, testName: string) {
     ipcRenderer.send("started_test", testName);
     try {
       for (let i = 0; i < args.length; ++i) {
-        args[i] = Restorer.prepareArgument(args[i]);
+        args[i] = Restorer.makeRestorable(args[i]);
       }
       ipcRenderer.send("request_data", args);
       ipcRenderer.send("completed_test");
     } catch (err: any) {
-      ipcRenderer.send("completed_test", Restorer.prepareThrownError(err));
+      ipcRenderer.send("completed_test", Restorer.makeReturnedError(err));
     }
   });
 }
@@ -24,10 +24,10 @@ export async function testInvoke(
   ipcRenderer.send("started_test", testName);
   try {
     const replyData = await testFunc();
-    ipcRenderer.send("reply_data", Restorer.prepareArgument(replyData));
+    ipcRenderer.send("reply_data", Restorer.makeRestorable(replyData));
     ipcRenderer.send("completed_test");
   } catch (err: any) {
-    ipcRenderer.send("completed_test", Restorer.prepareThrownError(err));
+    ipcRenderer.send("completed_test", Restorer.makeReturnedError(err));
   }
 }
 

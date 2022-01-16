@@ -31,8 +31,8 @@ export declare class PassThroughError {
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
  * @param restorer Optional function for restoring the classes of
- *    arguments passed from the window. Instances of classes passed as
- *    arguments but not restored arrive as untyped structures.
+ *    arguments passed to main. Instances of classes not restored arrive
+ *    as untyped structures.
  */
 export declare function exposeMainApi<T>(toWindow: BrowserWindow, mainApi: ElectronMainApi<T>, restorer?: RestorerFunction): void;
 /**
