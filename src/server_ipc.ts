@@ -82,9 +82,9 @@ export function exposeMainApi<T>(
   }
   if (_registrationMap[apiClassName] === undefined) {
     const methodNames: string[] = [];
-    for (const methodName in mainApi) {
-      if (methodName[0] != "_" && methodName[0] != "#") {
-        const method = mainApi[methodName];
+    for (const methodName of getPropertyNames(mainApi)) {
+      if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+        const method = (mainApi as any)[methodName];
         if (typeof method == "function") {
           ipcMain.handle(
             toIpcName(apiClassName, methodName),
@@ -136,6 +136,16 @@ export function exposeMainApi<T>(
     },
     `Timed out waiting for main API '${apiClassName}' to bind to window ${toWindow.id}`
   );
+}
+
+// Returns all properties of the class not defined by JavaScript.
+function getPropertyNames(obj: any): string[] {
+  const propertyNames: string[] = [];
+  while (!Object.getOwnPropertyNames(obj).includes("hasOwnProperty")) {
+    propertyNames.push(...Object.getOwnPropertyNames(obj));
+    obj = Object.getPrototypeOf(obj);
+  }
+  return propertyNames;
 }
 
 /**

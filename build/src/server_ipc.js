@@ -88,7 +88,7 @@ function exposeMainApi(toWindow, mainApi, restorer) {
     if (_registrationMap[apiClassName] === undefined) {
         var methodNames = [];
         var _loop_1 = function (methodName) {
-            if (methodName[0] != "_" && methodName[0] != "#") {
+            if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
                 var method_1 = mainApi[methodName];
                 if (typeof method_1 == "function") {
                     electron_1.ipcMain.handle((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (_event, args) { return __awaiter(_this, void 0, void 0, function () {
@@ -123,7 +123,8 @@ function exposeMainApi(toWindow, mainApi, restorer) {
                 }
             }
         };
-        for (var methodName in mainApi) {
+        for (var _i = 0, _a = getPropertyNames(mainApi); _i < _a.length; _i++) {
+            var methodName = _a[_i];
             _loop_1(methodName);
         }
         _registrationMap[apiClassName] = methodNames;
@@ -146,6 +147,15 @@ function exposeMainApi(toWindow, mainApi, restorer) {
     }, "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
 }
 exports.exposeMainApi = exposeMainApi;
+// Returns all properties of the class not defined by JavaScript.
+function getPropertyNames(obj) {
+    var propertyNames = [];
+    while (!Object.getOwnPropertyNames(obj).includes("hasOwnProperty")) {
+        propertyNames.push.apply(propertyNames, Object.getOwnPropertyNames(obj));
+        obj = Object.getPrototypeOf(obj);
+    }
+    return propertyNames;
+}
 /**
  * Receives errors thrown in APIs not wrapped in PassThroughError.
  */
