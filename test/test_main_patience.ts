@@ -1,3 +1,7 @@
+/**
+ * Test main's ability to wait for a window to bind to an API.
+ */
+
 import "source-map-support/register";
 import { BrowserWindow } from "electron";
 

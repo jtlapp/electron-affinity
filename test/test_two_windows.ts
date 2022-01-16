@@ -1,3 +1,7 @@
+/**
+ * Test binding the same APIs to different windows.
+ */
+
 import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";

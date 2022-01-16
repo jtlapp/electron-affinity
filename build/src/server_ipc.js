@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * Code specific to handling IPC in the main process.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,39 +43,35 @@ exports.setIpcErrorLogger = exports.exposeMainApi = exports.PassThroughError = v
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var recovery_1 = require("./recovery");
+// Structure mapping API names to the methods each contains.
 var _registrationMap = {};
+// Structure tracking which windows have bound to which APIs.
 var _boundApisByWindowID = {};
+// Error logger mainly of value for debugging the test suite.
+var _errorLoggerFunc;
+/**
+ * Wrapper for exceptions occurring in a main API that are to pass through to
+ * the caller in the calling window. Any uncaught exception of a main API not
+ * of this type is throw within Electron and not returned to the window.
+ */
 var PassThroughError = /** @class */ (function () {
-    function PassThroughError(passedError) {
-        this.passedError = passedError;
+    function PassThroughError(errorToPass) {
+        this.errorToPass = errorToPass;
     }
     return PassThroughError;
 }());
 exports.PassThroughError = PassThroughError;
-/*
-I rejected the following more-flexible approach to exposing APIs
-because it's awkward looking, which would be a barrier to adoption.
-TypeScript does not (at present) provide a direct way to ensure that
-every element of an array conforms to a particular structure while
-also allowing the elements to have different properties. See:
-https://github.com/microsoft/TypeScript/issues/7481#issuecomment-968220900
-https://github.com/microsoft/TypeScript/issues/7481#issuecomment-1003504754
-
-type CheckedApi = Record<string, (...args: any[]) => Promise<any>>;
-function checkApi<T extends ElectronMainApi<T>>(api: T) {
-  return api as CheckedApi;
-}
-class Api1 {
-  async func1() {}
-}
-class Api2 {
-  async func2() {}
-}
-function exposeApis(_apis: CheckedApi[]) {}
-const api1 = new Api1();
-const api2 = new Api2();
-exposeApis([checkApi(api1), checkApi(api2)]);
-*/
+/**
+ * Exposes a main API to a particular window, which must bind to the API.
+ * Failure of the window to bind before timeout results in an error.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param toWindow The window to which to expose the API
+ * @param mainApi The API to expose to the window
+ * @param recoveryFunc Optional function for restoring the classes of
+ *    arguments passed from the window. Instances of classes passed as
+ *    arguments but not restored arrive as untyped structures.
+ */
 function exposeMainApi(toWindow, mainApi, recoveryFunc) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
@@ -110,7 +109,7 @@ function exposeMainApi(toWindow, mainApi, recoveryFunc) {
                                 case 2:
                                     err_1 = _a.sent();
                                     if (err_1 instanceof PassThroughError) {
-                                        return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.passedError)];
+                                        return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.errorToPass)];
                                     }
                                     if (_errorLoggerFunc !== undefined) {
                                         _errorLoggerFunc(err_1);
@@ -147,9 +146,35 @@ function exposeMainApi(toWindow, mainApi, recoveryFunc) {
     }, "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
 }
 exports.exposeMainApi = exposeMainApi;
-var _errorLoggerFunc;
+/**
+ * Receives errors thrown in APIs not wrapped in PassThroughError.
+ */
 function setIpcErrorLogger(loggerFunc) {
     _errorLoggerFunc = loggerFunc;
 }
 exports.setIpcErrorLogger = setIpcErrorLogger;
+/*
+NOTE: I rejected the following more-flexible approach to exposing APIs
+because it's awkward looking, which would be a barrier to adoption.
+TypeScript does not (at present) provide a direct way to ensure that
+every element of an array conforms to a particular structure while
+also allowing the elements to have different properties. See:
+https://github.com/microsoft/TypeScript/issues/7481#issuecomment-968220900
+https://github.com/microsoft/TypeScript/issues/7481#issuecomment-1003504754
+
+type CheckedApi = Record<string, (...args: any[]) => Promise<any>>;
+function checkApi<T extends ElectronMainApi<T>>(api: T) {
+  return api as CheckedApi;
+}
+class Api1 {
+  async func1() {}
+}
+class Api2 {
+  async func2() {}
+}
+function exposeApis(_apis: CheckedApi[]) {}
+const api1 = new Api1();
+const api2 = new Api2();
+exposeApis([checkApi(api1), checkApi(api2)]);
+*/
 //# sourceMappingURL=server_ipc.js.map

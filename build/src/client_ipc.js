@@ -1,4 +1,7 @@
 "use strict";
+/**
+ * Code specific to handling IPC in the renderer process.
+ */
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,11 +43,21 @@ exports.bindMainApi = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var recovery_1 = require("./recovery");
-// TODO: Should I have bound API invocation timeouts?
+// Structure mapping API names to the methods they contain.
 var _registrationMap = {};
+// Structure tracking bound APIs.
 var _boundApis = {};
 var _listeningForApis = false;
 var _windowID;
+/**
+ * Returns a window-side binding for a main API of a given class.
+ * Failure of main to expose the API before timeout results in an error.
+ *
+ * @param <T> Class to which to bind.
+ * @param apiClassName Name of the class being bound. Must be identical to
+ *    the name of class T. Provides runtime information that <T> does not.
+ * @param recoveryFunc Optional TBD
+ */
 function bindMainApi(apiClassName, recoveryFunc) {
     if (!_listeningForApis) {
         electron_1.ipcRenderer.on(shared_ipc_1.EXPOSE_API_EVENT, function (_event, api) {
@@ -66,6 +79,7 @@ function bindMainApi(apiClassName, recoveryFunc) {
     });
 }
 exports.bindMainApi = bindMainApi;
+// Implements a single attempt to bind to a main API.
 function _attemptBindIpcApi(apiClassName, recoveryFunc, resolve) {
     var _this = this;
     var methodNames = _registrationMap[apiClassName];

@@ -1,3 +1,7 @@
+/**
+ * Test calling methods of a single man API under normal circumstances.
+ */
+
 import "source-map-support/register";
 import { BrowserWindow } from "electron";
 

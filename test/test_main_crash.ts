@@ -1,3 +1,7 @@
+/**
+ * Test scenarious that should cause Electron to crash with an exception.
+ */
+
 import * as path from "path";
 import * as assert from "assert";
 import { exec } from "child_process";

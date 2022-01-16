@@ -1,3 +1,7 @@
+/**
+ * Code specific to handling IPC in the renderer process.
+ */
+
 import { ipcRenderer } from "electron";
 
 import {
@@ -12,17 +16,31 @@ import {
 } from "./shared_ipc";
 import { Recovery } from "./recovery";
 
-// TODO: Should I have bound API invocation timeouts?
-
+// Structure mapping API names to the methods they contain.
 const _registrationMap: ApiRegistrationMap = {};
+
+// Structure tracking bound APIs.
 const _boundApis: Record<string, MainApiBinding<any>> = {};
 let _listeningForApis = false;
 let _windowID: number;
 
+/**
+ * Type to which a bound API of class T conforms. It only exposes the
+ * methods of class T not containing underscores.
+ */
 export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
 
+/**
+ * Returns a window-side binding for a main API of a given class.
+ * Failure of main to expose the API before timeout results in an error.
+ *
+ * @param <T> Class to which to bind.
+ * @param apiClassName Name of the class being bound. Must be identical to
+ *    the name of class T. Provides runtime information that <T> does not.
+ * @param recoveryFunc Optional TBD
+ */
 export function bindMainApi<T>(
   apiClassName: string,
   recoveryFunc?: Recovery.RecoveryFunction
@@ -50,6 +68,7 @@ export function bindMainApi<T>(
   });
 }
 
+// Implements a single attempt to bind to a main API.
 function _attemptBindIpcApi<T>(
   apiClassName: string,
   recoveryFunc: Recovery.RecoveryFunction | undefined,

@@ -1,3 +1,7 @@
+/**
+ * Test the ability of a window to wait for man to register an API.
+ */
+
 import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
