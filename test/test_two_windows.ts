@@ -10,14 +10,14 @@ import { exposeMainApi } from "../src";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
 import { MainApi2 } from "./api/main_api_2";
-import { recoverer } from "./lib/shared_util";
+import { restorer } from "./lib/shared_util";
 import verifyApi1 from "./api/verify_api_1";
 import verifyApi2 from "./api/verify_api_2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
 
-const resultCollector = createResultCollector(recoverer);
+const resultCollector = createResultCollector(restorer);
 
 describe("two windows with two APIs", () => {
   const mainApi1 = new MainApi1(resultCollector);
@@ -27,11 +27,11 @@ describe("two windows with two APIs", () => {
 
   before(async () => {
     window1 = await createWindow();
-    exposeMainApi(window1, mainApi1, recoverer);
-    exposeMainApi(window1, mainApi2, recoverer);
+    exposeMainApi(window1, mainApi1, restorer);
+    exposeMainApi(window1, mainApi2, restorer);
     window2 = await createWindow();
-    exposeMainApi(window2, mainApi1, recoverer);
-    exposeMainApi(window2, mainApi2, recoverer);
+    exposeMainApi(window2, mainApi1, restorer);
+    exposeMainApi(window2, mainApi2, restorer);
   });
 
   describe("window 1 invoking main", () => {

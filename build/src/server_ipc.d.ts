@@ -3,7 +3,7 @@
  */
 import { BrowserWindow } from "electron";
 import { PublicProperty } from "./shared_ipc";
-import { RecoveryFunction } from "./index";
+import { RestorerFunction } from "./index";
 /**
  * Type to which a main API of class T conforms, requiring each API to
  * return a promise. All properties of the method not beginning with an
@@ -30,11 +30,11 @@ export declare class PassThroughError {
  * @param <T> (inferred type, not specified in call)
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
- * @param recoveryFunc Optional function for restoring the classes of
+ * @param restorer Optional function for restoring the classes of
  *    arguments passed from the window. Instances of classes passed as
  *    arguments but not restored arrive as untyped structures.
  */
-export declare function exposeMainApi<T>(toWindow: BrowserWindow, mainApi: ElectronMainApi<T>, recoveryFunc?: RecoveryFunction): void;
+export declare function exposeMainApi<T>(toWindow: BrowserWindow, mainApi: ElectronMainApi<T>, restorer?: RestorerFunction): void;
 /**
  * Receives errors thrown in APIs not wrapped in PassThroughError.
  */

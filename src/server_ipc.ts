@@ -14,9 +14,9 @@ import {
   toIpcName,
   retryUntilTimeout,
 } from "./shared_ipc";
-import { Recovery } from "./recovery";
-// Use the publicly-exposed RecoveryFunction type
-import { RecoveryFunction } from "./index";
+import { Restorer } from "./restorer";
+// Use the publicly-exposed RestorerFunction type
+import { RestorerFunction } from "./index";
 
 // Structure mapping API names to the methods each contains.
 let _registrationMap: ApiRegistrationMap = {};
@@ -60,14 +60,14 @@ export class PassThroughError {
  * @param <T> (inferred type, not specified in call)
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
- * @param recoveryFunc Optional function for restoring the classes of
+ * @param restorer Optional function for restoring the classes of
  *    arguments passed from the window. Instances of classes passed as
  *    arguments but not restored arrive as untyped structures.
  */
 export function exposeMainApi<T>(
   toWindow: BrowserWindow,
   mainApi: ElectronMainApi<T>,
-  recoveryFunc?: RecoveryFunction
+  restorer?: RestorerFunction
 ) {
   const apiClassName = mainApi.constructor.name;
   if (Object.keys(_registrationMap).length == 0) {
@@ -90,17 +90,17 @@ export function exposeMainApi<T>(
             toIpcName(apiClassName, methodName),
             async (_event, args: any[]) => {
               try {
-                if (recoveryFunc !== undefined && args !== undefined) {
+                if (restorer !== undefined && args !== undefined) {
                   for (let i = 0; i < args.length; ++i) {
-                    args[i] = Recovery.recoverArgument(args[i], recoveryFunc);
+                    args[i] = Restorer.restoreArgument(args[i], restorer);
                   }
                 }
                 //await before returning to keep Electron from writing errors
                 const replyValue = await method.bind(mainApi)(...args);
-                return Recovery.prepareArgument(replyValue);
+                return Restorer.prepareArgument(replyValue);
               } catch (err: any) {
                 if (err instanceof PassThroughError) {
-                  return Recovery.prepareThrownError(err.errorToPass);
+                  return Restorer.prepareThrownError(err.errorToPass);
                 }
                 if (_errorLoggerFunc !== undefined) {
                   _errorLoggerFunc(err);

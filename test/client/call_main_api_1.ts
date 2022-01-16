@@ -1,12 +1,12 @@
 import { bindMainApi } from "../../src";
 import { MainApi1 } from "../api/main_api_1";
-import { Catter, recoverer } from "../lib/shared_util";
+import { Catter, restorer } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";
 
 export async function callMainApi1(winTag: string) {
   winTag = winTag + " ";
 
-  const mainApi1 = await bindMainApi<MainApi1>("MainApi1", recoverer);
+  const mainApi1 = await bindMainApi<MainApi1>("MainApi1", restorer);
 
   await testInvoke(winTag + "no reply no error (api1)", () => {
     return mainApi1.noReplyNoError();

@@ -1,7 +1,7 @@
 import { ipcMain, BrowserWindow } from "electron";
 import { join } from "path";
 
-import { Recovery } from "../../src/recovery";
+import { Restorer } from "../../src/restorer";
 import { setIpcErrorLogger } from "../../src/server_ipc";
 
 const COMPLETION_CHECK_INTERVAL_MILLIS = 100;
@@ -108,7 +108,7 @@ export class ResultCollector {
 // Only one result collector for each Electron instance.
 let resultCollector: ResultCollector;
 
-export function createResultCollector(recoveryFunc: Recovery.RecoveryFunction) {
+export function createResultCollector(restorer: Restorer.RestorerFunction) {
   if (resultCollector !== undefined) {
     throw Error("Only call createResultCollector() once");
   }
@@ -118,23 +118,23 @@ export function createResultCollector(recoveryFunc: Recovery.RecoveryFunction) {
     resultCollector.currentResult.testName = testName;
   });
   ipcMain.on("request_data", (_event, data: any) => {
-    resultCollector.currentResult.requestData = Recovery.recoverArgument(
+    resultCollector.currentResult.requestData = Restorer.restoreArgument(
       data,
-      recoveryFunc
+      restorer
     );
   });
   ipcMain.on("reply_data", (_event, data: any) => {
-    resultCollector.currentResult.replyData = Recovery.recoverArgument(
+    resultCollector.currentResult.replyData = Restorer.restoreArgument(
       data,
-      recoveryFunc
+      restorer
     );
   });
   ipcMain.on("completed_test", (_event, error: any) => {
     resultCollector.currentResult.error = null;
     if (error) {
-      resultCollector.currentResult.error = Recovery.recoverThrownError(
+      resultCollector.currentResult.error = Restorer.restoreThrownError(
         error,
-        recoveryFunc
+        restorer
       );
     }
     resultCollector.results.push(resultCollector.currentResult);

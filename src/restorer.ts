@@ -1,10 +1,10 @@
-export namespace Recovery {
-  export type RecoverableClass<C> = {
+export namespace Restorer {
+  export type RestorableClass<C> = {
     // static method of the class returning an instance of the class
-    recover(obj: Record<string, any>): C;
+    restoreClass(obj: Record<string, any>): C;
   };
 
-  export type RecoveryFunction = (
+  export type RestorerFunction = (
     className: string,
     arg: Record<string, any>
   ) => any;
@@ -36,26 +36,23 @@ export namespace Recovery {
     return error != undefined && error.__eipc_thrown !== undefined;
   }
 
-  export function recoverArgument(
-    arg: any,
-    recoveryFunc?: RecoveryFunction
-  ): any {
+  export function restoreArgument(arg: any, restorer?: RestorerFunction): any {
     if (arg !== undefined && arg.__eipc_class !== undefined) {
       const className = arg.__eipc_class;
       delete arg.__eipc_class;
-      if (recoveryFunc !== undefined) {
-        arg = recoveryFunc(className, arg);
+      if (restorer !== undefined) {
+        arg = restorer(className, arg);
       }
     }
     return arg;
   }
 
-  export function recoverThrownError(
+  export function restoreThrownError(
     error: any,
-    recoveryFunc?: RecoveryFunction
+    restorer?: RestorerFunction
   ): Error {
     delete error.__eipc_thrown;
-    error = recoverArgument(error, recoveryFunc);
+    error = restoreArgument(error, restorer);
     if (!(error instanceof Error)) {
       const message = error.message;
       delete error.message;

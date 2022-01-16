@@ -1,15 +1,15 @@
 "use strict";
 exports.__esModule = true;
-exports.Recovery = void 0;
-var Recovery;
-(function (Recovery) {
+exports.Restorer = void 0;
+var Restorer;
+(function (Restorer) {
     function prepareArgument(arg) {
         if (typeof arg == "object") {
             arg.__eipc_class = arg.constructor.name;
         }
         return arg;
     }
-    Recovery.prepareArgument = prepareArgument;
+    Restorer.prepareArgument = prepareArgument;
     function prepareThrownError(error) {
         // Electron will throw an instance of Error either thrown from
         // here or returned from here, but that instance will only carry
@@ -22,25 +22,25 @@ var Recovery;
             message: error.message
         }, prepareArgument(error));
     }
-    Recovery.prepareThrownError = prepareThrownError;
+    Restorer.prepareThrownError = prepareThrownError;
     function wasThrownError(error) {
         return error != undefined && error.__eipc_thrown !== undefined;
     }
-    Recovery.wasThrownError = wasThrownError;
-    function recoverArgument(arg, recoveryFunc) {
+    Restorer.wasThrownError = wasThrownError;
+    function restoreArgument(arg, restorer) {
         if (arg !== undefined && arg.__eipc_class !== undefined) {
             var className = arg.__eipc_class;
             delete arg.__eipc_class;
-            if (recoveryFunc !== undefined) {
-                arg = recoveryFunc(className, arg);
+            if (restorer !== undefined) {
+                arg = restorer(className, arg);
             }
         }
         return arg;
     }
-    Recovery.recoverArgument = recoverArgument;
-    function recoverThrownError(error, recoveryFunc) {
+    Restorer.restoreArgument = restoreArgument;
+    function restoreThrownError(error, restorer) {
         delete error.__eipc_thrown;
-        error = recoverArgument(error, recoveryFunc);
+        error = restoreArgument(error, restorer);
         if (!(error instanceof Error)) {
             var message = error.message;
             delete error.message;
@@ -50,6 +50,6 @@ var Recovery;
         error.stack = error.constructor.name + ": " + error.message + "\n\tin main process";
         return error;
     }
-    Recovery.recoverThrownError = recoverThrownError;
-})(Recovery = exports.Recovery || (exports.Recovery = {}));
-//# sourceMappingURL=recovery.js.map
+    Restorer.restoreThrownError = restoreThrownError;
+})(Restorer = exports.Restorer || (exports.Restorer = {}));
+//# sourceMappingURL=restorer.js.map

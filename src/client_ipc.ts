@@ -14,7 +14,7 @@ import {
   retryUntilTimeout,
   toIpcName,
 } from "./shared_ipc";
-import { Recovery } from "./recovery";
+import { Restorer } from "./restorer";
 
 // Structure mapping API names to the methods they contain.
 const _registrationMap: ApiRegistrationMap = {};
@@ -39,11 +39,11 @@ export type MainApiBinding<T> = {
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param recoveryFunc Optional TBD
+ * @param restorer Optional TBD
  */
 export function bindMainApi<T>(
   apiClassName: string,
-  recoveryFunc?: Recovery.RecoveryFunction
+  restorer?: Restorer.RestorerFunction
 ): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
     ipcRenderer.on(EXPOSE_API_EVENT, (_event, api: ApiRegistration) => {
@@ -60,7 +60,7 @@ export function bindMainApi<T>(
       retryUntilTimeout(
         0,
         () => {
-          return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
+          return _attemptBindIpcApi(apiClassName, restorer, resolve);
         },
         `Timed out waiting to bind main API '${apiClassName}'`
       );
@@ -71,7 +71,7 @@ export function bindMainApi<T>(
 // Implements a single attempt to bind to a main API.
 function _attemptBindIpcApi<T>(
   apiClassName: string,
-  recoveryFunc: Recovery.RecoveryFunction | undefined,
+  restorer: Restorer.RestorerFunction | undefined,
   resolve: (boundApi: MainApiBinding<T>) => void
 ): boolean {
   const methodNames = _registrationMap[apiClassName] as [
@@ -86,17 +86,17 @@ function _attemptBindIpcApi<T>(
     boundApi[typedMethodName] = (async (...args: any[]) => {
       if (args !== undefined) {
         for (const arg of args) {
-          Recovery.prepareArgument(arg);
+          Restorer.prepareArgument(arg);
         }
       }
       const response = await ipcRenderer.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
-      if (Recovery.wasThrownError(response)) {
-        throw Recovery.recoverThrownError(response, recoveryFunc);
+      if (Restorer.wasThrownError(response)) {
+        throw Restorer.restoreThrownError(response, restorer);
       }
-      return Recovery.recoverArgument(response, recoveryFunc);
+      return Restorer.restoreArgument(response, restorer);
     }) as any; // typescript can't confirm the method signature
   }
   _boundApis[apiClassName] = boundApi;

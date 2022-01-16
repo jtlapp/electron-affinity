@@ -13,9 +13,9 @@ import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";
 import verifyApi2 from "./api/verify_api_2";
-import { recoverer, sleep } from "./lib/shared_util";
+import { restorer, sleep } from "./lib/shared_util";
 
-const resultCollector = createResultCollector(recoverer);
+const resultCollector = createResultCollector(restorer);
 
 describe("patience of renderer for recieving main APIs", () => {
   const mainApi2 = new MainApi2(resultCollector);
@@ -27,7 +27,7 @@ describe("patience of renderer for recieving main APIs", () => {
       window1 = await createWindow();
       await resultCollector.runScriptInWindow(window1, "win1_api_2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
-      exposeMainApi(window1, mainApi2, recoverer);
+      exposeMainApi(window1, mainApi2, restorer);
       await resultCollector.waitForResults();
     });
 
@@ -52,7 +52,7 @@ describe("patience of renderer for recieving main APIs", () => {
       // change in timing that prevents the binding.
       await resultCollector.runScriptInWindow(window2, "win1_api_2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
-      exposeMainApi(window2, mainApi2, recoverer);
+      exposeMainApi(window2, mainApi2, restorer);
       try {
         await resultCollector.waitForResults();
         assert.fail("Window did not time out");

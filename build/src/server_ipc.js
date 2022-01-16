@@ -42,7 +42,7 @@ exports.__esModule = true;
 exports.setIpcErrorLogger = exports.exposeMainApi = exports.PassThroughError = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
-var recovery_1 = require("./recovery");
+var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods each contains.
 var _registrationMap = {};
 // Structure tracking which windows have bound to which APIs.
@@ -68,11 +68,11 @@ exports.PassThroughError = PassThroughError;
  * @param <T> (inferred type, not specified in call)
  * @param toWindow The window to which to expose the API
  * @param mainApi The API to expose to the window
- * @param recoveryFunc Optional function for restoring the classes of
+ * @param restorer Optional function for restoring the classes of
  *    arguments passed from the window. Instances of classes passed as
  *    arguments but not restored arrive as untyped structures.
  */
-function exposeMainApi(toWindow, mainApi, recoveryFunc) {
+function exposeMainApi(toWindow, mainApi, restorer) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
     if (Object.keys(_registrationMap).length == 0) {
@@ -97,19 +97,19 @@ function exposeMainApi(toWindow, mainApi, recoveryFunc) {
                             switch (_a.label) {
                                 case 0:
                                     _a.trys.push([0, 2, , 3]);
-                                    if (recoveryFunc !== undefined && args !== undefined) {
+                                    if (restorer !== undefined && args !== undefined) {
                                         for (i = 0; i < args.length; ++i) {
-                                            args[i] = recovery_1.Recovery.recoverArgument(args[i], recoveryFunc);
+                                            args[i] = restorer_1.Restorer.restoreArgument(args[i], restorer);
                                         }
                                     }
                                     return [4 /*yield*/, method_1.bind(mainApi).apply(void 0, args)];
                                 case 1:
                                     replyValue = _a.sent();
-                                    return [2 /*return*/, recovery_1.Recovery.prepareArgument(replyValue)];
+                                    return [2 /*return*/, restorer_1.Restorer.prepareArgument(replyValue)];
                                 case 2:
                                     err_1 = _a.sent();
                                     if (err_1 instanceof PassThroughError) {
-                                        return [2 /*return*/, recovery_1.Recovery.prepareThrownError(err_1.errorToPass)];
+                                        return [2 /*return*/, restorer_1.Restorer.prepareThrownError(err_1.errorToPass)];
                                     }
                                     if (_errorLoggerFunc !== undefined) {
                                         _errorLoggerFunc(err_1);

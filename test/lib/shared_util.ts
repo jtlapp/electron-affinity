@@ -1,4 +1,4 @@
-import { RecoverableClass } from "../../src";
+import { RestorableClass } from "../../src";
 
 export class Catter {
   s1: string;
@@ -13,7 +13,7 @@ export class Catter {
     return this.s1 + this.s2;
   }
 
-  static recover(obj: any): Catter {
+  static restoreClass(obj: any): Catter {
     return new Catter(obj.s1, obj.s2);
   }
 }
@@ -28,21 +28,21 @@ export class CustomError extends Error {
     Object.setPrototypeOf(this, CustomError.prototype);
   }
 
-  static recover(obj: any): CustomError {
+  static restoreClass(obj: any): CustomError {
     return new CustomError(obj.message, obj.code);
   }
 }
 
-const recoveryMap: Record<string, RecoverableClass<any>> = {
+const restorationMap: Record<string, RestorableClass<any>> = {
   Catter,
   CustomError,
 };
 
-export function recoverer(className: string, obj: Record<string, any>) {
-  const recoverableClass = recoveryMap[className];
-  return recoverableClass === undefined
+export function restorer(className: string, obj: Record<string, any>) {
+  const restorableClass = restorationMap[className];
+  return restorableClass === undefined
     ? obj
-    : recoverableClass["recover"](obj);
+    : restorableClass["restoreClass"](obj);
 }
 
 export async function sleep(delayMillis: number) {

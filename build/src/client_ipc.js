@@ -42,7 +42,7 @@ exports.__esModule = true;
 exports.bindMainApi = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
-var recovery_1 = require("./recovery");
+var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
 var _registrationMap = {};
 // Structure tracking bound APIs.
@@ -56,9 +56,9 @@ var _windowID;
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param recoveryFunc Optional TBD
+ * @param restorer Optional TBD
  */
-function bindMainApi(apiClassName, recoveryFunc) {
+function bindMainApi(apiClassName, restorer) {
     if (!_listeningForApis) {
         electron_1.ipcRenderer.on(shared_ipc_1.EXPOSE_API_EVENT, function (_event, api) {
             _windowID = api.windowID;
@@ -73,14 +73,14 @@ function bindMainApi(apiClassName, recoveryFunc) {
         }
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
-                return _attemptBindIpcApi(apiClassName, recoveryFunc, resolve);
+                return _attemptBindIpcApi(apiClassName, restorer, resolve);
             }, "Timed out waiting to bind main API '" + apiClassName + "'");
         }
     });
 }
 exports.bindMainApi = bindMainApi;
 // Implements a single attempt to bind to a main API.
-function _attemptBindIpcApi(apiClassName, recoveryFunc, resolve) {
+function _attemptBindIpcApi(apiClassName, restorer, resolve) {
     var _this = this;
     var methodNames = _registrationMap[apiClassName];
     if (methodNames === undefined) {
@@ -102,16 +102,16 @@ function _attemptBindIpcApi(apiClassName, recoveryFunc, resolve) {
                             if (args !== undefined) {
                                 for (_a = 0, args_1 = args; _a < args_1.length; _a++) {
                                     arg = args_1[_a];
-                                    recovery_1.Recovery.prepareArgument(arg);
+                                    restorer_1.Restorer.prepareArgument(arg);
                                 }
                             }
                             return [4 /*yield*/, electron_1.ipcRenderer.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _b.sent();
-                            if (recovery_1.Recovery.wasThrownError(response)) {
-                                throw recovery_1.Recovery.recoverThrownError(response, recoveryFunc);
+                            if (restorer_1.Restorer.wasThrownError(response)) {
+                                throw restorer_1.Restorer.restoreThrownError(response, restorer);
                             }
-                            return [2 /*return*/, recovery_1.Recovery.recoverArgument(response, recoveryFunc)];
+                            return [2 /*return*/, restorer_1.Restorer.restoreArgument(response, restorer)];
                     }
                 });
             });
