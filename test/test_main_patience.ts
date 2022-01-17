@@ -5,7 +5,7 @@
 import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
-import { exposeMainApi, setIpcBindingTimeout } from "../src";
+import { exposeMainApi, setIpcBindingTimeout } from "../src/main";
 import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";

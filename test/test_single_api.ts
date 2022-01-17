@@ -5,7 +5,7 @@
 import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
-import { exposeMainApi } from "../src";
+import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
 import { restorer } from "./lib/shared_util";

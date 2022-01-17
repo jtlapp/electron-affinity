@@ -24,3 +24,4 @@ Other notes to include:
 
 - window.apis.apiName.method() may be preferrable to window.apiName.method() because upon typing "window." into VSCode, all available window properties are shown, whereas upon typing "window.apis.", only available APIs are shown.
 - PassThroughError is not an instance of Error, so don't extend it.
+- Must take care to bind before all usage, because not static.

@@ -16,7 +16,7 @@ import {
 } from "./shared_ipc";
 import { Restorer } from "./restorer";
 // Use the publicly-exposed RestorerFunction type
-import { RestorerFunction } from "./index";
+import { RestorerFunction } from "./restorer";
 
 // Structure mapping API names to the methods each contains.
 let _registrationMap: ApiRegistrationMap = {};

@@ -1,4 +1,4 @@
-import { bindMainApi } from "../../src/client_ipc";
+import { bindMainApi } from "../../src/window";
 import type { MainApi3 } from "../api/main_api_3";
 import { testInvoke } from "../lib/renderer_util";
 

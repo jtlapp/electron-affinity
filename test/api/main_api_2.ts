@@ -1,4 +1,4 @@
-import { PassThroughError } from "../../src/index";
+import { PassThroughError } from "../../src/main";
 import { TestableApi } from "./testable_api";
 import { Catter } from "../lib/shared_util";
 

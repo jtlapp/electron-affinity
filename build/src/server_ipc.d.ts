@@ -3,7 +3,7 @@
  */
 import { BrowserWindow } from "electron";
 import { PublicProperty } from "./shared_ipc";
-import { RestorerFunction } from "./index";
+import { RestorerFunction } from "./restorer";
 /**
  * Type to which a main API of class T conforms, requiring each API to
  * return a promise. All properties of the method not beginning with an

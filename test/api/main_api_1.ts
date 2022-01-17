@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-import { PassThroughError } from "../../src/index";
+import { PassThroughError } from "../../src/main";
 import { TestableApi } from "./testable_api";
 import { Catter, CustomError } from "../lib/shared_util";
 

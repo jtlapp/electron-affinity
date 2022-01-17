@@ -1,8 +1,7 @@
 /**
- * Function and types available to applications of this package.
+ * Function and types available to windows in Electron.
  */
 
-export { exposeMainApi, PassThroughError } from "./server_ipc";
 export { bindMainApi } from "./client_ipc";
 export { setIpcBindingTimeout } from "./shared_ipc";
 export { RestorableClass, RestorerFunction } from "./restorer";

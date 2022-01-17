@@ -1,4 +1,4 @@
-import { bindMainApi } from "../../src/client_ipc";
+import { bindMainApi } from "../../src/window";
 import type { MainApi2 } from "../api/main_api_2";
 import { Catter, restorer } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";

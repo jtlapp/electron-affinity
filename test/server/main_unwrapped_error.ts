@@ -1,6 +1,6 @@
 import "source-map-support/register";
 
-import { exposeMainApi } from "../../src";
+import { exposeMainApi } from "../../src/main";
 import { createWindow, createResultCollector } from "../lib/main_util";
 import { MainApi3 } from "../api/main_api_3";
 import { restorer } from "../lib/shared_util";

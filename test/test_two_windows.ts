@@ -6,7 +6,7 @@ import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
-import { exposeMainApi } from "../src";
+import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
 import { MainApi2 } from "./api/main_api_2";
