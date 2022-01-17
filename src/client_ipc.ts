@@ -14,10 +14,10 @@ import {
 } from "./shared_ipc";
 import { Restorer, RestorerFunction } from "./restorer";
 
-// window.ipc methods declared in preload.ts
+// window._ipc methods declared in preload.ts
 declare global {
   interface Window {
-    ipc: {
+    _ipc: {
       invoke: (channel: string, data?: any) => Promise<any>;
       send: (channel: string, data: any) => void;
       on: (channel: string, func: (data: any) => void) => void;
@@ -58,7 +58,7 @@ export function bindMainApi<T>(
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
-    window.ipc.on(EXPOSE_API_EVENT, (api: ApiRegistration) => {
+    window._ipc.on(EXPOSE_API_EVENT, (api: ApiRegistration) => {
       _windowID = api.windowID;
       _registrationMap[api.className] = api.methodNames;
     });
@@ -101,7 +101,7 @@ function _attemptBindIpcApi<T>(
           Restorer.makeRestorable(arg);
         }
       }
-      const response = await window.ipc.invoke(
+      const response = await window._ipc.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
@@ -117,6 +117,6 @@ function _attemptBindIpcApi<T>(
     windowID: _windowID,
     className: apiClassName,
   };
-  window.ipc.send(BOUND_API_EVENT, binding);
+  window._ipc.send(BOUND_API_EVENT, binding);
   return true;
 }

@@ -62,7 +62,7 @@ var _windowID;
  */
 function bindMainApi(apiClassName, restorer) {
     if (!_listeningForApis) {
-        window.ipc.on(shared_ipc_1.EXPOSE_API_EVENT, function (api) {
+        window._ipc.on(shared_ipc_1.EXPOSE_API_EVENT, function (api) {
             _windowID = api.windowID;
             _registrationMap[api.className] = api.methodNames;
         });
@@ -107,7 +107,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
                                     restorer_1.Restorer.makeRestorable(arg);
                                 }
                             }
-                            return [4 /*yield*/, window.ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
+                            return [4 /*yield*/, window._ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _b.sent();
                             if (restorer_1.Restorer.wasThrownError(response)) {
@@ -129,7 +129,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
         windowID: _windowID,
         className: apiClassName
     };
-    window.ipc.send(shared_ipc_1.BOUND_API_EVENT, binding);
+    window._ipc.send(shared_ipc_1.BOUND_API_EVENT, binding);
     return true;
 }
 //# sourceMappingURL=client_ipc.js.map

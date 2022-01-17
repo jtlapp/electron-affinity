@@ -2,7 +2,7 @@
 exports.__esModule = true;
 var electron_1 = require("electron");
 var electron_2 = require("electron");
-electron_1.contextBridge.exposeInMainWorld("ipc", {
+electron_1.contextBridge.exposeInMainWorld("_ipc", {
     invoke: function (channel, data) {
         return electron_2.ipcRenderer.invoke(channel, data);
     },

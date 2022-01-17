@@ -5,7 +5,7 @@ import { PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 declare global {
     interface Window {
-        ipc: {
+        _ipc: {
             invoke: (channel: string, data?: any) => Promise<any>;
             send: (channel: string, data: any) => void;
             on: (channel: string, func: (data: any) => void) => void;
