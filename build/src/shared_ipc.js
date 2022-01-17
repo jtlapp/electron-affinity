@@ -11,7 +11,7 @@ exports.BOUND_API_EVENT = "bound_class_api";
 // Period between attempts to announce or bind an API.
 var _RETRY_MILLIS = 50;
 // Configurable timeout attempting to announce or bind an API.
-var _bindingTimeoutMillis = 500;
+var _bindingTimeoutMillis = 5000; // TODO: set to the desired timeout
 /**
  * Sets the timeout for the opposing process to expose or bind to an API.
  */
@@ -21,7 +21,7 @@ function setIpcBindingTimeout(millis) {
 exports.setIpcBindingTimeout = setIpcBindingTimeout;
 // Constructs an API-specific IPC name for a method.
 function toIpcName(apiClassName, methodName) {
-    return apiClassName + ":" + methodName;
+    return "".concat(apiClassName, ":").concat(methodName);
 }
 exports.toIpcName = toIpcName;
 // Utility for retrying a function until success or timeout.

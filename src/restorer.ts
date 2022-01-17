@@ -2,29 +2,29 @@
  * Support for restoring the classes of arguments and return values.
  */
 
+/**
+ * Type of a class that can be called to restore class values. It defines
+ * the static class method `restoreClass`, which takes the unstructured
+ * object received via IPC and returns an instance of class C.
+ */
+export type RestorableClass<C> = {
+  // static method of the class returning an instance of the class
+  restoreClass(obj: Record<string, any>): C;
+};
+
+/**
+ * Type for a function that restores argument and return value classes.
+ * It receives the name of the class at the time it was sent via IPC
+ * and the unstructured object that the class instances was converted
+ * into for transmission via IPC. It returns the value in the appropriate
+ * class, or leave it unchanged if the class name is not recognized.
+ */
+export type RestorerFunction = (
+  className: string,
+  obj: Record<string, any>
+) => any;
+
 export namespace Restorer {
-  /**
-   * Type of a class that can be called to restore class values. It defines
-   * the static class method `restoreClass`, which takes the unstructured
-   * object received via IPC and returns an instance of class C.
-   */
-  export type RestorableClass<C> = {
-    // static method of the class returning an instance of the class
-    restoreClass(obj: Record<string, any>): C;
-  };
-
-  /**
-   * Type for a function that restores argument and return value classes.
-   * It receives the name of the class at the time it was sent via IPC
-   * and the unstructured object that the class instances was converted
-   * into for transmission via IPC. It returns the value in the appropriate
-   * class, or leave it unchanged if the class name is not recognized.
-   */
-  export type RestorerFunction = (
-    className: string,
-    obj: Record<string, any>
-  ) => any;
-
   // Makes an object restorable to its class by marking it with its class.
   export function makeRestorable(obj: any): any {
     if (typeof obj == "object") {

@@ -2,8 +2,6 @@
  * Code specific to handling IPC in the renderer process.
  */
 
-import { ipcRenderer } from "electron";
-
 import {
   EXPOSE_API_EVENT,
   BOUND_API_EVENT,
@@ -14,7 +12,18 @@ import {
   retryUntilTimeout,
   toIpcName,
 } from "./shared_ipc";
-import { Restorer } from "./restorer";
+import { Restorer, RestorerFunction } from "./restorer";
+
+// window.ipc methods declared in preload.ts
+declare global {
+  interface Window {
+    ipc: {
+      invoke: (channel: string, data?: any) => Promise<any>;
+      send: (channel: string, data: any) => void;
+      on: (channel: string, func: (data: any) => void) => void;
+    };
+  }
+}
 
 // Structure mapping API names to the methods they contain.
 const _registrationMap: ApiRegistrationMap = {};
@@ -46,10 +55,10 @@ export type MainApiBinding<T> = {
  */
 export function bindMainApi<T>(
   apiClassName: string,
-  restorer?: Restorer.RestorerFunction
+  restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
-    ipcRenderer.on(EXPOSE_API_EVENT, (_event, api: ApiRegistration) => {
+    window.ipc.on(EXPOSE_API_EVENT, (api: ApiRegistration) => {
       _windowID = api.windowID;
       _registrationMap[api.className] = api.methodNames;
     });
@@ -74,7 +83,7 @@ export function bindMainApi<T>(
 // Implements a single attempt to bind to a main API.
 function _attemptBindIpcApi<T>(
   apiClassName: string,
-  restorer: Restorer.RestorerFunction | undefined,
+  restorer: RestorerFunction | undefined,
   resolve: (boundApi: MainApiBinding<T>) => void
 ): boolean {
   const methodNames = _registrationMap[apiClassName] as [
@@ -92,7 +101,7 @@ function _attemptBindIpcApi<T>(
           Restorer.makeRestorable(arg);
         }
       }
-      const response = await ipcRenderer.invoke(
+      const response = await window.ipc.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
@@ -108,6 +117,6 @@ function _attemptBindIpcApi<T>(
     windowID: _windowID,
     className: apiClassName,
   };
-  ipcRenderer.send(BOUND_API_EVENT, binding);
+  window.ipc.send(BOUND_API_EVENT, binding);
   return true;
 }

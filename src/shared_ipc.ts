@@ -12,7 +12,7 @@ export const BOUND_API_EVENT = "bound_class_api";
 const _RETRY_MILLIS = 50;
 
 // Configurable timeout attempting to announce or bind an API.
-let _bindingTimeoutMillis = 500;
+let _bindingTimeoutMillis = 5000; // TODO: set to the desired timeout
 
 /**
  * Sets the timeout for the opposing process to expose or bind to an API.

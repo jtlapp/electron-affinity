@@ -131,7 +131,7 @@ function exposeMainApi(toWindow, mainApi, restorer) {
     }
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '" + apiClassName + "'");
+            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
         }
         var windowApis = _boundApisByWindowID[toWindow.id];
         if (windowApis !== undefined && windowApis[apiClassName]) {
@@ -144,7 +144,7 @@ function exposeMainApi(toWindow, mainApi, restorer) {
         };
         toWindow.webContents.send(shared_ipc_1.EXPOSE_API_EVENT, registration);
         return false;
-    }, "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
+    }, "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
 }
 exports.exposeMainApi = exposeMainApi;
 // Returns all properties of the class not defined by JavaScript.

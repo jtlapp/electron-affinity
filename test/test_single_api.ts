@@ -23,7 +23,8 @@ describe("one exposed API", () => {
 
     before(async () => {
       window1 = await createWindow();
-      await resultCollector.runScriptInWindow(window1, "win1_api_1");
+      // includes test of exposing API after running script
+      resultCollector.runScriptInWindow(window1, "win1_api_1");
       exposeMainApi(window1, mainApi1, restorer);
       await resultCollector.waitForResults();
     });

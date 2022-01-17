@@ -4,8 +4,12 @@ import { sleep } from "../lib/shared_util";
 import { callMainApi2 } from "./call_main_api_2";
 
 (async () => {
-  reportErrorsToMain("win1");
-  await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
-  await callMainApi2("win1");
-  windowFinished();
+  try {
+    reportErrorsToMain("win1");
+    await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
+    await callMainApi2("win1");
+    windowFinished();
+  } catch (err) {
+    window.ipc.send("test_aborted", err);
+  }
 })();

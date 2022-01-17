@@ -26,7 +26,7 @@ describe("one exposed API with delayed binding", () => {
       window1 = await createWindow();
       setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
       exposeMainApi(window1, mainApi2, restorer);
-      await resultCollector.runScriptInWindow(window1, "win1_api_2_delayed");
+      resultCollector.runScriptInWindow(window1, "win1_api_2_delayed");
       await resultCollector.waitForResults();
     });
 

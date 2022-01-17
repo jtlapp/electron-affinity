@@ -1,12 +1,9 @@
 {
     "compilerOptions": {
         "sourceMap": true,
-        "sourceRoot": "build",
-        "lib": [
-            "esnext", "dom"
-        ],
-        "declaration": true,
-        "outDir": "build",
+        "target": "ES6",
+        "module": "ESNext",
+        "moduleResolution": "node",
         "stripInternal": true,
         "strict": true,
         "pretty": true,
@@ -18,14 +15,6 @@
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "esModuleInterop": true,
     },
-    "include": [
-        "src/*",
-        "test/**/*"
-    ],
-    "exclude": [
-        "node_modules/*",
-        "build/*",
-        "test/client/*"
-    ]
 }

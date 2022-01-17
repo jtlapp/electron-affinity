@@ -1,7 +1,8 @@
 import { ipcMain, BrowserWindow } from "electron";
-import { join } from "path";
+import * as path from "path";
+import * as fs from "fs";
 
-import { Restorer } from "../../src/restorer";
+import { Restorer, RestorerFunction } from "../../src/restorer";
 import { setIpcErrorLogger } from "../../src/server_ipc";
 
 const COMPLETION_CHECK_INTERVAL_MILLIS = 100;
@@ -11,12 +12,13 @@ export async function createWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
     show: false,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      preload: path.join(__dirname, "../../src/preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
     },
   });
 
-  await window.loadFile(join(__dirname, "../client/dummy.html"));
+  await window.loadFile(path.join(__dirname, "../client/dummy.html"));
   return window;
 }
 
@@ -43,7 +45,7 @@ export class ResultCollector {
     ) => {
       setTimeout(() => {
         time += COMPLETION_CHECK_INTERVAL_MILLIS;
-        if (self.abortError) {
+        if (self.abortError !== null) {
           reject(self.abortError);
         } else if (self.completedAll) {
           resolve();
@@ -66,13 +68,13 @@ export class ResultCollector {
     this.abortError = null;
     this.completedAll = false;
 
-    const scriptPath = join(__dirname, "../../test/client", scriptName + ".js");
-    await window.webContents.executeJavaScript(`
-      try {
-        require('${scriptPath}');
-      } catch (err) {
-        require('electron').ipcRenderer.send('test_aborted', err);
-      }`);
+    const scriptPath = path.join(
+      __dirname,
+      "../../test/bundle",
+      scriptName + ".js"
+    );
+    const script = fs.readFileSync(scriptPath, { encoding: "utf-8" });
+    await window.webContents.executeJavaScript(script);
   }
 
   setRequestData(data: any) {
@@ -108,7 +110,7 @@ export class ResultCollector {
 // Only one result collector for each Electron instance.
 let resultCollector: ResultCollector;
 
-export function createResultCollector(restorer: Restorer.RestorerFunction) {
+export function createResultCollector(restorer: RestorerFunction) {
   if (resultCollector !== undefined) {
     throw Error("Only call createResultCollector() once");
   }

@@ -3,8 +3,12 @@ import { callMainApi1 } from "./call_main_api_1";
 import { callMainApi2 } from "./call_main_api_2";
 
 (async () => {
-  reportErrorsToMain("win1");
-  await callMainApi1("win1");
-  await callMainApi2("win1");
-  windowFinished();
+  try {
+    reportErrorsToMain("win1");
+    await callMainApi1("win1");
+    await callMainApi2("win1");
+    windowFinished();
+  } catch (err) {
+    window.ipc.send("test_aborted", err);
+  }
 })();

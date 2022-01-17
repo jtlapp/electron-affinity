@@ -15,7 +15,7 @@ const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 describe("when main should crash with an error", () => {
   test("main times out waiting for first window binding", (done) => {
     verifyCrash(
-      "win1_main_timeout",
+      "main_win1_timeout",
       "Timed out waiting for main API 'MainApi2' to bind",
       done
     );
@@ -23,7 +23,7 @@ describe("when main should crash with an error", () => {
 
   test("main times out waiting for second window binding of same API", (done) => {
     verifyCrash(
-      "win2_main_timeout",
+      "main_win2_timeout",
       "Timed out waiting for main API 'MainApi2' to bind",
       done
     );
@@ -57,7 +57,7 @@ function verifyCrash(
   );
   const scriptPath = path.join(
     rootPath,
-    "build/test/client",
+    "build/test/server",
     scriptName + ".js"
   );
   const command = `node ${mochaPath} ${scriptPath} --timeout 8000`;

@@ -4,9 +4,7 @@
 export { exposeMainApi, PassThroughError } from "./server_ipc";
 export { bindMainApi } from "./client_ipc";
 export { setIpcBindingTimeout } from "./shared_ipc";
-import { Restorer } from "./restorer";
-export declare type RestorableClass<T> = Restorer.RestorableClass<T>;
-export declare type RestorerFunction = Restorer.RestorerFunction;
+export { RestorableClass, RestorerFunction } from "./restorer";
 /**
  * Type of the bound API returned by an asynchronous function T.
  */

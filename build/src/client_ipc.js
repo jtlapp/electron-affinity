@@ -40,7 +40,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.bindMainApi = void 0;
-var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
@@ -63,7 +62,7 @@ var _windowID;
  */
 function bindMainApi(apiClassName, restorer) {
     if (!_listeningForApis) {
-        electron_1.ipcRenderer.on(shared_ipc_1.EXPOSE_API_EVENT, function (_event, api) {
+        window.ipc.on(shared_ipc_1.EXPOSE_API_EVENT, function (api) {
             _windowID = api.windowID;
             _registrationMap[api.className] = api.methodNames;
         });
@@ -77,7 +76,7 @@ function bindMainApi(apiClassName, restorer) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindIpcApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '" + apiClassName + "'");
+            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }
@@ -108,7 +107,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
                                     restorer_1.Restorer.makeRestorable(arg);
                                 }
                             }
-                            return [4 /*yield*/, electron_1.ipcRenderer.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
+                            return [4 /*yield*/, window.ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _b.sent();
                             if (restorer_1.Restorer.wasThrownError(response)) {
@@ -130,7 +129,7 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
         windowID: _windowID,
         className: apiClassName
     };
-    electron_1.ipcRenderer.send(shared_ipc_1.BOUND_API_EVENT, binding);
+    window.ipc.send(shared_ipc_1.BOUND_API_EVENT, binding);
     return true;
 }
 //# sourceMappingURL=client_ipc.js.map
