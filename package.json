@@ -1,6 +1,6 @@
 {
   "name": "electron-ipc-methods",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "IPC via method calls in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "test": "tsc && shx cp test/client/dummy.html build/test/client && node_modules/.bin/rollup -c && ./test/run-tests",
-    "pub": "tsc && cd build/src && rm *.map && yarn publish && cd ../.."
+    "pub": "tsc && shx cp package.json build/src && cd build/src && rm *.map && yarn publish && cd ../.."
   },
   "dependencies": {},
   "devDependencies": {
