@@ -1,8 +1,5 @@
 import type { RestorableClass } from "../../src/restorer";
 
-// IPC event reporting that a test window was loaded.
-export const WINDOW_LOADED = "window_loaded";
-
 export class Catter {
   s1: string;
   s2: string;
