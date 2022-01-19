@@ -1,4 +1,4 @@
-import { PassThroughError } from "../../src/main";
+import { RelayedError } from "../../src/main";
 import { TestableApi } from "./testable_api";
 import { Catter } from "../lib/shared_util";
 
@@ -16,7 +16,7 @@ export class MainApi2 extends TestableApi {
   async allGoodOrNot2(succeed: boolean) {
     this._setRequestData(succeed);
     if (!succeed) {
-      throw new PassThroughError(Error("Just a plain error"));
+      throw new RelayedError(Error("Just a plain error"));
     }
     return "all good";
   }

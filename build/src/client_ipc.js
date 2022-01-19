@@ -76,7 +76,7 @@ function bindMainApi(apiClassName, restorer) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindIpcApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '" + apiClassName + "'");
+            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }

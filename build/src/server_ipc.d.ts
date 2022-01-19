@@ -15,13 +15,13 @@ export declare type ElectronMainApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => Promise<any> : any;
 };
 /**
- * Wrapper for exceptions occurring in a main API that are to pass through to
- * the caller in the calling window. Any uncaught exception of a main API not
+ * Wrapper for exceptions occurring in a main API that are relayed to the
+ * caller in the calling window. Any uncaught exception of a main API not
  * of this type is throw within Electron and not returned to the window.
  */
-export declare class PassThroughError {
-    errorToPass: Error;
-    constructor(errorToPass: Error);
+export declare class RelayedError {
+    errorToRelay: Error;
+    constructor(errorToRelay: Error);
 }
 /**
  * Exposes a main API to a particular window, which must bind to the API.
@@ -36,6 +36,6 @@ export declare class PassThroughError {
  */
 export declare function exposeMainApi<T>(toWindow: BrowserWindow, mainApi: ElectronMainApi<T>, restorer?: RestorerFunction): void;
 /**
- * Receives errors thrown in APIs not wrapped in PassThroughError.
+ * Receives errors thrown in APIs not wrapped in RelayedError.
  */
 export declare function setIpcErrorLogger(loggerFunc: (err: Error) => void): void;

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-import { PassThroughError } from "../../src/main";
+import { RelayedError } from "../../src/main";
 import { TestableApi } from "./testable_api";
 import { Catter, CustomError } from "../lib/shared_util";
 
@@ -30,7 +30,7 @@ export class MainApi1 extends TestableApi {
   async allGoodOrNot1(succeed: boolean) {
     this._setRequestData(succeed);
     if (!succeed) {
-      throw new PassThroughError(Error("Just a plain error"));
+      throw new RelayedError(Error("Just a plain error"));
     }
     return "all good";
   }
@@ -43,11 +43,11 @@ export class MainApi1 extends TestableApi {
     try {
       fs.readFileSync("__nonexistant_file__");
     } catch (err: any) {
-      throw new PassThroughError(err);
+      throw new RelayedError(err);
     }
   }
 
   async throwCustomError(message: string, code: number) {
-    throw new PassThroughError(new CustomError(message, code));
+    throw new RelayedError(new CustomError(message, code));
   }
 }

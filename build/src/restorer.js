@@ -55,7 +55,7 @@ var Restorer;
             error = Object.assign(new Error(message), error);
         }
         // Drop stack trace for main process.
-        error.stack = error.constructor.name + ": " + error.message + "\n\tin main process";
+        error.stack = "".concat(error.constructor.name, ": ").concat(error.message, "\n\tin main process");
         return error;
     }
     Restorer.restoreThrownError = restoreThrownError;

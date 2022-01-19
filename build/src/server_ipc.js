@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.setIpcErrorLogger = exports.exposeMainApi = exports.PassThroughError = void 0;
+exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
@@ -54,17 +54,17 @@ var _boundApisByContentsID = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
- * Wrapper for exceptions occurring in a main API that are to pass through to
- * the caller in the calling window. Any uncaught exception of a main API not
+ * Wrapper for exceptions occurring in a main API that are relayed to the
+ * caller in the calling window. Any uncaught exception of a main API not
  * of this type is throw within Electron and not returned to the window.
  */
-var PassThroughError = /** @class */ (function () {
-    function PassThroughError(errorToPass) {
-        this.errorToPass = errorToPass;
+var RelayedError = /** @class */ (function () {
+    function RelayedError(errorToRelay) {
+        this.errorToRelay = errorToRelay;
     }
-    return PassThroughError;
+    return RelayedError;
 }());
-exports.PassThroughError = PassThroughError;
+exports.RelayedError = RelayedError;
 /**
  * Exposes a main API to a particular window, which must bind to the API.
  * Failure of the window to bind before timeout results in an error.
@@ -120,8 +120,8 @@ function exposeMainApi(toWindow, mainApi, restorer) {
                                     return [2 /*return*/, restorer_1.Restorer.makeRestorable(replyValue)];
                                 case 2:
                                     err_1 = _a.sent();
-                                    if (err_1 instanceof PassThroughError) {
-                                        return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToPass)];
+                                    if (err_1 instanceof RelayedError) {
+                                        return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToRelay)];
                                     }
                                     if (_errorLoggerFunc !== undefined) {
                                         _errorLoggerFunc(err_1);
@@ -143,7 +143,7 @@ function exposeMainApi(toWindow, mainApi, restorer) {
     }
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '" + apiClassName + "'");
+            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
         }
         var windowApis = _boundApisByContentsID[toWindow.webContents.id];
         if (windowApis !== undefined && windowApis[apiClassName]) {
@@ -151,7 +151,7 @@ function exposeMainApi(toWindow, mainApi, restorer) {
         }
         sendApiRegistration(toWindow.webContents, apiClassName);
         return false;
-    }, "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
+    }, "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
 }
 exports.exposeMainApi = exposeMainApi;
 // Returns all properties of the class not defined by JavaScript.
@@ -172,7 +172,7 @@ function sendApiRegistration(toWebContents, apiClassName) {
     toWebContents.send(shared_ipc_1.EXPOSE_API_EVENT, registration);
 }
 /**
- * Receives errors thrown in APIs not wrapped in PassThroughError.
+ * Receives errors thrown in APIs not wrapped in RelayedError.
  */
 function setIpcErrorLogger(loggerFunc) {
     _errorLoggerFunc = loggerFunc;

@@ -46,15 +46,15 @@ export type ElectronMainApi<T> = {
 };
 
 /**
- * Wrapper for exceptions occurring in a main API that are to pass through to
- * the caller in the calling window. Any uncaught exception of a main API not
+ * Wrapper for exceptions occurring in a main API that are relayed to the
+ * caller in the calling window. Any uncaught exception of a main API not
  * of this type is throw within Electron and not returned to the window.
  */
-export class PassThroughError {
-  errorToPass: Error;
+export class RelayedError {
+  errorToRelay: Error;
 
-  constructor(errorToPass: Error) {
-    this.errorToPass = errorToPass;
+  constructor(errorToRelay: Error) {
+    this.errorToRelay = errorToRelay;
   }
 }
 
@@ -112,8 +112,8 @@ export function exposeMainApi<T>(
                 const replyValue = await method.bind(mainApi)(...args);
                 return Restorer.makeRestorable(replyValue);
               } catch (err: any) {
-                if (err instanceof PassThroughError) {
-                  return Restorer.makeReturnedError(err.errorToPass);
+                if (err instanceof RelayedError) {
+                  return Restorer.makeReturnedError(err.errorToRelay);
                 }
                 if (_errorLoggerFunc !== undefined) {
                   _errorLoggerFunc(err);
@@ -166,7 +166,7 @@ function sendApiRegistration(toWebContents: WebContents, apiClassName: string) {
 }
 
 /**
- * Receives errors thrown in APIs not wrapped in PassThroughError.
+ * Receives errors thrown in APIs not wrapped in RelayedError.
  */
 export function setIpcErrorLogger(loggerFunc: (err: Error) => void): void {
   _errorLoggerFunc = loggerFunc;
