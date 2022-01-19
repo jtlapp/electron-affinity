@@ -2,7 +2,6 @@
  * Test main's ability to wait for a window to bind to an API.
  */
 
-import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
 import { exposeMainApi, setIpcBindingTimeout } from "../src/main";
@@ -26,7 +25,7 @@ describe("one exposed API with delayed binding", () => {
       window1 = await createWindow();
       setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
       exposeMainApi(window1, mainApi2, restorer);
-      resultCollector.runScriptInWindow(window1, "win1_api_2_delayed");
+      resultCollector.runScripFiletInWindow(window1, "win1_api_2_delayed");
       await resultCollector.waitForResults();
     });
 

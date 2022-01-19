@@ -2,7 +2,6 @@
  * Test calling methods of a single man API under normal circumstances.
  */
 
-import "source-map-support/register";
 import { BrowserWindow } from "electron";
 
 import { exposeMainApi } from "../src/main";
@@ -24,7 +23,7 @@ describe("one exposed API", () => {
     before(async () => {
       window1 = await createWindow();
       // includes test of exposing API after running script
-      resultCollector.runScriptInWindow(window1, "win1_api_1");
+      resultCollector.runScripFiletInWindow(window1, "win1_api_1");
       exposeMainApi(window1, mainApi1, restorer);
       await resultCollector.waitForResults();
     });

@@ -2,7 +2,6 @@
  * Test the ability of a window to wait for man to register an API.
  */
 
-import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
@@ -26,7 +25,7 @@ describe("patience of renderer for recieving main APIs", () => {
     before(async () => {
       window1 = await createWindow();
 
-      resultCollector.runScriptInWindow(window1, "win1_api_2_patient");
+      resultCollector.runScripFiletInWindow(window1, "win1_api_2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
       exposeMainApi(window1, mainApi2, restorer);
       await resultCollector.waitForResults();
@@ -51,7 +50,7 @@ describe("patience of renderer for recieving main APIs", () => {
       window2 = await createWindow();
       // Run the window1 script again on window2 to be sure that its' the
       // change in timing that prevents the binding.
-      resultCollector.runScriptInWindow(window2, "win1_api_2_patient");
+      resultCollector.runScripFiletInWindow(window2, "win1_api_2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
       exposeMainApi(window2, mainApi2, restorer);
       try {

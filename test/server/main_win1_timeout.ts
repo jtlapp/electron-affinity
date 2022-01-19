@@ -17,7 +17,7 @@ it("waits for main to timeout", async () => {
   exposeMainApi(window1, mainApi2, restorer);
   // Use 'win1_api_2_delayed.ts' to provide confidence that the test that
   // attempts to successfully run succeeds on sufficiently long timeout.
-  await resultCollector.runScriptInWindow(window1, "win1_api_2_delayed");
+  await resultCollector.runScripFiletInWindow(window1, "win1_api_2_delayed");
   await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
   if (window1) window1.destroy();
 });

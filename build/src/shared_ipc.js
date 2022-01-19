@@ -3,7 +3,9 @@
  * Code used by both main and renderer processes.
  */
 exports.__esModule = true;
-exports.retryUntilTimeout = exports.toIpcName = exports.setIpcBindingTimeout = exports.BOUND_API_EVENT = exports.EXPOSE_API_EVENT = void 0;
+exports.retryUntilTimeout = exports.toIpcName = exports.setIpcBindingTimeout = exports.BOUND_API_EVENT = exports.EXPOSE_API_EVENT = exports.REQUEST_API_EVENT = void 0;
+// Name of IPC requesting an API from main for binding.
+exports.REQUEST_API_EVENT = "request_class_api";
 // Name of IPC announcing the availability of an API.
 exports.EXPOSE_API_EVENT = "expose_class_api";
 // Name of IPC announcing that an API was bound.
@@ -21,7 +23,7 @@ function setIpcBindingTimeout(millis) {
 exports.setIpcBindingTimeout = setIpcBindingTimeout;
 // Constructs an API-specific IPC name for a method.
 function toIpcName(apiClassName, methodName) {
-    return "".concat(apiClassName, ":").concat(methodName);
+    return apiClassName + ":" + methodName;
 }
 exports.toIpcName = toIpcName;
 // Utility for retrying a function until success or timeout.

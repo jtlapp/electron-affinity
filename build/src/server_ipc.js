@@ -43,10 +43,14 @@ exports.setIpcErrorLogger = exports.exposeMainApi = exports.PassThroughError = v
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
+var _listeningForIPC = false;
 // Structure mapping API names to the methods each contains.
 var _registrationMap = {};
-// Structure tracking which windows have bound to which APIs.
-var _boundApisByWindowID = {};
+// Structure tracking which windows have bound to which APIs before the
+// window has been reloaded. After a window has reloaded, it is known that
+// window is capable of binding to all APIs, and it's up to the window to
+// be sure it rebinds all APIs, as main won't timeout for a reload.
+var _boundApisByContentsID = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
@@ -75,15 +79,23 @@ exports.PassThroughError = PassThroughError;
 function exposeMainApi(toWindow, mainApi, restorer) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
-    if (Object.keys(_registrationMap).length == 0) {
-        electron_1.ipcMain.on(shared_ipc_1.BOUND_API_EVENT, function (_event, binding) {
-            var windowApis = _boundApisByWindowID[binding.windowID];
+    if (!_listeningForIPC) {
+        electron_1.ipcMain.on(shared_ipc_1.REQUEST_API_EVENT, function (event, apiClassName) {
+            // Previously-bound APIs are known to be available after window reload.
+            var windowApis = _boundApisByContentsID[event.sender.id];
+            if (windowApis && windowApis[apiClassName]) {
+                sendApiRegistration(event.sender, apiClassName);
+            }
+        });
+        electron_1.ipcMain.on(shared_ipc_1.BOUND_API_EVENT, function (event, apiClassName) {
+            var windowApis = _boundApisByContentsID[event.sender.id];
             if (windowApis === undefined) {
                 windowApis = {};
-                _boundApisByWindowID[binding.windowID] = windowApis;
+                _boundApisByContentsID[event.sender.id] = windowApis;
             }
-            windowApis[binding.className] = true;
+            windowApis[apiClassName] = true;
         });
+        _listeningForIPC = true;
     }
     if (_registrationMap[apiClassName] === undefined) {
         var methodNames = [];
@@ -131,20 +143,15 @@ function exposeMainApi(toWindow, mainApi, restorer) {
     }
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
+            throw Error("Window destroyed before binding to '" + apiClassName + "'");
         }
-        var windowApis = _boundApisByWindowID[toWindow.id];
+        var windowApis = _boundApisByContentsID[toWindow.webContents.id];
         if (windowApis !== undefined && windowApis[apiClassName]) {
             return true;
         }
-        var registration = {
-            windowID: toWindow.id,
-            className: apiClassName,
-            methodNames: _registrationMap[apiClassName]
-        };
-        toWindow.webContents.send(shared_ipc_1.EXPOSE_API_EVENT, registration);
+        sendApiRegistration(toWindow.webContents, apiClassName);
         return false;
-    }, "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
+    }, "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
 }
 exports.exposeMainApi = exposeMainApi;
 // Returns all properties of the class not defined by JavaScript.
@@ -155,6 +162,14 @@ function getPropertyNames(obj) {
         obj = Object.getPrototypeOf(obj);
     }
     return propertyNames;
+}
+// Send an API registration to a window.
+function sendApiRegistration(toWebContents, apiClassName) {
+    var registration = {
+        className: apiClassName,
+        methodNames: _registrationMap[apiClassName]
+    };
+    toWebContents.send(shared_ipc_1.EXPOSE_API_EVENT, registration);
 }
 /**
  * Receives errors thrown in APIs not wrapped in PassThroughError.

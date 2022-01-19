@@ -62,12 +62,15 @@ export class ResultCollector {
     );
   }
 
-  async runScriptInWindow(window: BrowserWindow, scriptName: string) {
+  reset() {
     this.currentResult = new Result();
     this.results = [];
     this.abortError = null;
     this.completedAll = false;
+  }
 
+  async runScripFiletInWindow(window: BrowserWindow, scriptName: string) {
+    this.reset();
     const scriptPath = path.join(
       __dirname,
       "../../test/bundle",

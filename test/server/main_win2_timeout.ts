@@ -17,9 +17,9 @@ it("waits for main to timeout on second window binding", async () => {
   setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
   // Window 1 binds to API 2 just fine.
   exposeMainApi(window1, mainApi2, restorer);
-  await resultCollector.runScriptInWindow(window1, "win1_api_2_patient");
+  await resultCollector.runScripFiletInWindow(window1, "win1_api_2_patient");
   exposeMainApi(window2, mainApi2, restorer);
-  await resultCollector.runScriptInWindow(window2, "win2_api_2_delayed");
+  await resultCollector.runScripFiletInWindow(window2, "win2_api_2_delayed");
   await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
   if (window1) window1.destroy();
   if (window2) window2.destroy();

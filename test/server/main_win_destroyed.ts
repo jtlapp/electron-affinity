@@ -14,7 +14,7 @@ it("waits for main to timeout on window destroyed", async () => {
   const window1 = await createWindow();
   setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
   exposeMainApi(window1, mainApi2, restorer);
-  await resultCollector.runScriptInWindow(window1, "win1_destroyed");
+  await resultCollector.runScripFiletInWindow(window1, "win1_destroyed");
   if (window1) window1.destroy();
   await sleep(ACCEPTABLE_DELAY_MILLIS);
 });

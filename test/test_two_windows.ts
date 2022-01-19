@@ -2,7 +2,6 @@
  * Test binding the same APIs to different windows.
  */
 
-import "source-map-support/register";
 import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
@@ -37,7 +36,7 @@ describe("two windows with two APIs", () => {
   describe("window 1 invoking main", () => {
     before(async () => {
       // includes test of exposing API before running script
-      resultCollector.runScriptInWindow(window1, "win1_api_1_2");
+      resultCollector.runScripFiletInWindow(window1, "win1_api_1_2");
       await resultCollector.waitForResults();
     });
 
@@ -52,7 +51,7 @@ describe("two windows with two APIs", () => {
   describe("window 2 invoking main", () => {
     before(async () => {
       // includes test of exposing API before running script
-      resultCollector.runScriptInWindow(window2, "win2_api_1_2");
+      resultCollector.runScripFiletInWindow(window2, "win2_api_1_2");
       await resultCollector.waitForResults();
     });
 
@@ -67,7 +66,7 @@ describe("two windows with two APIs", () => {
   describe("main sending event to window 1", () => {
     before(async () => {
       // wait for window, which must be running to receive events
-      await resultCollector.runScriptInWindow(window1, "event_tests");
+      await resultCollector.runScripFiletInWindow(window1, "event_tests");
       window1.webContents.send("demo_event", 100);
       window1.webContents.send("completed_all");
       await resultCollector.waitForResults();

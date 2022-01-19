@@ -2,14 +2,14 @@
  * Code specific to handling IPC in the main process.
  */
 
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain, BrowserWindow, WebContents } from "electron";
 
 import {
+  REQUEST_API_EVENT,
   EXPOSE_API_EVENT,
   BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
-  ApiBinding,
   PublicProperty,
   toIpcName,
   retryUntilTimeout,
@@ -18,11 +18,16 @@ import { Restorer } from "./restorer";
 // Use the publicly-exposed RestorerFunction type
 import { RestorerFunction } from "./restorer";
 
+let _listeningForIPC = false;
+
 // Structure mapping API names to the methods each contains.
 let _registrationMap: ApiRegistrationMap = {};
 
-// Structure tracking which windows have bound to which APIs.
-let _boundApisByWindowID: Record<number, Record<string, boolean>> = {};
+// Structure tracking which windows have bound to which APIs before the
+// window has been reloaded. After a window has reloaded, it is known that
+// window is capable of binding to all APIs, and it's up to the window to
+// be sure it rebinds all APIs, as main won't timeout for a reload.
+let _boundApisByContentsID: Record<number, Record<string, boolean>> = {};
 
 // Error logger mainly of value for debugging the test suite.
 let _errorLoggerFunc: (err: Error) => void;
@@ -70,15 +75,23 @@ export function exposeMainApi<T>(
   restorer?: RestorerFunction
 ): void {
   const apiClassName = mainApi.constructor.name;
-  if (Object.keys(_registrationMap).length == 0) {
-    ipcMain.on(BOUND_API_EVENT, (_event, binding: ApiBinding) => {
-      let windowApis = _boundApisByWindowID[binding.windowID];
+  if (!_listeningForIPC) {
+    ipcMain.on(REQUEST_API_EVENT, (event, apiClassName: string) => {
+      // Previously-bound APIs are known to be available after window reload.
+      const windowApis = _boundApisByContentsID[event.sender.id];
+      if (windowApis && windowApis[apiClassName]) {
+        sendApiRegistration(event.sender, apiClassName);
+      }
+    });
+    ipcMain.on(BOUND_API_EVENT, (event, apiClassName: string) => {
+      let windowApis = _boundApisByContentsID[event.sender.id];
       if (windowApis === undefined) {
         windowApis = {};
-        _boundApisByWindowID[binding.windowID] = windowApis;
+        _boundApisByContentsID[event.sender.id] = windowApis;
       }
-      windowApis[binding.className] = true;
+      windowApis[apiClassName] = true;
     });
+    _listeningForIPC = true;
   }
   if (_registrationMap[apiClassName] === undefined) {
     const methodNames: string[] = [];
@@ -122,16 +135,11 @@ export function exposeMainApi<T>(
       if (toWindow.isDestroyed()) {
         throw Error(`Window destroyed before binding to '${apiClassName}'`);
       }
-      const windowApis = _boundApisByWindowID[toWindow.id];
+      const windowApis = _boundApisByContentsID[toWindow.webContents.id];
       if (windowApis !== undefined && windowApis[apiClassName]) {
         return true;
       }
-      const registration: ApiRegistration = {
-        windowID: toWindow.id,
-        className: apiClassName,
-        methodNames: _registrationMap[apiClassName],
-      };
-      toWindow.webContents.send(EXPOSE_API_EVENT, registration);
+      sendApiRegistration(toWindow.webContents, apiClassName);
       return false;
     },
     `Timed out waiting for main API '${apiClassName}' to bind to window ${toWindow.id}`
@@ -146,6 +154,15 @@ function getPropertyNames(obj: any): string[] {
     obj = Object.getPrototypeOf(obj);
   }
   return propertyNames;
+}
+
+// Send an API registration to a window.
+function sendApiRegistration(toWebContents: WebContents, apiClassName: string) {
+  const registration: ApiRegistration = {
+    className: apiClassName,
+    methodNames: _registrationMap[apiClassName],
+  };
+  toWebContents.send(EXPOSE_API_EVENT, registration);
 }
 
 /**

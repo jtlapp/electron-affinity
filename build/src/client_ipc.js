@@ -47,7 +47,6 @@ var _registrationMap = {};
 // Structure tracking bound APIs.
 var _boundApis = {};
 var _listeningForApis = false;
-var _windowID;
 /**
  * Returns a window-side binding for a main API of a given class.
  * Failure of main to expose the API before timeout results in an error.
@@ -63,11 +62,12 @@ var _windowID;
 function bindMainApi(apiClassName, restorer) {
     if (!_listeningForApis) {
         window._ipc.on(shared_ipc_1.EXPOSE_API_EVENT, function (api) {
-            _windowID = api.windowID;
             _registrationMap[api.className] = api.methodNames;
         });
         _listeningForApis = true;
     }
+    // Requests are only necessary after the window has been reloaded.
+    window._ipc.send(shared_ipc_1.REQUEST_API_EVENT, apiClassName);
     return new Promise(function (resolve) {
         var api = _boundApis[apiClassName];
         if (api !== undefined) {
@@ -76,7 +76,7 @@ function bindMainApi(apiClassName, restorer) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindIpcApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
+            }, "Timed out waiting to bind main API '" + apiClassName + "'");
         }
     });
 }
@@ -125,11 +125,8 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
     }
     _boundApis[apiClassName] = boundApi;
     resolve(boundApi);
-    var binding = {
-        windowID: _windowID,
-        className: apiClassName
-    };
-    window._ipc.send(shared_ipc_1.BOUND_API_EVENT, binding);
+    console.log("BOUND", apiClassName);
+    window._ipc.send(shared_ipc_1.BOUND_API_EVENT, apiClassName);
     return true;
 }
 //# sourceMappingURL=client_ipc.js.map

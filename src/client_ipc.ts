@@ -3,11 +3,11 @@
  */
 
 import {
+  REQUEST_API_EVENT,
   EXPOSE_API_EVENT,
   BOUND_API_EVENT,
   ApiRegistration,
   ApiRegistrationMap,
-  ApiBinding,
   PublicProperty,
   retryUntilTimeout,
   toIpcName,
@@ -31,7 +31,6 @@ const _registrationMap: ApiRegistrationMap = {};
 // Structure tracking bound APIs.
 const _boundApis: Record<string, MainApiBinding<any>> = {};
 let _listeningForApis = false;
-let _windowID: number;
 
 /**
  * Type to which a bound API of class T conforms. It only exposes the
@@ -59,11 +58,12 @@ export function bindMainApi<T>(
 ): Promise<MainApiBinding<T>> {
   if (!_listeningForApis) {
     window._ipc.on(EXPOSE_API_EVENT, (api: ApiRegistration) => {
-      _windowID = api.windowID;
       _registrationMap[api.className] = api.methodNames;
     });
     _listeningForApis = true;
   }
+  // Requests are only necessary after the window has been reloaded.
+  window._ipc.send(REQUEST_API_EVENT, apiClassName);
   return new Promise((resolve) => {
     const api = _boundApis[apiClassName];
     if (api !== undefined) {
@@ -113,10 +113,7 @@ function _attemptBindIpcApi<T>(
   }
   _boundApis[apiClassName] = boundApi;
   resolve(boundApi);
-  const binding: ApiBinding = {
-    windowID: _windowID,
-    className: apiClassName,
-  };
-  window._ipc.send(BOUND_API_EVENT, binding);
+  console.log("BOUND", apiClassName);
+  window._ipc.send(BOUND_API_EVENT, apiClassName);
   return true;
 }

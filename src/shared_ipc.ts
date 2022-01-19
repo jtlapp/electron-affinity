@@ -2,6 +2,9 @@
  * Code used by both main and renderer processes.
  */
 
+// Name of IPC requesting an API from main for binding.
+export const REQUEST_API_EVENT = "request_class_api";
+
 // Name of IPC announcing the availability of an API.
 export const EXPOSE_API_EVENT = "expose_class_api";
 
@@ -37,15 +40,8 @@ export type PublicProperty<P> = P extends PrivateProperty<P>
 
 // Structure sent to window announcing availability of a main API.
 export type ApiRegistration = {
-  windowID: number;
   className: string;
   methodNames: string[];
-};
-
-// Structure sent to main announcing the binding of a main API.
-export type ApiBinding = {
-  windowID: number;
-  className: string;
 };
 
 // Structure associating API names with names of methods in the API.
