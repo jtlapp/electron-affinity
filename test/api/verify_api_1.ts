@@ -144,4 +144,23 @@ export default (winTag: string, collector: ResultCollector) => {
       assert.equal(result.replyData, undefined);
     });
   });
+
+  test(
+    winTag + "invoke throwing non-restored custom error (api1)",
+    async () => {
+      collector.verifyTest(
+        winTag + "non-restored custom error (api1)",
+        (result) => {
+          assert.ok(result.error instanceof Error);
+          assert.equal(result.error.message, "non-restored");
+          assert.equal(
+            result.error.stack,
+            "Error: non-restored\n\tin main process"
+          );
+          assert.deepEqual(result.requestData, undefined);
+          assert.equal(result.replyData, undefined);
+        }
+      );
+    }
+  );
 };

@@ -47,4 +47,7 @@ export async function callMainApi1(winTag: string) {
   await testInvoke(winTag + "non-error object error (api1)", () => {
     return mainApi1.throwNonErrorObject();
   });
+  await testInvoke(winTag + "non-restored custom error (api1)", () => {
+    return mainApi1.throwNonRestoredCustomError();
+  });
 }

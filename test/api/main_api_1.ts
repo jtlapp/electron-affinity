@@ -67,4 +67,14 @@ export class MainApi1 extends TestableApi {
   async throwNonErrorObject() {
     throw new RelayedError(new NonErrorObject("bad"));
   }
+
+  async throwNonRestoredCustomError() {
+    throw new RelayedError(new NonRestoredCustomError());
+  }
+}
+
+class NonRestoredCustomError extends Error {
+  constructor() {
+    super("non-restored");
+  }
 }

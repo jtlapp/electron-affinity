@@ -7,7 +7,7 @@ export async function callMainApi3(winTag: string) {
 
   const mainApi3 = await bindMainApi<MainApi3>("MainApi3");
 
-  await testInvoke(winTag + "unwrapped error (api3)", () => {
-    return mainApi3.throwUnwrappedError();
+  await testInvoke(winTag + "non-relayed error (api3)", () => {
+    return mainApi3.throwNonRelayedError();
   });
 }

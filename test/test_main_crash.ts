@@ -37,7 +37,7 @@ describe("when main should crash with an error", () => {
     );
   });
 
-  test("main crashes when API throws an unwrapped error", (done) => {
+  test("main crashes when API throws an non-relayed error", (done) => {
     verifyCrash("main_unwrapped_error", "Expected crash", done);
   });
 });
