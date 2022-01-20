@@ -51,9 +51,9 @@ export type ElectronMainApi<T> = {
  * of this type is throw within Electron and not returned to the window.
  */
 export class RelayedError {
-  errorToRelay: Error;
+  errorToRelay: any;
 
-  constructor(errorToRelay: Error) {
+  constructor(errorToRelay: any) {
     this.errorToRelay = errorToRelay;
   }
 }

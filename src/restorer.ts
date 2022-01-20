@@ -25,6 +25,17 @@ export type RestorerFunction = (
 ) => any;
 
 export namespace Restorer {
+  // Wraps thrown non-object values for relay to client. Prefixed with
+  // underscores to prevent name conflict with application classes.
+  export class __ThrownNonObject {
+    __eipc_thrown = true;
+    thrownValue: any;
+
+    constructor(thrownValue: any) {
+      this.thrownValue = thrownValue;
+    }
+  }
+
   // Makes an object restorable to its class by marking it with its class.
   export function makeRestorable(obj: any): any {
     if (typeof obj == "object") {
@@ -34,33 +45,45 @@ export namespace Restorer {
   }
 
   // Makes an error returnable to the caller for restoration.
-  export function makeReturnedError(error: Error): object {
+  export function makeReturnedError(error: any): object {
     // Electron will throw an instance of Error either thrown from
     // here or returned from here, but that instance will only carry
     // the message property and no other properties. In order to
     // retain the error properties, I have to return an object that
     // is not an instance of error. However, I'm intentionally not
     // preserving the stack trace for use by the client.
-    return Object.assign(
+    if (typeof error !== "object") {
+      return makeRestorable(new __ThrownNonObject(error));
+    }
+    const returnedError = Object.assign(
       {
         __eipc_thrown: true,
-        message: error.message,
       },
+      error instanceof Error
+        ? {
+            __eipc_error: true,
+            message: error.message,
+          }
+        : {},
       makeRestorable(error)
     );
+    delete returnedError.stack;
+    return returnedError;
   }
 
   // Determines whether a returned value is actually a thrown error.
   export function wasThrownError(error: any): boolean {
-    return error != undefined && error.__eipc_thrown !== undefined;
+    return error != undefined && error.__eipc_thrown;
   }
 
   // Restores the class of an argument or return value when possible.
   export function restoreValue(obj: any, restorer?: RestorerFunction): any {
-    if (obj !== undefined && obj.__eipc_class !== undefined) {
+    if (obj !== undefined && obj.__eipc_class) {
       const className = obj.__eipc_class;
       delete obj.__eipc_class;
-      if (restorer !== undefined) {
+      if (className == "__ThrownNonObject") {
+        obj = new __ThrownNonObject(obj.thrownValue);
+      } else if (restorer !== undefined) {
         obj = restorer(className, obj);
       }
     }
@@ -74,13 +97,24 @@ export namespace Restorer {
   ): Error {
     delete error.__eipc_thrown;
     error = restoreValue(error, restorer);
-    if (!(error instanceof Error)) {
+
+    // If a non-object value was thrown
+    if (error instanceof __ThrownNonObject) {
+      return error.thrownValue;
+    }
+
+    // If restorer didn't restore the original Error class
+    if (!(error instanceof Error) && error.__eipc_error) {
+      delete error.__eipc_error;
       const message = error.message;
       delete error.message;
       error = Object.assign(new Error(message), error);
     }
-    // Drop stack trace for main process.
-    error.stack = `${error.constructor.name}: ${error.message}\n\tin main process`;
+
+    // Replace any newly generated stack.
+    if (error instanceof Error) {
+      error.stack = `${error.constructor.name}: ${error.message}\n\tin main process`;
+    }
     return error;
   }
 }

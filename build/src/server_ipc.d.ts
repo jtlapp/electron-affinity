@@ -20,8 +20,8 @@ export declare type ElectronMainApi<T> = {
  * of this type is throw within Electron and not returned to the window.
  */
 export declare class RelayedError {
-    errorToRelay: Error;
-    constructor(errorToRelay: Error);
+    errorToRelay: any;
+    constructor(errorToRelay: any);
 }
 /**
  * Exposes a main API to a particular window, which must bind to the API.

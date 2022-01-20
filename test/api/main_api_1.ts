@@ -2,7 +2,12 @@ import * as fs from "fs";
 
 import { RelayedError } from "../../src/main";
 import { TestableApi } from "./testable_api";
-import { Catter, CustomError } from "../lib/shared_util";
+import {
+  Catter,
+  CustomError,
+  NoMessageError,
+  NonErrorObject,
+} from "../lib/shared_util";
 
 export class MainApi1 extends TestableApi {
   async noReplyNoError() {}
@@ -49,5 +54,17 @@ export class MainApi1 extends TestableApi {
 
   async throwCustomError(message: string, code: number) {
     throw new RelayedError(new CustomError(message, code));
+  }
+
+  async throwStringError() {
+    throw new RelayedError("error string");
+  }
+
+  async throwNoMessageError() {
+    throw new RelayedError(new NoMessageError());
+  }
+
+  async throwNonErrorObject() {
+    throw new RelayedError(new NonErrorObject("bad"));
   }
 }

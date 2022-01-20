@@ -38,4 +38,13 @@ export async function callMainApi1(winTag: string) {
   await testInvoke(winTag + "custom error (api1)", () => {
     return mainApi1.throwCustomError("bad thing", 99);
   });
+  await testInvoke(winTag + "string error (api1)", () => {
+    return mainApi1.throwStringError();
+  });
+  await testInvoke(winTag + "no-message error (api1)", () => {
+    return mainApi1.throwNoMessageError();
+  });
+  await testInvoke(winTag + "non-error object error (api1)", () => {
+    return mainApi1.throwNonErrorObject();
+  });
 }

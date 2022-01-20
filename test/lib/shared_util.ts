@@ -33,9 +33,35 @@ export class CustomError extends Error {
   }
 }
 
+export class NoMessageError extends Error {
+  constructor() {
+    super();
+    // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, NoMessageError.prototype);
+  }
+
+  static restoreClass(_obj: any): NoMessageError {
+    return new NoMessageError();
+  }
+}
+
+export class NonErrorObject {
+  value: string;
+
+  constructor(value: string) {
+    this.value = value;
+  }
+
+  static restoreClass(obj: any): NonErrorObject {
+    return new NonErrorObject(obj.value);
+  }
+}
+
 const restorationMap: Record<string, RestorableClass<any>> = {
   Catter,
   CustomError,
+  NoMessageError,
+  NonErrorObject,
 };
 
 export function restorer(className: string, obj: Record<string, any>) {

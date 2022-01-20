@@ -18,8 +18,13 @@ export declare type RestorableClass<C> = {
  */
 export declare type RestorerFunction = (className: string, obj: Record<string, any>) => any;
 export declare namespace Restorer {
+    class __ThrownNonObject {
+        __eipc_thrown: boolean;
+        thrownValue: any;
+        constructor(thrownValue: any);
+    }
     function makeRestorable(obj: any): any;
-    function makeReturnedError(error: Error): object;
+    function makeReturnedError(error: any): object;
     function wasThrownError(error: any): boolean;
     function restoreValue(obj: any, restorer?: RestorerFunction): any;
     function restoreThrownError(error: any, restorer?: RestorerFunction): Error;

@@ -1,6 +1,11 @@
 import * as assert from "assert";
 
-import { Catter, CustomError } from "../lib/shared_util";
+import {
+  Catter,
+  CustomError,
+  NoMessageError,
+  NonErrorObject,
+} from "../lib/shared_util";
 import { ResultCollector } from "../lib/main_util";
 
 const test = it;
@@ -101,6 +106,40 @@ export default (winTag: string, collector: ResultCollector) => {
         result.error.stack,
         "CustomError: bad thing\n\tin main process"
       );
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
+  test(winTag + "invoke throwing string error (api1)", async () => {
+    collector.verifyTest(winTag + "string error (api1)", (result) => {
+      const error = result.error as any;
+      assert.equal(error, "error string");
+      assert.equal(typeof error, "string");
+      assert.equal((error as any).message, undefined);
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
+  test(winTag + "invoke throwing no-message error (api1)", async () => {
+    collector.verifyTest(winTag + "no-message error (api1)", (result) => {
+      const error = result.error as any;
+      assert.ok(error instanceof NoMessageError);
+      assert.equal(error.message, ""); // Error message is never undefined
+      assert.equal(result.error.stack, "NoMessageError: \n\tin main process");
+      assert.equal(result.requestData, undefined);
+      assert.equal(result.replyData, undefined);
+    });
+  });
+
+  test(winTag + "invoke throwing non-error object (api1)", async () => {
+    collector.verifyTest(winTag + "non-error object error (api1)", (result) => {
+      const error = result.error as any;
+      assert.ok(error instanceof NonErrorObject);
+      assert.equal((error as any).message, undefined);
+      assert.equal(error.value, "bad");
+      assert.equal(result.error.stack, undefined);
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, undefined);
     });
