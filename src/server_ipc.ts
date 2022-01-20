@@ -103,7 +103,7 @@ export function exposeMainApi<T>(
             toIpcName(apiClassName, methodName),
             async (_event, args: any[]) => {
               try {
-                if (restorer !== undefined && args !== undefined) {
+                if (args !== undefined) {
                   for (let i = 0; i < args.length; ++i) {
                     args[i] = Restorer.restoreValue(args[i], restorer);
                   }

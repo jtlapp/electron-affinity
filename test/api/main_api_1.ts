@@ -44,6 +44,11 @@ export class MainApi1 extends TestableApi {
     return "API 1";
   }
 
+  async sendReceiveDate(date: Date) {
+    this._setRequestData(date);
+    return date;
+  }
+
   async throwFSError() {
     try {
       fs.readFileSync("__nonexistant_file__");

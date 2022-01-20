@@ -113,7 +113,6 @@ function _attemptBindIpcApi<T>(
   }
   _boundApis[apiClassName] = boundApi;
   resolve(boundApi);
-  console.log("BOUND", apiClassName);
   window._ipc.send(BOUND_API_EVENT, apiClassName);
   return true;
 }

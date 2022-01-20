@@ -19,6 +19,7 @@ Notes on problems addressed:
 - Classes become untyped objects when transmitted over IPC.
 - Lots of boilerplate code required to implement IPC on both sides.
 - Extra effort is required to make IPC functionality locally available.
+- Distinguishing between coding errors and client/user errors.
 
 Other notes to include:
 

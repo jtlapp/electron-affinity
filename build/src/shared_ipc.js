@@ -23,7 +23,7 @@ function setIpcBindingTimeout(millis) {
 exports.setIpcBindingTimeout = setIpcBindingTimeout;
 // Constructs an API-specific IPC name for a method.
 function toIpcName(apiClassName, methodName) {
-    return apiClassName + ":" + methodName;
+    return "".concat(apiClassName, ":").concat(methodName);
 }
 exports.toIpcName = toIpcName;
 // Utility for retrying a function until success or timeout.
