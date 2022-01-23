@@ -39,18 +39,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = void 0;
+exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = void 0;
+// TODO: revisit/revise all comments after removing most timeouts
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
-var _listeningForIPC = false;
+//// MAIN API SUPPORT ////////////////////////////////////////////////////////
 // Structure mapping API names to the methods each contains.
-var _registrationMap = {};
-// Structure tracking which windows have bound to which APIs before the
+var _mainApiMap = {};
+// Structure tracking which windows have bound to which main APIs before the
 // window has been reloaded. After a window has reloaded, it is known that
 // window is capable of binding to all APIs, and it's up to the window to
 // be sure it rebinds all APIs, as main won't timeout for a reload.
-var _boundApisByContentsID = {};
+var _boundMainApisByWebContentsID = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
@@ -76,28 +77,13 @@ exports.RelayedError = RelayedError;
  *    arguments passed to main. Instances of classes not restored arrive
  *    as untyped structures.
  */
-function exposeMainApi(toWindow, mainApi, restorer) {
+function exposeMainApi(
+// TODO: not specific to a window; let any window bind
+toWindow, mainApi, restorer) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
-    if (!_listeningForIPC) {
-        electron_1.ipcMain.on(shared_ipc_1.REQUEST_API_EVENT, function (event, apiClassName) {
-            // Previously-bound APIs are known to be available after window reload.
-            var windowApis = _boundApisByContentsID[event.sender.id];
-            if (windowApis && windowApis[apiClassName]) {
-                sendApiRegistration(event.sender, apiClassName);
-            }
-        });
-        electron_1.ipcMain.on(shared_ipc_1.BOUND_API_EVENT, function (event, apiClassName) {
-            var windowApis = _boundApisByContentsID[event.sender.id];
-            if (windowApis === undefined) {
-                windowApis = {};
-                _boundApisByContentsID[event.sender.id] = windowApis;
-            }
-            windowApis[apiClassName] = true;
-        });
-        _listeningForIPC = true;
-    }
-    if (_registrationMap[apiClassName] === undefined) {
+    _installIpcListeners();
+    if (_mainApiMap[apiClassName] === undefined) {
         var methodNames = [];
         var _loop_1 = function (methodName) {
             if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
@@ -135,41 +121,35 @@ function exposeMainApi(toWindow, mainApi, restorer) {
                 }
             }
         };
-        for (var _i = 0, _a = getPropertyNames(mainApi); _i < _a.length; _i++) {
+        for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(mainApi); _i < _a.length; _i++) {
             var methodName = _a[_i];
             _loop_1(methodName);
         }
-        _registrationMap[apiClassName] = methodNames;
+        _mainApiMap[apiClassName] = methodNames;
     }
+    // TODO: main should not require window to bind
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
             throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
         }
-        var windowApis = _boundApisByContentsID[toWindow.webContents.id];
-        if (windowApis !== undefined && windowApis[apiClassName]) {
+        var boundMainApis = _boundMainApisByWebContentsID[toWindow.webContents.id];
+        if (boundMainApis !== undefined && boundMainApis[apiClassName]) {
             return true;
         }
         sendApiRegistration(toWindow.webContents, apiClassName);
         return false;
-    }, "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
+    }, 
+    // TODO: make error message clearer
+    "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
 }
 exports.exposeMainApi = exposeMainApi;
-// Returns all properties of the class not defined by JavaScript.
-function getPropertyNames(obj) {
-    var propertyNames = [];
-    while (!Object.getOwnPropertyNames(obj).includes("hasOwnProperty")) {
-        propertyNames.push.apply(propertyNames, Object.getOwnPropertyNames(obj));
-        obj = Object.getPrototypeOf(obj);
-    }
-    return propertyNames;
-}
 // Send an API registration to a window.
 function sendApiRegistration(toWebContents, apiClassName) {
     var registration = {
         className: apiClassName,
-        methodNames: _registrationMap[apiClassName]
+        methodNames: _mainApiMap[apiClassName]
     };
-    toWebContents.send(shared_ipc_1.EXPOSE_API_EVENT, registration);
+    toWebContents.send(shared_ipc_1.EXPOSE_API_IPC, registration);
 }
 /**
  * Receives errors thrown in APIs not wrapped in RelayedError.
@@ -178,28 +158,97 @@ function setIpcErrorLogger(loggerFunc) {
     _errorLoggerFunc = loggerFunc;
 }
 exports.setIpcErrorLogger = setIpcErrorLogger;
-/*
-NOTE: I rejected the following more-flexible approach to exposing APIs
-because it's awkward looking, which would be a barrier to adoption.
-TypeScript does not (at present) provide a direct way to ensure that
-every element of an array conforms to a particular structure while
-also allowing the elements to have different properties. See:
-https://github.com/microsoft/TypeScript/issues/7481#issuecomment-968220900
-https://github.com/microsoft/TypeScript/issues/7481#issuecomment-1003504754
-
-type CheckedApi = Record<string, (...args: any[]) => Promise<any>>;
-function checkApi<T extends ElectronMainApi<T>>(api: T) {
-  return api as CheckedApi;
+//// WINDOW API SUPPORT //////////////////////////////////////////////////////
+// TODO: purge window data when window closes
+// Structure mapping window API names to the methods they contain, indexed by
+// web contents ID.
+var _windowApiMapByWebContentsID = {};
+// Structure tracking bound window APIs, indexed by window ID.
+// TODO: Can I replace WindowApiBinding<any> with 'true'?
+var _boundWindowApisByWindowID = {};
+/**
+ * Returns a main-side binding for a window API of a given class, restricting
+ * the binding to the given window. Failure of the window to expose the API
+ * before timeout results in an error.
+ *
+ * @param <T> Class to which to bind.
+ * @param apiClassName Name of the class being bound. Must be identical to
+ *    the name of class T. Provides runtime information that <T> does not.
+ * @returns An API of type T that can be called as if T were local.
+ */
+function bindWindowApi(window, apiClassName) {
+    _installIpcListeners();
+    window.webContents.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
+    return new Promise(function (resolve) {
+        var api = _boundWindowApisByWindowID[window.id][apiClassName];
+        if (api !== undefined) {
+            resolve(api);
+        }
+        else {
+            (0, shared_ipc_1.retryUntilTimeout)(0, function () {
+                return _attemptBindWindowApi(window, apiClassName, resolve);
+            }, "Main timed out waiting to bind window API '".concat(apiClassName, "'"));
+        }
+    });
 }
-class Api1 {
-  async func1() {}
+exports.bindWindowApi = bindWindowApi;
+// Implements a single attempt to bind to a window API.
+function _attemptBindWindowApi(window, apiClassName, resolve) {
+    var methodNames = _windowApiMapByWebContentsID[window.webContents.id][apiClassName];
+    if (methodNames === undefined) {
+        return false;
+    }
+    var boundApi = {};
+    var _loop_2 = function (methodName) {
+        var typedMethodName = methodName;
+        boundApi[typedMethodName] = (function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            if (args !== undefined) {
+                for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
+                    var arg = args_1[_a];
+                    restorer_1.Restorer.makeRestorable(arg);
+                }
+            }
+            window.webContents.send((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args);
+        }); // typescript can't confirm the method signature
+    };
+    for (var _i = 0, methodNames_1 = methodNames; _i < methodNames_1.length; _i++) {
+        var methodName = methodNames_1[_i];
+        _loop_2(methodName);
+    }
+    _boundWindowApisByWindowID[window.id][apiClassName] = boundApi;
+    resolve(boundApi);
+    return true;
 }
-class Api2 {
-  async func2() {}
+//// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////
+var _listeningForIPC = false;
+function _installIpcListeners() {
+    if (!_listeningForIPC) {
+        // TODO: revisit the request/expose protocol
+        electron_1.ipcMain.on(shared_ipc_1.REQUEST_API_IPC, function (event, apiClassName) {
+            // Previously-bound APIs are known to be available after window reload.
+            var windowApis = _boundMainApisByWebContentsID[event.sender.id];
+            // TODO: This is serving as an ACL, which I decided I don't need.
+            if (windowApis && windowApis[apiClassName]) {
+                sendApiRegistration(event.sender, apiClassName);
+            }
+        });
+        electron_1.ipcMain.on(shared_ipc_1.BOUND_API_IPC, function (event, apiClassName) {
+            var windowApis = _boundMainApisByWebContentsID[event.sender.id];
+            if (windowApis === undefined) {
+                windowApis = {};
+                _boundMainApisByWebContentsID[event.sender.id] = windowApis;
+            }
+            windowApis[apiClassName] = true;
+        });
+        electron_1.ipcMain.on(shared_ipc_1.EXPOSE_API_IPC, function (event, api) {
+            _windowApiMapByWebContentsID[event.sender.id][api.className] =
+                api.methodNames;
+        });
+        _listeningForIPC = true;
+    }
 }
-function exposeApis(_apis: CheckedApi[]) {}
-const api1 = new Api1();
-const api2 = new Api2();
-exposeApis([checkApi(api1), checkApi(api2)]);
-*/
 //# sourceMappingURL=server_ipc.js.map

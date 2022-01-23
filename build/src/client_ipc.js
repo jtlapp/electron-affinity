@@ -39,14 +39,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.bindMainApi = void 0;
+exports.exposeWindowApi = exports.bindMainApi = void 0;
+// TODO: Auto install APIs on the window object, in addition to returning it,
+// to give the app flexibility.
+// TODO: Change _ipc to __ipc.
+// TODO: After I've finished the test suite, look at combining main/window logic.
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
-var _registrationMap = {};
+var _mainApiMap = {};
 // Structure tracking bound APIs.
-var _boundApis = {};
-var _listeningForApis = false;
+var _boundMainApis = {};
 /**
  * Returns a window-side binding for a main API of a given class.
  * Failure of main to expose the API before timeout results in an error.
@@ -60,31 +63,28 @@ var _listeningForApis = false;
  * @returns An API of type T that can be called as if T were local.
  */
 function bindMainApi(apiClassName, restorer) {
-    if (!_listeningForApis) {
-        window._ipc.on(shared_ipc_1.EXPOSE_API_EVENT, function (api) {
-            _registrationMap[api.className] = api.methodNames;
-        });
-        _listeningForApis = true;
-    }
+    _installIpcListeners();
     // Requests are only necessary after the window has been reloaded.
-    window._ipc.send(shared_ipc_1.REQUEST_API_EVENT, apiClassName);
+    window._ipc.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
     return new Promise(function (resolve) {
-        var api = _boundApis[apiClassName];
+        var api = _boundMainApis[apiClassName];
         if (api !== undefined) {
             resolve(api);
         }
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
-                return _attemptBindIpcApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
+                return _attemptBindMainApi(apiClassName, restorer, resolve);
+            }, 
+            // TODO: make error message clearer
+            "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }
 exports.bindMainApi = bindMainApi;
 // Implements a single attempt to bind to a main API.
-function _attemptBindIpcApi(apiClassName, restorer, resolve) {
+function _attemptBindMainApi(apiClassName, restorer, resolve) {
     var _this = this;
-    var methodNames = _registrationMap[apiClassName];
+    var methodNames = _mainApiMap[apiClassName];
     if (methodNames === undefined) {
         return false;
     }
@@ -123,9 +123,72 @@ function _attemptBindIpcApi(apiClassName, restorer, resolve) {
         var methodName = methodNames_1[_i];
         _loop_1(methodName);
     }
-    _boundApis[apiClassName] = boundApi;
+    _boundMainApis[apiClassName] = boundApi;
     resolve(boundApi);
-    window._ipc.send(shared_ipc_1.BOUND_API_EVENT, apiClassName);
+    window._ipc.send(shared_ipc_1.BOUND_API_IPC, apiClassName);
     return true;
+}
+//// WINDOW API SUPPORT //////////////////////////////////////////////////////
+// Structure mapping window API names to the methods each contains.
+var _windowApiMap = {};
+/**
+ * Exposes a window API to main for possible binding.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param windowApi The API to expose to main
+ * @param restorer Optional function for restoring the classes of
+ *    arguments passed from main. Instances of classes not restored
+ *    arrive as untyped structures.
+ */
+function exposeWindowApi(windowApi, restorer) {
+    var apiClassName = windowApi.constructor.name;
+    _installIpcListeners();
+    if (_windowApiMap[apiClassName] === undefined) {
+        var methodNames = [];
+        var _loop_2 = function (methodName) {
+            if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+                var method_1 = windowApi[methodName];
+                if (typeof method_1 == "function") {
+                    window._ipc.on((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (args) {
+                        if (args !== undefined) {
+                            for (var i = 0; i < args.length; ++i) {
+                                args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
+                            }
+                        }
+                        method_1.bind(windowApi).apply(void 0, args);
+                    });
+                    methodNames.push(methodName);
+                }
+            }
+        };
+        for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(windowApi); _i < _a.length; _i++) {
+            var methodName = _a[_i];
+            _loop_2(methodName);
+        }
+        _windowApiMap[apiClassName] = methodNames;
+    }
+}
+exports.exposeWindowApi = exposeWindowApi;
+// Send an API registration to a window.
+function sendApiRegistration(apiClassName) {
+    var registration = {
+        className: apiClassName,
+        methodNames: _windowApiMap[apiClassName]
+    };
+    window._ipc.send(shared_ipc_1.EXPOSE_API_IPC, registration);
+}
+//// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////
+var _listeningForIPC = false;
+function _installIpcListeners() {
+    if (!_listeningForIPC) {
+        // TODO: revisit the request/expose protocol
+        window._ipc.on(shared_ipc_1.REQUEST_API_IPC, function (apiClassName) {
+            sendApiRegistration(apiClassName);
+        });
+        window._ipc.on(shared_ipc_1.EXPOSE_API_IPC, function (api) {
+            _mainApiMap[api.className] = api.methodNames;
+        });
+        _listeningForIPC = true;
+    }
 }
 //# sourceMappingURL=client_ipc.js.map

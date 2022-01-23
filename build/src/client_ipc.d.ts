@@ -1,7 +1,7 @@
 /**
  * Code specific to handling IPC in the renderer process.
  */
-import { PublicProperty } from "./shared_ipc";
+import { ApiBinding, PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 declare global {
     interface Window {
@@ -12,13 +12,6 @@ declare global {
         };
     }
 }
-/**
- * Type to which a bound API of class T conforms. It only exposes the
- * methods of class T not containing underscores.
- */
-export declare type MainApiBinding<T> = {
-    [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
 /**
  * Returns a window-side binding for a main API of a given class.
  * Failure of main to expose the API before timeout results in an error.
@@ -31,4 +24,24 @@ export declare type MainApiBinding<T> = {
  *    classes not restored arrive as untyped structures.
  * @returns An API of type T that can be called as if T were local.
  */
-export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<MainApiBinding<T>>;
+export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<ApiBinding<T>>;
+/**
+ * Type to which a window API of class T conforms, requiring each API to
+ * return void. All properties of the method not beginning with an
+ * underscore are considered IPC APIs. All properties beginning with an
+ * underscore are ignored, allowing an API class to have internal
+ * structure on which the APIs rely.
+ */
+export declare type ElectronWindowApi<T> = {
+    [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
+};
+/**
+ * Exposes a window API to main for possible binding.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param windowApi The API to expose to main
+ * @param restorer Optional function for restoring the classes of
+ *    arguments passed from main. Instances of classes not restored
+ *    arrive as untyped structures.
+ */
+export declare function exposeWindowApi<T>(windowApi: ElectronWindowApi<T>, restorer?: RestorerFunction): void;
