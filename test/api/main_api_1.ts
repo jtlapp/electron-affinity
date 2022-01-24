@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 import { RelayedError } from "../../src/main";
-import { TestableApi } from "./testable_api";
+import { TestableMainApi } from "./testable_main_api";
 import {
   Catter,
   CustomError,
@@ -9,7 +9,7 @@ import {
   NonErrorObject,
 } from "../lib/shared_util";
 
-export class MainApi1 extends TestableApi {
+export class MainApi1 extends TestableMainApi {
   async noReplyNoError() {}
 
   async doubleNumber(x: number) {

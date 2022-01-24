@@ -8,7 +8,7 @@ import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_api_1";
+import verifyApi1 from "./api/verify_main_api_1";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -16,7 +16,7 @@ import verifyApi1 from "./api/verify_api_1";
 const resultCollector = createResultCollector(restorer);
 const mainApi1 = new MainApi1(resultCollector);
 
-describe("one exposed API", () => {
+describe("one exposed main API", () => {
   describe("window invoking main", () => {
     let window1: BrowserWindow;
 

@@ -10,8 +10,8 @@ import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/main_api_1";
 import { MainApi2 } from "./api/main_api_2";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_api_1";
-import verifyApi2 from "./api/verify_api_2";
+import verifyApi1 from "./api/verify_main_api_1";
+import verifyApi2 from "./api/verify_main_api_2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();

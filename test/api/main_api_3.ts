@@ -1,6 +1,6 @@
-import { TestableApi } from "./testable_api";
+import { TestableMainApi } from "./testable_main_api";
 
-export class MainApi3 extends TestableApi {
+export class MainApi3 extends TestableMainApi {
   async throwNonRelayedError() {
     throw new Error("Expected crash");
   }

@@ -9,7 +9,7 @@ import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";
 import { restorer } from "./lib/shared_util";
-import verifyApi2 from "./api/verify_api_2";
+import verifyApi2 from "./api/verify_main_api_2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();

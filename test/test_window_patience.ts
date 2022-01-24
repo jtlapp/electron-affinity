@@ -11,7 +11,7 @@ import { exposeMainApi } from "../src/main";
 import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/main_api_2";
-import verifyApi2 from "./api/verify_api_2";
+import verifyApi2 from "./api/verify_main_api_2";
 import { restorer, sleep } from "./lib/shared_util";
 
 const resultCollector = createResultCollector(restorer);
