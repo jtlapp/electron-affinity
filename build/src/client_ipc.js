@@ -76,7 +76,7 @@ function bindMainApi(apiClassName, restorer) {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
             }, 
             // TODO: make error message clearer
-            "Timed out waiting to bind main API '".concat(apiClassName, "'"));
+            "Timed out waiting to bind main API '" + apiClassName + "'");
         }
     });
 }
@@ -183,7 +183,9 @@ function _installIpcListeners() {
     if (!_listeningForIPC) {
         // TODO: revisit the request/expose protocol
         window._ipc.on(shared_ipc_1.REQUEST_API_IPC, function (apiClassName) {
+            console.log("received API request for ", apiClassName);
             sendApiRegistration(apiClassName);
+            console.log("sent registration");
         });
         window._ipc.on(shared_ipc_1.EXPOSE_API_IPC, function (api) {
             _mainApiMap[api.className] = api.methodNames;

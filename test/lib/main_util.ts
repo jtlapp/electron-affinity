@@ -10,13 +10,14 @@ const TEST_TIMEOUT_MILLIS = 5000;
 
 export async function createWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
-    show: false,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, "../../src/preload.js"),
       nodeIntegration: false,
       contextIsolation: true,
     },
   });
+  window.webContents.openDevTools();
 
   await window.loadFile(path.join(__dirname, "../client/dummy.html"));
   return window;

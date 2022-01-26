@@ -185,7 +185,9 @@ function _installIpcListeners() {
   if (!_listeningForIPC) {
     // TODO: revisit the request/expose protocol
     window._ipc.on(REQUEST_API_IPC, (apiClassName: string) => {
+      console.log("received API request for ", apiClassName);
       sendApiRegistration(apiClassName);
+      console.log("sent registration");
     });
     window._ipc.on(EXPOSE_API_IPC, (api: ApiRegistration) => {
       _mainApiMap[api.className] = api.methodNames;

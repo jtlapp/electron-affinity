@@ -130,7 +130,7 @@ toWindow, mainApi, restorer) {
     // TODO: main should not require window to bind
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
+            throw Error("Window destroyed before binding to '" + apiClassName + "'");
         }
         var boundMainApis = _boundMainApisByWebContentsID[toWindow.webContents.id];
         if (boundMainApis !== undefined && boundMainApis[apiClassName]) {
@@ -140,7 +140,7 @@ toWindow, mainApi, restorer) {
         return false;
     }, 
     // TODO: make error message clearer
-    "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
+    "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
 }
 exports.exposeMainApi = exposeMainApi;
 // Send an API registration to a window.
@@ -178,26 +178,27 @@ var _boundWindowApisByWindowID = {};
  */
 function bindWindowApi(window, apiClassName) {
     _installIpcListeners();
-    window.webContents.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
     return new Promise(function (resolve) {
-        var api = _boundWindowApisByWindowID[window.id][apiClassName];
-        if (api !== undefined) {
-            resolve(api);
+        var windowApis = _boundWindowApisByWindowID[window.webContents.id];
+        if (windowApis && windowApis[apiClassName]) {
+            resolve(windowApis[apiClassName]);
         }
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindWindowApi(window, apiClassName, resolve);
-            }, "Main timed out waiting to bind window API '".concat(apiClassName, "'"));
+            }, "Main timed out waiting to bind window API '" + apiClassName + "'");
         }
     });
 }
 exports.bindWindowApi = bindWindowApi;
 // Implements a single attempt to bind to a window API.
 function _attemptBindWindowApi(window, apiClassName, resolve) {
-    var methodNames = _windowApiMapByWebContentsID[window.webContents.id][apiClassName];
-    if (methodNames === undefined) {
+    var windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
+    if (!windowApiMap || !windowApiMap[apiClassName]) {
+        window.webContents.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
         return false;
     }
+    var methodNames = windowApiMap[apiClassName];
     var boundApi = {};
     var _loop_2 = function (methodName) {
         var typedMethodName = methodName;
@@ -219,7 +220,12 @@ function _attemptBindWindowApi(window, apiClassName, resolve) {
         var methodName = methodNames_1[_i];
         _loop_2(methodName);
     }
-    _boundWindowApisByWindowID[window.id][apiClassName] = boundApi;
+    var windowApis = _boundWindowApisByWindowID[window.webContents.id];
+    if (!windowApis) {
+        windowApis = {};
+        _boundWindowApisByWindowID[window.webContents.id] = windowApis;
+    }
+    windowApis[apiClassName] = boundApi;
     resolve(boundApi);
     return true;
 }
@@ -245,8 +251,12 @@ function _installIpcListeners() {
             windowApis[apiClassName] = true;
         });
         electron_1.ipcMain.on(shared_ipc_1.EXPOSE_API_IPC, function (event, api) {
-            _windowApiMapByWebContentsID[event.sender.id][api.className] =
-                api.methodNames;
+            var windowApiMap = _windowApiMapByWebContentsID[event.sender.id];
+            if (!windowApiMap) {
+                windowApiMap = {};
+                _windowApiMapByWebContentsID[event.sender.id] = windowApiMap;
+            }
+            windowApiMap[api.className] = api.methodNames;
         });
         _listeningForIPC = true;
     }

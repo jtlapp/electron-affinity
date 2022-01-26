@@ -185,11 +185,10 @@ export function bindWindowApi<T>(
 ): Promise<ApiBinding<T>> {
   _installIpcListeners();
 
-  window.webContents.send(REQUEST_API_IPC, apiClassName);
   return new Promise((resolve) => {
-    const api = _boundWindowApisByWindowID[window.id][apiClassName];
-    if (api !== undefined) {
-      resolve(api);
+    const windowApis = _boundWindowApisByWindowID[window.webContents.id];
+    if (windowApis && windowApis[apiClassName]) {
+      resolve(windowApis[apiClassName]);
     } else {
       retryUntilTimeout(
         0,
@@ -208,12 +207,12 @@ function _attemptBindWindowApi<T>(
   apiClassName: string,
   resolve: (boundApi: ApiBinding<T>) => void
 ): boolean {
-  const methodNames = _windowApiMapByWebContentsID[window.webContents.id][
-    apiClassName
-  ] as [keyof ApiBinding<T>];
-  if (methodNames === undefined) {
+  let windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
+  if (!windowApiMap || !windowApiMap[apiClassName]) {
+    window.webContents.send(REQUEST_API_IPC, apiClassName);
     return false;
   }
+  const methodNames = windowApiMap[apiClassName] as [keyof ApiBinding<T>];
   const boundApi = {} as ApiBinding<T>;
   for (const methodName of methodNames) {
     const typedMethodName: keyof ApiBinding<T> = methodName;
@@ -229,7 +228,12 @@ function _attemptBindWindowApi<T>(
       );
     }) as any; // typescript can't confirm the method signature
   }
-  _boundWindowApisByWindowID[window.id][apiClassName] = boundApi;
+  let windowApis = _boundWindowApisByWindowID[window.webContents.id];
+  if (!windowApis) {
+    windowApis = {};
+    _boundWindowApisByWindowID[window.webContents.id] = windowApis;
+  }
+  windowApis[apiClassName] = boundApi;
   resolve(boundApi);
   return true;
 }
@@ -258,8 +262,12 @@ function _installIpcListeners() {
       windowApis[apiClassName] = true;
     });
     ipcMain.on(EXPOSE_API_IPC, (event, api: ApiRegistration) => {
-      _windowApiMapByWebContentsID[event.sender.id][api.className] =
-        api.methodNames;
+      let windowApiMap = _windowApiMapByWebContentsID[event.sender.id];
+      if (!windowApiMap) {
+        windowApiMap = {};
+        _windowApiMapByWebContentsID[event.sender.id] = windowApiMap;
+      }
+      windowApiMap[api.className] = api.methodNames;
     });
     _listeningForIPC = true;
   }

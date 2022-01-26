@@ -17,9 +17,9 @@ describe("one exposed window API", () => {
 
     before(async () => {
       window1 = await createWindow();
-      // includes test of exposing API after running script
-      resultCollector.runScripFiletInWindow(window1, "win1_api_1");
+      resultCollector.runScripFiletInWindow(window1, "win1_winapi1");
       await callWindowApi1(window1);
+      resultCollector.completedAll = true;
       await resultCollector.waitForResults();
     });
 

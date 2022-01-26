@@ -1,7 +1,7 @@
 /**
  * Function and types available to windows in Electron.
  */
-export { bindMainApi } from "./client_ipc";
+export { bindMainApi, exposeWindowApi, ElectronWindowApi } from "./client_ipc";
 export { setIpcBindingTimeout } from "./shared_ipc";
 export { RestorableClass, RestorerFunction } from "./restorer";
 /**

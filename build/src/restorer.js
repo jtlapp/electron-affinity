@@ -84,7 +84,7 @@ var Restorer;
         }
         // Replace any newly generated stack.
         if (error instanceof Error) {
-            error.stack = "".concat(error.constructor.name, ": ").concat(error.message, "\n\tin main process");
+            error.stack = error.constructor.name + ": " + error.message + "\n\tin main process";
         }
         return error;
     }
