@@ -123,11 +123,13 @@ export function createResultCollector(restorer: RestorerFunction) {
   ipcMain.on("started_test", (_event, testName: string) => {
     resultCollector.currentResult.testName = testName;
   });
-  ipcMain.on("request_data", (_event, data: any) => {
-    resultCollector.currentResult.requestData = Restorer.restoreValue(
-      data,
-      restorer
-    );
+  ipcMain.on("request_data", (_event, args: any) => {
+    if (args) {
+      for (let i = 0; i < args.length; ++i) {
+        args[i] = Restorer.restoreValue(args[i], restorer);
+      }
+    }
+    resultCollector.currentResult.requestData = args;
   });
   ipcMain.on("reply_data", (_event, data: any) => {
     resultCollector.currentResult.replyData = Restorer.restoreValue(

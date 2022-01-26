@@ -1,17 +1,9 @@
 import { Restorer } from "../../src/restorer";
 
+// TODO: delete this
 export function testEvent(eventName: string, testName: string) {
   window._ipc.on(eventName, (args) => {
-    window._ipc.send("started_test", testName);
-    try {
-      for (let i = 0; i < args.length; ++i) {
-        args[i] = Restorer.makeRestorable(args[i]);
-      }
-      window._ipc.send("request_data", args);
-      window._ipc.send("completed_test", null);
-    } catch (err: any) {
-      window._ipc.send("completed_test", Restorer.makeReturnedError(err));
-    }
+    testSend(testName, args);
   });
 }
 
@@ -23,6 +15,19 @@ export async function testInvoke(
   try {
     const replyData = await testFunc();
     window._ipc.send("reply_data", Restorer.makeRestorable(replyData));
+    window._ipc.send("completed_test", null);
+  } catch (err: any) {
+    window._ipc.send("completed_test", Restorer.makeReturnedError(err));
+  }
+}
+
+export function testSend(testName: string, args: any) {
+  window._ipc.send("started_test", testName);
+  try {
+    for (let i = 0; i < args.length; ++i) {
+      args[i] = Restorer.makeRestorable(args[i]);
+    }
+    window._ipc.send("request_data", args);
     window._ipc.send("completed_test", null);
   } catch (err: any) {
     window._ipc.send("completed_test", Restorer.makeReturnedError(err));
