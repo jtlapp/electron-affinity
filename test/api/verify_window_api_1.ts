@@ -1,6 +1,6 @@
 import * as assert from "assert";
 
-import { Catter, CustomError } from "../lib/shared_util";
+import { Catter } from "../lib/shared_util";
 import { ResultCollector } from "../lib/main_util";
 
 const test = it;
@@ -36,27 +36,27 @@ export default (winTag: string, collector: ResultCollector) => {
   //   });
   // });
 
-  test(winTag + "send structured error (win api1)", async () => {
-    collector.verifyTest(winTag + "structured error (win api1)", (result) => {
-      const error = result.requestData;
-      assert.ok(error instanceof Error);
-      assert.ok(typeof error.message == "string");
-      assert.equal((error as any).code, "ENOENT");
-      assert.equal((error as any).syscall, "open");
-      assert.ok((error as any).stack.includes("in main process"));
-    });
-  });
+  // test(winTag + "send structured error (win api1)", async () => {
+  //   collector.verifyTest(winTag + "structured error (win api1)", (result) => {
+  //     const error = result.requestData;
+  //     assert.ok(error instanceof Error);
+  //     assert.ok(typeof error.message == "string");
+  //     assert.equal((error as any).code, "ENOENT");
+  //     assert.equal((error as any).syscall, "open");
+  //     assert.ok((error as any).stack.includes("in main process"));
+  //   });
+  // });
 
-  test(winTag + "send custom error (win api1)", async () => {
-    collector.verifyTest(winTag + "custom error (win api1)", (result) => {
-      const error = result.requestData;
-      assert.ok(error instanceof CustomError);
-      assert.equal(error.message, "bad thing");
-      assert.equal(error.code, 99);
-      assert.equal(
-        result.error.stack,
-        "CustomError: bad thing\n\tin main process"
-      );
-    });
-  });
+  // test(winTag + "send custom error (win api1)", async () => {
+  //   collector.verifyTest(winTag + "custom error (win api1)", (result) => {
+  //     const error = result.requestData;
+  //     assert.ok(error instanceof CustomError);
+  //     assert.equal(error.message, "bad thing");
+  //     assert.equal(error.code, 99);
+  //     assert.equal(
+  //       result.error.stack,
+  //       "CustomError: bad thing\n\tin main process"
+  //     );
+  //   });
+  // });
 };

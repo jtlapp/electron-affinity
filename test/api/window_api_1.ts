@@ -15,15 +15,15 @@ export class WindowApi1 extends TestableWindowApi {
     testSend("win1 send class instance (win api1)", [catter]);
   }
 
-  sendDate(date: Date) {
-    testSend("win1 built-in type (win api1)", [date]);
-  }
+  // sendDate(date: Date) {
+  //   testSend("win1 built-in type (win api1)", [date]);
+  // }
 
-  sendFSError(err: Error) {
-    testSend("win1 structured error (win api1)", [err]);
-  }
+  // sendFSError(err: Error) {
+  //   testSend("win1 structured error (win api1)", [err]);
+  // }
 
-  sendCustomError(err: Error) {
-    testSend("win1 custom error (win api1)", [err]);
-  }
+  // sendCustomError(err: Error) {
+  //   testSend("win1 custom error (win api1)", [err]);
+  // }
 }

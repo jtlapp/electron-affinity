@@ -4,6 +4,8 @@
  */
 exports.__esModule = true;
 exports.Restorer = void 0;
+// TODO: test sending and receiving nulls
+// TODO: test sending errors as arguments
 var Restorer;
 (function (Restorer) {
     // Wraps thrown non-object values for relay to client. Prefixed with
@@ -18,7 +20,7 @@ var Restorer;
     Restorer.__ThrownNonObject = __ThrownNonObject;
     // Makes an object restorable to its class by marking it with its class.
     function makeRestorable(obj) {
-        if (typeof obj == "object") {
+        if (obj !== null && typeof obj == "object") {
             obj.__eipc_class = obj.constructor.name;
         }
         return obj;
@@ -54,7 +56,7 @@ var Restorer;
     Restorer.wasThrownError = wasThrownError;
     // Restores the class of an argument or return value when possible.
     function restoreValue(obj, restorer) {
-        if (obj !== undefined && obj.__eipc_class) {
+        if (obj !== undefined && obj !== null && obj.__eipc_class) {
             var className = obj.__eipc_class;
             delete obj.__eipc_class;
             if (className == "__ThrownNonObject") {

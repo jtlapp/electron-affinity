@@ -24,6 +24,9 @@ export type RestorerFunction = (
   obj: Record<string, any>
 ) => any;
 
+// TODO: test sending and receiving nulls
+// TODO: test sending errors as arguments
+
 export namespace Restorer {
   // Wraps thrown non-object values for relay to client. Prefixed with
   // underscores to prevent name conflict with application classes.
@@ -38,7 +41,7 @@ export namespace Restorer {
 
   // Makes an object restorable to its class by marking it with its class.
   export function makeRestorable(obj: any): any {
-    if (typeof obj == "object") {
+    if (obj !== null && typeof obj == "object") {
       obj.__eipc_class = (obj as object).constructor.name;
     }
     return obj;
@@ -78,7 +81,7 @@ export namespace Restorer {
 
   // Restores the class of an argument or return value when possible.
   export function restoreValue(obj: any, restorer?: RestorerFunction): any {
-    if (obj !== undefined && obj.__eipc_class) {
+    if (obj !== undefined && obj !== null && obj.__eipc_class) {
       const className = obj.__eipc_class;
       delete obj.__eipc_class;
       if (className == "__ThrownNonObject") {
