@@ -1,8 +1,8 @@
 import { RelayedError } from "../../src/main";
-import { TestableMainApi } from "./testable_mainapi";
+import { MainApi } from "./mainapi";
 import { Catter } from "../lib/shared_util";
 
-export class MainApi2 extends TestableMainApi {
+export class MainApi2 extends MainApi {
   async sendCatter2(catter: Catter) {
     this._setRequestData(catter);
     return catter.cat();

@@ -1,6 +1,6 @@
 import { ResultCollector } from "../lib/main_util";
 
-export abstract class TestableMainApi {
+export abstract class MainApi {
   _collector: ResultCollector;
 
   constructor(collector: ResultCollector) {
