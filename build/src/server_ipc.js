@@ -130,7 +130,7 @@ toWindow, mainApi, restorer) {
     // TODO: main should not require window to bind
     (0, shared_ipc_1.retryUntilTimeout)(0, function () {
         if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '" + apiClassName + "'");
+            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
         }
         var boundMainApis = _boundMainApisByWebContentsID[toWindow.webContents.id];
         if (boundMainApis !== undefined && boundMainApis[apiClassName]) {
@@ -140,7 +140,7 @@ toWindow, mainApi, restorer) {
         return false;
     }, 
     // TODO: make error message clearer
-    "Timed out waiting for main API '" + apiClassName + "' to bind to window " + toWindow.id);
+    "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
 }
 exports.exposeMainApi = exposeMainApi;
 // Send an API registration to a window.
@@ -186,7 +186,7 @@ function bindWindowApi(window, apiClassName) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindWindowApi(window, apiClassName, resolve);
-            }, "Main timed out waiting to bind window API '" + apiClassName + "'");
+            }, "Main timed out waiting to bind window API '".concat(apiClassName, "'"));
         }
     });
 }

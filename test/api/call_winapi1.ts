@@ -1,10 +1,10 @@
 import { BrowserWindow } from "electron";
 
 import { bindWindowApi } from "../../src/main";
-import type { WindowApi1 } from "../api/window_api_1";
+import type { WinApi1 } from "../api/winapi1";
 import { Catter } from "../lib/shared_util";
 export async function callWindowApi1(window: BrowserWindow) {
-  const windowApi1 = await bindWindowApi<WindowApi1>(window, "WindowApi1");
+  const windowApi1 = await bindWindowApi<WinApi1>(window, "WinApi1");
 
   windowApi1.sendNoParams();
 

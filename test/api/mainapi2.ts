@@ -1,5 +1,5 @@
 import { RelayedError } from "../../src/main";
-import { TestableMainApi } from "./testable_main_api";
+import { TestableMainApi } from "./testable_mainapi";
 import { Catter } from "../lib/shared_util";
 
 export class MainApi2 extends TestableMainApi {

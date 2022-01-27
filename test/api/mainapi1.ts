@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 import { RelayedError } from "../../src/main";
-import { TestableMainApi } from "./testable_main_api";
+import { TestableMainApi } from "./testable_mainapi";
 import {
   Catter,
   CustomError,

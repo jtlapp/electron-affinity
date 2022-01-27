@@ -7,9 +7,9 @@ import { BrowserWindow } from "electron";
 import { exposeMainApi, setIpcBindingTimeout } from "../src/main";
 import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
-import { MainApi2 } from "./api/main_api_2";
+import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
-import verifyApi2 from "./api/verify_main_api_2";
+import verifyApi2 from "./api/verify_mainapi2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -25,7 +25,7 @@ describe("one exposed API with delayed binding", () => {
       window1 = await createWindow();
       setIpcBindingTimeout(ACCEPTABLE_DELAY_MILLIS);
       exposeMainApi(window1, mainApi2, restorer);
-      resultCollector.runScripFiletInWindow(window1, "win1_api_2_delayed");
+      resultCollector.runScripFiletInWindow(window1, "win1_mainapi2_delayed");
       await resultCollector.waitForResults();
     });
 

@@ -1,5 +1,5 @@
 import { reportErrorsToMain, windowFinished } from "../lib/renderer_util";
-import { callMainApi3 } from "./call_main_api_3";
+import { callMainApi3 } from "../api/call_mainapi3";
 
 (async () => {
   try {

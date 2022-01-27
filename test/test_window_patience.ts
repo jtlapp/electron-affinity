@@ -10,8 +10,8 @@ const test = it;
 import { exposeMainApi } from "../src/main";
 import { ACCEPTABLE_DELAY_MILLIS } from "./lib/config";
 import { createWindow, createResultCollector } from "./lib/main_util";
-import { MainApi2 } from "./api/main_api_2";
-import verifyApi2 from "./api/verify_main_api_2";
+import { MainApi2 } from "./api/mainapi2";
+import verifyApi2 from "./api/verify_mainapi2";
 import { restorer, sleep } from "./lib/shared_util";
 
 const resultCollector = createResultCollector(restorer);
@@ -25,7 +25,7 @@ describe("patience of renderer for recieving main APIs", () => {
     before(async () => {
       window1 = await createWindow();
 
-      resultCollector.runScripFiletInWindow(window1, "win1_api_2_patient");
+      resultCollector.runScripFiletInWindow(window1, "win1_mainapi2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
       exposeMainApi(window1, mainApi2, restorer);
       await resultCollector.waitForResults();
@@ -50,7 +50,7 @@ describe("patience of renderer for recieving main APIs", () => {
       window2 = await createWindow();
       // Run the window1 script again on window2 to be sure that its' the
       // change in timing that prevents the binding.
-      resultCollector.runScripFiletInWindow(window2, "win1_api_2_patient");
+      resultCollector.runScripFiletInWindow(window2, "win1_mainapi2_patient");
       await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
       exposeMainApi(window2, mainApi2, restorer);
       try {

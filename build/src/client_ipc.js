@@ -76,7 +76,7 @@ function bindMainApi(apiClassName, restorer) {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
             }, 
             // TODO: make error message clearer
-            "Timed out waiting to bind main API '" + apiClassName + "'");
+            "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }

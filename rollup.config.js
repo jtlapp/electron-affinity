@@ -4,13 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const config = [];
-const scriptDir = path.join(__dirname, "test/client");
+const scriptDir = path.join(__dirname, "test/window-scripts");
 
 fs.readdirSync(scriptDir).forEach(fileName => {
 	if (fileName.endsWith(".ts")) {
 		const scriptName = fileName.substring(0, fileName.length - 3);
 		config.push({
-			input: `test/client/${scriptName}.ts`,
+			input: `test/window-scripts/${scriptName}.ts`,
 			output: {
 				sourcemap: true,
 				format: 'cjs',
@@ -21,7 +21,7 @@ fs.readdirSync(scriptDir).forEach(fileName => {
 				typescript({
 					sourceMap: true,
 					inlineSources: true,
-					tsconfig: "test/client/tsconfig.json"
+					tsconfig: "test/window-scripts/tsconfig.json"
 				}),
 			]
 		});

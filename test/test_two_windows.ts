@@ -7,11 +7,11 @@ import { BrowserWindow } from "electron";
 
 import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
-import { MainApi1 } from "./api/main_api_1";
-import { MainApi2 } from "./api/main_api_2";
+import { MainApi1 } from "./api/mainapi1";
+import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_main_api_1";
-import verifyApi2 from "./api/verify_main_api_2";
+import verifyApi1 from "./api/verify_mainapi1";
+import verifyApi2 from "./api/verify_mainapi2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -36,7 +36,7 @@ describe("two windows with two APIs", () => {
   describe("window 1 invoking main", () => {
     before(async () => {
       // includes test of exposing API before running script
-      resultCollector.runScripFiletInWindow(window1, "win1_api_1_2");
+      resultCollector.runScripFiletInWindow(window1, "win1_mainapi1+2");
       await resultCollector.waitForResults();
     });
 
@@ -51,7 +51,7 @@ describe("two windows with two APIs", () => {
   describe("window 2 invoking main", () => {
     before(async () => {
       // includes test of exposing API before running script
-      resultCollector.runScripFiletInWindow(window2, "win2_api_1_2");
+      resultCollector.runScripFiletInWindow(window2, "win2_mainapi1+2");
       await resultCollector.waitForResults();
     });
 

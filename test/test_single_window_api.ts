@@ -6,8 +6,8 @@ import { BrowserWindow } from "electron";
 
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { restorer } from "./lib/shared_util";
-import verifyWindowApi1 from "./api/verify_window_api_1";
-import { callWindowApi1 } from "./server/call_window_api_1";
+import verifyWindowApi1 from "./api/verify_winapi1";
+import { callWindowApi1 } from "./api/call_winapi1";
 
 const resultCollector = createResultCollector(restorer);
 

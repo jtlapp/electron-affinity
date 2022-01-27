@@ -1,11 +1,12 @@
 import { reportErrorsToMain, windowFinished } from "../lib/renderer_util";
-import { callMainApi1 } from "./call_main_api_1";
-import { callMainApi2 } from "./call_main_api_2";
+import { ACCEPTABLE_DELAY_MILLIS } from "../lib/config";
+import { sleep } from "../lib/shared_util";
+import { callMainApi2 } from "../api/call_mainapi2";
 
 (async () => {
   try {
     reportErrorsToMain("win2");
-    await callMainApi1("win2");
+    await sleep(ACCEPTABLE_DELAY_MILLIS * 1.2);
     await callMainApi2("win2");
     windowFinished();
   } catch (err) {

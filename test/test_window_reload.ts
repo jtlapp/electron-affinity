@@ -6,9 +6,9 @@ import { BrowserWindow } from "electron";
 
 import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
-import { MainApi2 } from "./api/main_api_2";
+import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
-import verifyApi2 from "./api/verify_main_api_2";
+import verifyApi2 from "./api/verify_mainapi2";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -40,10 +40,10 @@ describe("rebinding after window reload", () => {
     });
 
     exposeMainApi(window1, mainApi2, restorer);
-    resultCollector.runScripFiletInWindow(window1, "win1_api_2_reload_1");
+    resultCollector.runScripFiletInWindow(window1, "win1_mainapi2_reload_1");
 
     await new Promise<void>((resolve) => waitForLoad(resolve));
-    resultCollector.runScripFiletInWindow(window1, "win1_api_2_reload_2");
+    resultCollector.runScripFiletInWindow(window1, "win1_mainapi2_reload_2");
     await resultCollector.waitForResults();
   });
 

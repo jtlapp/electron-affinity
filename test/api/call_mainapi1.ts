@@ -1,5 +1,5 @@
 import { bindMainApi } from "../../src/window";
-import type { MainApi1 } from "../api/main_api_1";
+import type { MainApi1 } from "../api/mainapi1";
 import { Catter, restorer } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";
 

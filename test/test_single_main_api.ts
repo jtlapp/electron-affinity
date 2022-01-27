@@ -6,9 +6,9 @@ import { BrowserWindow } from "electron";
 
 import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
-import { MainApi1 } from "./api/main_api_1";
+import { MainApi1 } from "./api/mainapi1";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_main_api_1";
+import verifyApi1 from "./api/verify_mainapi1";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -23,7 +23,7 @@ describe("one exposed main API", () => {
     before(async () => {
       window1 = await createWindow();
       // includes test of exposing API after running script
-      resultCollector.runScripFiletInWindow(window1, "win1_api_1");
+      resultCollector.runScripFiletInWindow(window1, "win1_mainapi1");
       exposeMainApi(window1, mainApi1, restorer);
       await resultCollector.waitForResults();
     });

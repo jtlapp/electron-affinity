@@ -19,7 +19,7 @@ export async function createWindow(): Promise<BrowserWindow> {
   });
   window.webContents.openDevTools();
 
-  await window.loadFile(path.join(__dirname, "../client/dummy.html"));
+  await window.loadFile(path.join(__dirname, "../window-scripts/dummy.html"));
   return window;
 }
 

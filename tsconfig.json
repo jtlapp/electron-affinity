@@ -26,6 +26,6 @@
     "exclude": [
         "node_modules/*",
         "build/*",
-        "test/client/*"
+        "test/window-scripts/*"
     ]
 }

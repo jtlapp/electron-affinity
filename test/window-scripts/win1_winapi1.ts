@@ -1,5 +1,5 @@
 import { exposeWindowApi } from "../../src/client_ipc";
-import { WindowApi1 } from "../api/window_api_1";
+import { WinApi1 } from "../api/winapi1";
 import { restorer } from "../lib/shared_util";
 
-exposeWindowApi(new WindowApi1(), restorer);
+exposeWindowApi(new WinApi1(), restorer);

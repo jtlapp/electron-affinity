@@ -38,7 +38,7 @@ describe("when main should crash with an error", () => {
   });
 
   test("main crashes when API throws an non-relayed error", (done) => {
-    verifyCrash("main_unwrapped_error", "Expected crash", done);
+    verifyCrash("main_nonrelayed_error", "Expected crash", done);
   });
 });
 
@@ -57,7 +57,7 @@ function verifyCrash(
   );
   const scriptPath = path.join(
     rootPath,
-    "build/test/server",
+    "build/test/main-scripts",
     scriptName + ".js"
   );
   const command = `node ${mochaPath} ${scriptPath} --timeout 8000`;

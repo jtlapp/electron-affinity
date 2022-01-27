@@ -1,8 +1,8 @@
-import { TestableWindowApi } from "./testable_window_api";
+import { TestableWinApi } from "./testable_winapi";
 import { testSend } from "../lib/renderer_util";
 import { Catter } from "../lib/shared_util";
 
-export class WindowApi1 extends TestableWindowApi {
+export class WinApi1 extends TestableWinApi {
   sendNoParams() {
     testSend("win1 no params (win api1)", undefined);
   }
