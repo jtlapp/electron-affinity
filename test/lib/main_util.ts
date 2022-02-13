@@ -10,7 +10,7 @@ const TEST_TIMEOUT_MILLIS = 5000;
 
 export async function createWindow(): Promise<BrowserWindow> {
   const window = new BrowserWindow({
-    show: true,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, "../../src/preload.js"),
       nodeIntegration: false,

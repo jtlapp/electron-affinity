@@ -13,26 +13,18 @@ const rootPath = path.join(__dirname, "../../");
 const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 
 describe("when main should crash with an error", () => {
-  test("main times out waiting for first window binding", (done) => {
+  test("main times out waiting to bind to first window", (done) => {
     verifyCrash(
       "main_win1_timeout",
-      "Timed out waiting for main API 'MainApi2' to bind",
+      "Main timed out waiting to bind to window API 'WinApi1'",
       done
     );
   });
 
-  test("main times out waiting for second window binding of same API", (done) => {
+  test("main times out waiting to bind to second window with same API", (done) => {
     verifyCrash(
       "main_win2_timeout",
-      "Timed out waiting for main API 'MainApi2' to bind",
-      done
-    );
-  });
-
-  test("window destruction aborts binding", (done) => {
-    verifyCrash(
-      "main_win_destroyed",
-      "Window destroyed before binding to 'MainApi2'",
+      "Main timed out waiting to bind to window API 'WinApi1'",
       done
     );
   });

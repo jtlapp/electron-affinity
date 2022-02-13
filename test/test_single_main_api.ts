@@ -13,6 +13,8 @@ import verifyApi1 from "./api/verify_mainapi1";
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
 
+// TODO: test passing arrays
+
 const resultCollector = createResultCollector(restorer);
 const mainApi1 = new MainApi1(resultCollector);
 

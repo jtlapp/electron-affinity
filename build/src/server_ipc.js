@@ -186,7 +186,8 @@ function bindWindowApi(window, apiClassName) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindWindowApi(window, apiClassName, resolve);
-            }, "Main timed out waiting to bind window API '".concat(apiClassName, "'"));
+            }, "Main timed out waiting to bind to window API '".concat(apiClassName, "'") +
+                " (window ID ".concat(window.id, ")"));
         }
     });
 }

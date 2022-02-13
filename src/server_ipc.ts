@@ -195,7 +195,8 @@ export function bindWindowApi<T>(
         () => {
           return _attemptBindWindowApi(window, apiClassName, resolve);
         },
-        `Main timed out waiting to bind window API '${apiClassName}'`
+        `Main timed out waiting to bind to window API '${apiClassName}'` +
+          ` (window ID ${window.id})`
       );
     }
   });
