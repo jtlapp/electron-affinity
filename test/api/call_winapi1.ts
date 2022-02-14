@@ -3,10 +3,13 @@ import { BrowserWindow } from "electron";
 import { bindWindowApi } from "../../src/main";
 import type { WinApi1 } from "../api/winapi1";
 import { Catter } from "../lib/shared_util";
+
 export async function callWindowApi1(window: BrowserWindow) {
   const windowApi1 = await bindWindowApi<WinApi1>(window, "WinApi1");
 
   windowApi1.sendNoParams();
+
+  windowApi1.sendStringSameMethod("X");
 
   windowApi1.sendCoordinates(5, 10);
 

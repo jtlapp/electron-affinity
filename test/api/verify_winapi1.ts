@@ -14,6 +14,12 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
+  test(winTag + "send same method (win api1)", async () => {
+    collector.verifyTest(winTag + "same method (win api1)", (result) => {
+      assert.deepEqual(result.requestData, ["X"]);
+    });
+  });
+
   test(winTag + "send multiple params (win api1)", async () => {
     collector.verifyTest(winTag + "multi param (win api1)", (result) => {
       assert.deepEqual(result.requestData, [5, 10]);
@@ -21,12 +27,12 @@ export default (winTag: string, collector: ResultCollector) => {
   });
 
   test(winTag + "send restored custom class (win api1)", async () => {
-    collector.verifyTest(
-      winTag + "send class instance (win api1)",
-      (result) => {
-        assert.ok(result.requestData[0] instanceof Catter);
-      }
-    );
+    collector.verifyTest(winTag + "send catter (win api1)", (result) => {
+      const catter = result.requestData[0];
+      assert.ok(catter instanceof Catter);
+      assert.equal(catter.s1, "this");
+      assert.equal(catter.s2, "that");
+    });
   });
 
   // test(winTag + "send built-in type (win api1)", async () => {

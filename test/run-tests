@@ -1,7 +1,8 @@
 # these tests run in separate instances of Electron
 node_modules/.bin/electron-mocha build/test/test_single_main_api.js --timeout 8000
 node_modules/.bin/electron-mocha build/test/test_single_window_api.js --timeout 8000
-node_modules/.bin/electron-mocha build/test/test_two_windows.js --timeout 8000
+node_modules/.bin/electron-mocha build/test/test_windows_calling.js --timeout 8000
+node_modules/.bin/electron-mocha build/test/test_calling_windows.js --timeout 8000
 node_modules/.bin/electron-mocha build/test/test_main_patience.js --timeout 8000
 node_modules/.bin/electron-mocha build/test/test_window_timeout.js --timeout 8000
 node_modules/.bin/electron-mocha build/test/test_window_reload.js --timeout 8000
