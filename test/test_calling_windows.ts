@@ -21,8 +21,8 @@ describe("main calling the same APIs in two windows", () => {
     window1 = await createWindow();
     window2 = await createWindow();
 
-    resultCollector.runScripFiletInWindow(window1, "win1_winapi1_2");
-    resultCollector.runScripFiletInWindow(window2, "win2_winapi1_2");
+    resultCollector.runScripFiletInWindow(window1, "win1_winapi1+2");
+    resultCollector.runScripFiletInWindow(window2, "win2_winapi1+2");
     await callWindowApi1(window1);
     await callWindowApi2(window1);
     await callWindowApi1(window2);
