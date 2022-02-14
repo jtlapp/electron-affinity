@@ -12,6 +12,8 @@ const test = it;
 const rootPath = path.join(__dirname, "../../");
 const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 
+// TODO: add test of default main timeout
+
 describe("when main should crash with an error", () => {
   test("main times out waiting to bind to first window", (done) => {
     verifyCrash(

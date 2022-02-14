@@ -67,6 +67,9 @@ export function bindMainApi<T>(
     if (api !== undefined) {
       resolve(api);
     } else {
+      // TODO: Client doesn't need to retry; should already be there.
+      // Timeout is for waiting for server to reply. (But might keep
+      // this unchanged to share common code with server side?)
       retryUntilTimeout(
         0,
         () => {

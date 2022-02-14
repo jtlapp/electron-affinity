@@ -35,7 +35,11 @@ export class ResultCollector {
   currentResult = new Result();
   results: Result[] = [];
   abortError: any = null;
-  completedAll = false;
+  _completedAll = false;
+
+  completedAll() {
+    this._completedAll = true;
+  }
 
   waitForResults(): Promise<void> {
     const self = this;
@@ -48,7 +52,7 @@ export class ResultCollector {
         time += COMPLETION_CHECK_INTERVAL_MILLIS;
         if (self.abortError !== null) {
           reject(self.abortError);
-        } else if (self.completedAll) {
+        } else if (self._completedAll) {
           resolve();
         } else if (time >= TEST_TIMEOUT_MILLIS) {
           reject(Error(`Timed out waiting for results`));
@@ -67,7 +71,7 @@ export class ResultCollector {
     this.currentResult = new Result();
     this.results = [];
     this.abortError = null;
-    this.completedAll = false;
+    this._completedAll = false;
   }
 
   async runScripFiletInWindow(window: BrowserWindow, scriptName: string) {
@@ -149,7 +153,7 @@ export function createResultCollector(restorer: RestorerFunction) {
     resultCollector.currentResult = new Result();
   });
   ipcMain.on("completed_all", () => {
-    resultCollector.completedAll = true;
+    resultCollector.completedAll();
   });
   ipcMain.on("test_aborted", (_event, error: any) => {
     resultCollector.abortError = error;

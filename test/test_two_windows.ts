@@ -1,8 +1,8 @@
 /**
- * Test binding the same APIs to different windows.
+ * Test binding the same main APIs in different windows, and
+ * test main subsequently calling an API on one of these windows.
  */
 
-import * as assert from "assert";
 import { BrowserWindow } from "electron";
 
 import { exposeMainApi } from "../src/main";
@@ -12,6 +12,8 @@ import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
 import verifyApi1 from "./api/verify_mainapi1";
 import verifyApi2 from "./api/verify_mainapi2";
+import verifyWindowApi1 from "./api/verify_winapi1";
+import { callWindowApi1 } from "./api/call_winapi1";
 
 // import { dumpMainApiErrors } from "./lib/main_util";
 // dumpMainApiErrors();
@@ -35,7 +37,6 @@ describe("two windows with two APIs", () => {
 
   describe("window 1 invoking main", () => {
     before(async () => {
-      // includes test of exposing API before running script
       resultCollector.runScripFiletInWindow(window1, "win1_mainapi1+2");
       await resultCollector.waitForResults();
     });
@@ -50,7 +51,6 @@ describe("two windows with two APIs", () => {
 
   describe("window 2 invoking main", () => {
     before(async () => {
-      // includes test of exposing API before running script
       resultCollector.runScripFiletInWindow(window2, "win2_mainapi1+2");
       await resultCollector.waitForResults();
     });
@@ -63,23 +63,19 @@ describe("two windows with two APIs", () => {
     });
   });
 
-  describe("main sending event to window 1", () => {
+  describe("main invoking window 1 after being invoked", () => {
     before(async () => {
-      // wait for window, which must be running to receive events
-      await resultCollector.runScripFiletInWindow(window1, "event_tests");
-      window1.webContents.send("demo_event", 100);
-      window1.webContents.send("completed_all");
+      window1 = await createWindow();
+      resultCollector.runScripFiletInWindow(window1, "win1_winapi1");
+      await callWindowApi1(window1);
+      resultCollector.completedAll();
       await resultCollector.waitForResults();
     });
 
-    it("receives demo event", async () => {
-      resultCollector.verifyTest("demoEventTest", (result) => {
-        assert.equal(result.error, null);
-        assert.equal(result.requestData, 100);
-      });
-    });
+    verifyWindowApi1("win1", resultCollector);
 
     after(() => {
+      if (window1) window1.destroy();
       resultCollector.verifyAllDone();
     });
   });

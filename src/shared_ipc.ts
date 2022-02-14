@@ -22,7 +22,7 @@ export const BOUND_API_IPC = "bound_api";
 const _RETRY_MILLIS = 50;
 
 // Configurable timeout attempting to announce or bind an API.
-let _bindingTimeoutMillis = 5000; // TODO: set to the desired timeout
+let _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
 
 /**
  * Type to which a bound API of class T conforms. It only exposes the

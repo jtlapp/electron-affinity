@@ -22,7 +22,7 @@ before(async () => {
   // Check for successful binding to window1.
   resultCollector.runScripFiletInWindow(window1, "win1_winapi1");
   await callWindowApi1(window1);
-  resultCollector.completedAll = true;
+  resultCollector.completedAll();
   await resultCollector.waitForResults();
 });
 

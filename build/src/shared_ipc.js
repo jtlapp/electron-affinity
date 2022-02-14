@@ -18,7 +18,7 @@ exports.BOUND_API_IPC = "bound_api";
 // Period between attempts to announce or bind an API.
 var _RETRY_MILLIS = 50;
 // Configurable timeout attempting to announce or bind an API.
-var _bindingTimeoutMillis = 5000; // TODO: set to the desired timeout
+var _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
 /**
  * Sets the timeout for the opposing process to expose or bind to an API.
  */

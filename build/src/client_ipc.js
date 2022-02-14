@@ -72,6 +72,9 @@ function bindMainApi(apiClassName, restorer) {
             resolve(api);
         }
         else {
+            // TODO: Client doesn't need to retry; should already be there.
+            // Timeout is for waiting for server to reply. (But might keep
+            // this unchanged to share common code with server side?)
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
             }, 
