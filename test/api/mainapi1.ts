@@ -1,5 +1,7 @@
 import * as fs from "fs";
 
+// TODO: test ...args parameter
+
 import { RelayedError } from "../../src/main";
 import { MainApi } from "./mainapi";
 import {

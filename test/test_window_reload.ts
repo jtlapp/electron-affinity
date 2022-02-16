@@ -8,10 +8,7 @@ import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
-import verifyApi2 from "./api/verify_mainapi2";
-
-// import { dumpMainApiErrors } from "./lib/main_util";
-// dumpMainApiErrors();
+import verifyMainApi2 from "./api/verify_mainapi2";
 
 const resultCollector = createResultCollector(restorer);
 const mainApi2 = new MainApi2(resultCollector);
@@ -47,7 +44,7 @@ describe("rebinding after window reload", () => {
     await resultCollector.waitForResults();
   });
 
-  verifyApi2("win1", resultCollector);
+  verifyMainApi2("win1", resultCollector);
 
   after(() => {
     if (window1) window1.destroy();

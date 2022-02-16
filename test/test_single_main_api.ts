@@ -8,10 +8,7 @@ import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/mainapi1";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_mainapi1";
-
-// import { dumpMainApiErrors } from "./lib/main_util";
-// dumpMainApiErrors();
+import verifyMainApi1 from "./api/verify_mainapi1";
 
 // TODO: test passing arrays
 
@@ -29,7 +26,7 @@ describe("window invoking an exposed main API", () => {
     await resultCollector.waitForResults();
   });
 
-  verifyApi1("win1", resultCollector);
+  verifyMainApi1("win1", resultCollector);
 
   after(() => {
     if (window1) window1.destroy();

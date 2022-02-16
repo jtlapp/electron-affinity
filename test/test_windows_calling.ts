@@ -9,11 +9,8 @@ import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/mainapi1";
 import { MainApi2 } from "./api/mainapi2";
 import { restorer } from "./lib/shared_util";
-import verifyApi1 from "./api/verify_mainapi1";
-import verifyApi2 from "./api/verify_mainapi2";
-
-// import { dumpMainApiErrors } from "./lib/main_util";
-// dumpMainApiErrors();
+import verifyMainApi1 from "./api/verify_mainapi1";
+import verifyMainApi2 from "./api/verify_mainapi2";
 
 const resultCollector = createResultCollector(restorer);
 
@@ -38,8 +35,8 @@ describe("two windows calling the same main APIs", () => {
       await resultCollector.waitForResults();
     });
 
-    verifyApi1("win1", resultCollector);
-    verifyApi2("win1", resultCollector);
+    verifyMainApi1("win1", resultCollector);
+    verifyMainApi2("win1", resultCollector);
 
     after(() => {
       resultCollector.verifyAllDone();
@@ -53,8 +50,8 @@ describe("two windows calling the same main APIs", () => {
       await resultCollector.waitForResults();
     });
 
-    verifyApi1("win2", resultCollector);
-    verifyApi2("win2", resultCollector);
+    verifyMainApi1("win2", resultCollector);
+    verifyMainApi2("win2", resultCollector);
 
     after(() => {
       resultCollector.verifyAllDone();
