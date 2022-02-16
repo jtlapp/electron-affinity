@@ -71,41 +71,42 @@ export function exposeMainApi<T>(
   const apiClassName = mainApi.constructor.name;
   _installIpcListeners();
 
-  if (_mainApiMap[apiClassName] === undefined) {
-    const methodNames: string[] = [];
-    for (const methodName of getPropertyNames(mainApi)) {
-      if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-        const method = (mainApi as any)[methodName];
-        if (typeof method == "function") {
-          ipcMain.handle(
-            toIpcName(apiClassName, methodName),
-            async (_event, args: any[]) => {
-              try {
-                if (args !== undefined) {
-                  for (let i = 0; i < args.length; ++i) {
-                    args[i] = Restorer.restoreValue(args[i], restorer);
-                  }
+  if (_mainApiMap[apiClassName]) {
+    return; // was previously exposed
+  }
+  const methodNames: string[] = [];
+  for (const methodName of getPropertyNames(mainApi)) {
+    if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+      const method = (mainApi as any)[methodName];
+      if (typeof method == "function") {
+        ipcMain.handle(
+          toIpcName(apiClassName, methodName),
+          async (_event, args: any[]) => {
+            try {
+              if (args !== undefined) {
+                for (let i = 0; i < args.length; ++i) {
+                  args[i] = Restorer.restoreValue(args[i], restorer);
                 }
-                //await before returning to keep Electron from writing errors
-                const replyValue = await method.bind(mainApi)(...args);
-                return Restorer.makeRestorable(replyValue);
-              } catch (err: any) {
-                if (err instanceof RelayedError) {
-                  return Restorer.makeReturnedError(err.errorToRelay);
-                }
-                if (_errorLoggerFunc !== undefined) {
-                  _errorLoggerFunc(err);
-                }
-                throw err;
               }
+              //await before returning to keep Electron from writing errors
+              const replyValue = await method.bind(mainApi)(...args);
+              return Restorer.makeRestorable(replyValue);
+            } catch (err: any) {
+              if (err instanceof RelayedError) {
+                return Restorer.makeReturnedError(err.errorToRelay);
+              }
+              if (_errorLoggerFunc !== undefined) {
+                _errorLoggerFunc(err);
+              }
+              throw err;
             }
-          );
-          methodNames.push(methodName);
-        }
+          }
+        );
+        methodNames.push(methodName);
       }
     }
-    _mainApiMap[apiClassName] = methodNames;
   }
+  _mainApiMap[apiClassName] = methodNames;
 }
 
 /**

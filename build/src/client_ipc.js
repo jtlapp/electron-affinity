@@ -52,7 +52,7 @@ var _mainApiMap = {};
 var _boundMainApis = {};
 /**
  * Returns a window-side binding for a main API of a given class.
- * Failure of main to expose the API before timeout results in an error.
+ * Main must have previously exposed the API.
  *
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
@@ -72,14 +72,10 @@ function bindMainApi(apiClassName, restorer) {
             resolve(api);
         }
         else {
-            // TODO: Client doesn't need to retry; should already be there.
-            // Timeout is for waiting for server to reply. (But might keep
-            // this unchanged to share common code with server side?)
+            // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
-            }, 
-            // TODO: make error message clearer
-            "Timed out waiting to bind main API '".concat(apiClassName, "'"));
+            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }
@@ -88,7 +84,7 @@ exports.bindMainApi = bindMainApi;
 function _attemptBindMainApi(apiClassName, restorer, resolve) {
     var _this = this;
     var methodNames = _mainApiMap[apiClassName];
-    if (methodNames === undefined) {
+    if (!methodNames) {
         return false;
     }
     var boundApi = {};
@@ -145,30 +141,31 @@ var _windowApiMap = {};
 function exposeWindowApi(windowApi, restorer) {
     var apiClassName = windowApi.constructor.name;
     _installIpcListeners();
-    if (_windowApiMap[apiClassName] === undefined) {
-        var methodNames = [];
-        var _loop_2 = function (methodName) {
-            if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-                var method_1 = windowApi[methodName];
-                if (typeof method_1 == "function") {
-                    window._ipc.on((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (args) {
-                        if (args !== undefined) {
-                            for (var i = 0; i < args.length; ++i) {
-                                args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
-                            }
-                        }
-                        method_1.bind(windowApi).apply(void 0, args);
-                    });
-                    methodNames.push(methodName);
-                }
-            }
-        };
-        for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(windowApi); _i < _a.length; _i++) {
-            var methodName = _a[_i];
-            _loop_2(methodName);
-        }
-        _windowApiMap[apiClassName] = methodNames;
+    if (_windowApiMap[apiClassName]) {
+        return; // was previously exposed
     }
+    var methodNames = [];
+    var _loop_2 = function (methodName) {
+        if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+            var method_1 = windowApi[methodName];
+            if (typeof method_1 == "function") {
+                window._ipc.on((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (args) {
+                    if (args !== undefined) {
+                        for (var i = 0; i < args.length; ++i) {
+                            args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
+                        }
+                    }
+                    method_1.bind(windowApi).apply(void 0, args);
+                });
+                methodNames.push(methodName);
+            }
+        }
+    };
+    for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(windowApi); _i < _a.length; _i++) {
+        var methodName = _a[_i];
+        _loop_2(methodName);
+    }
+    _windowApiMap[apiClassName] = methodNames;
 }
 exports.exposeWindowApi = exposeWindowApi;
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////

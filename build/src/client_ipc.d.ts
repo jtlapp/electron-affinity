@@ -14,7 +14,7 @@ declare global {
 }
 /**
  * Returns a window-side binding for a main API of a given class.
- * Failure of main to expose the API before timeout results in an error.
+ * Main must have previously exposed the API.
  *
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to

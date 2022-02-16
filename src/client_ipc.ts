@@ -43,7 +43,7 @@ const _boundMainApis: Record<string, ApiBinding<any>> = {};
 
 /**
  * Returns a window-side binding for a main API of a given class.
- * Failure of main to expose the API before timeout results in an error.
+ * Main must have previously exposed the API.
  *
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
@@ -66,15 +66,12 @@ export function bindMainApi<T>(
     if (api !== undefined) {
       resolve(api);
     } else {
-      // TODO: Client doesn't need to retry; should already be there.
-      // Timeout is for waiting for server to reply. (But might keep
-      // this unchanged to share common code with server side?)
+      // Client retries so it can bind at earliest possible time.
       retryUntilTimeout(
         0,
         () => {
           return _attemptBindMainApi(apiClassName, restorer, resolve);
         },
-        // TODO: make error message clearer
         `Timed out waiting to bind main API '${apiClassName}'`
       );
     }
@@ -88,7 +85,7 @@ function _attemptBindMainApi<T>(
   resolve: (boundApi: ApiBinding<T>) => void
 ): boolean {
   const methodNames = _mainApiMap[apiClassName] as [keyof ApiBinding<T>];
-  if (methodNames === undefined) {
+  if (!methodNames) {
     return false;
   }
   const boundApi = {} as ApiBinding<T>;
@@ -147,26 +144,27 @@ export function exposeWindowApi<T>(
   const apiClassName = windowApi.constructor.name;
   _installIpcListeners();
 
-  if (_windowApiMap[apiClassName] === undefined) {
-    const methodNames: string[] = [];
-    for (const methodName of getPropertyNames(windowApi)) {
-      if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-        const method = (windowApi as any)[methodName];
-        if (typeof method == "function") {
-          window._ipc.on(toIpcName(apiClassName, methodName), (args: any[]) => {
-            if (args !== undefined) {
-              for (let i = 0; i < args.length; ++i) {
-                args[i] = Restorer.restoreValue(args[i], restorer);
-              }
+  if (_windowApiMap[apiClassName]) {
+    return; // was previously exposed
+  }
+  const methodNames: string[] = [];
+  for (const methodName of getPropertyNames(windowApi)) {
+    if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+      const method = (windowApi as any)[methodName];
+      if (typeof method == "function") {
+        window._ipc.on(toIpcName(apiClassName, methodName), (args: any[]) => {
+          if (args !== undefined) {
+            for (let i = 0; i < args.length; ++i) {
+              args[i] = Restorer.restoreValue(args[i], restorer);
             }
-            method.bind(windowApi)(...args);
-          });
-          methodNames.push(methodName);
-        }
+          }
+          method.bind(windowApi)(...args);
+        });
+        methodNames.push(methodName);
       }
     }
-    _windowApiMap[apiClassName] = methodNames;
   }
+  _windowApiMap[apiClassName] = methodNames;
 }
 
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////

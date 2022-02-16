@@ -74,50 +74,51 @@ function exposeMainApi(mainApi, restorer) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
     _installIpcListeners();
-    if (_mainApiMap[apiClassName] === undefined) {
-        var methodNames = [];
-        var _loop_1 = function (methodName) {
-            if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-                var method_1 = mainApi[methodName];
-                if (typeof method_1 == "function") {
-                    electron_1.ipcMain.handle((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (_event, args) { return __awaiter(_this, void 0, void 0, function () {
-                        var i, replyValue, err_1;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    _a.trys.push([0, 2, , 3]);
-                                    if (args !== undefined) {
-                                        for (i = 0; i < args.length; ++i) {
-                                            args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
-                                        }
-                                    }
-                                    return [4 /*yield*/, method_1.bind(mainApi).apply(void 0, args)];
-                                case 1:
-                                    replyValue = _a.sent();
-                                    return [2 /*return*/, restorer_1.Restorer.makeRestorable(replyValue)];
-                                case 2:
-                                    err_1 = _a.sent();
-                                    if (err_1 instanceof RelayedError) {
-                                        return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToRelay)];
-                                    }
-                                    if (_errorLoggerFunc !== undefined) {
-                                        _errorLoggerFunc(err_1);
-                                    }
-                                    throw err_1;
-                                case 3: return [2 /*return*/];
-                            }
-                        });
-                    }); });
-                    methodNames.push(methodName);
-                }
-            }
-        };
-        for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(mainApi); _i < _a.length; _i++) {
-            var methodName = _a[_i];
-            _loop_1(methodName);
-        }
-        _mainApiMap[apiClassName] = methodNames;
+    if (_mainApiMap[apiClassName]) {
+        return; // was previously exposed
     }
+    var methodNames = [];
+    var _loop_1 = function (methodName) {
+        if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+            var method_1 = mainApi[methodName];
+            if (typeof method_1 == "function") {
+                electron_1.ipcMain.handle((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (_event, args) { return __awaiter(_this, void 0, void 0, function () {
+                    var i, replyValue, err_1;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0:
+                                _a.trys.push([0, 2, , 3]);
+                                if (args !== undefined) {
+                                    for (i = 0; i < args.length; ++i) {
+                                        args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
+                                    }
+                                }
+                                return [4 /*yield*/, method_1.bind(mainApi).apply(void 0, args)];
+                            case 1:
+                                replyValue = _a.sent();
+                                return [2 /*return*/, restorer_1.Restorer.makeRestorable(replyValue)];
+                            case 2:
+                                err_1 = _a.sent();
+                                if (err_1 instanceof RelayedError) {
+                                    return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToRelay)];
+                                }
+                                if (_errorLoggerFunc !== undefined) {
+                                    _errorLoggerFunc(err_1);
+                                }
+                                throw err_1;
+                            case 3: return [2 /*return*/];
+                        }
+                    });
+                }); });
+                methodNames.push(methodName);
+            }
+        }
+    };
+    for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(mainApi); _i < _a.length; _i++) {
+        var methodName = _a[_i];
+        _loop_1(methodName);
+    }
+    _mainApiMap[apiClassName] = methodNames;
 }
 exports.exposeMainApi = exposeMainApi;
 /**
