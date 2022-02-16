@@ -24,17 +24,15 @@ export declare class RelayedError {
     constructor(errorToRelay: any);
 }
 /**
- * Exposes a main API to a particular window, which must bind to the API.
- * Failure of the window to bind before timeout results in an error.
+ * Exposes a main API to all windows for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
- * @param toWindow The window to which to expose the API
- * @param mainApi The API to expose to the window
+ * @param mainApi The API to expose
  * @param restorer Optional function for restoring the classes of
  *    arguments passed to main. Instances of classes not restored arrive
  *    as untyped structures.
  */
-export declare function exposeMainApi<T>(toWindow: BrowserWindow, mainApi: ElectronMainApi<T>, restorer?: RestorerFunction): void;
+export declare function exposeMainApi<T>(mainApi: ElectronMainApi<T>, restorer?: RestorerFunction): void;
 /**
  * Receives errors thrown in APIs not wrapped in RelayedError.
  */

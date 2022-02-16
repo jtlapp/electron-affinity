@@ -22,7 +22,7 @@ describe("window invoking an exposed main API", () => {
     window1 = await createWindow();
     // includes test of exposing API after running script
     resultCollector.runScripFiletInWindow(window1, "win1_mainapi1");
-    exposeMainApi(window1, mainApi1, restorer);
+    exposeMainApi(mainApi1, restorer);
     await resultCollector.waitForResults();
   });
 

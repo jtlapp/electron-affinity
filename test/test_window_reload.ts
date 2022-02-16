@@ -36,7 +36,7 @@ describe("rebinding after window reload", () => {
       windowLoaded = true;
     });
 
-    exposeMainApi(window1, mainApi2, restorer);
+    exposeMainApi(mainApi2, restorer);
     resultCollector.runScripFiletInWindow(window1, "win1_mainapi2_reload_1");
 
     await new Promise<void>((resolve) => waitForLoad(resolve));

@@ -52,7 +52,7 @@ describe("window times out waiting to bind main API", () => {
 
   test("main exposes an API other than the expected one, custom_timeout", async () => {
     window3 = await createWindow();
-    exposeMainApi(window2, mainApi1, restorer);
+    exposeMainApi(mainApi1, restorer);
     resultCollector.runScripFiletInWindow(window3, "win3_mainapi2_timeout");
     try {
       await resultCollector.waitForResults();

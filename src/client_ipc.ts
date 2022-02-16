@@ -10,9 +10,8 @@
 // TODO: After I've finished the test suite, look at combining main/window logic.
 
 import {
-  REQUEST_API_IPC,
-  EXPOSE_API_IPC,
-  BOUND_API_IPC,
+  API_REQUEST_IPC,
+  API_RESPONSE_IPC,
   ApiRegistration,
   ApiRegistrationMap,
   ApiBinding,
@@ -61,7 +60,7 @@ export function bindMainApi<T>(
   _installIpcListeners();
 
   // Requests are only necessary after the window has been reloaded.
-  window._ipc.send(REQUEST_API_IPC, apiClassName);
+  window._ipc.send(API_REQUEST_IPC, apiClassName);
   return new Promise((resolve) => {
     const api = _boundMainApis[apiClassName];
     if (api !== undefined) {
@@ -113,7 +112,6 @@ function _attemptBindMainApi<T>(
   }
   _boundMainApis[apiClassName] = boundApi;
   resolve(boundApi);
-  window._ipc.send(BOUND_API_IPC, apiClassName);
   return true;
 }
 
@@ -171,15 +169,6 @@ export function exposeWindowApi<T>(
   }
 }
 
-// Send an API registration to a window.
-function sendApiRegistration(apiClassName: string) {
-  const registration: ApiRegistration = {
-    className: apiClassName,
-    methodNames: _windowApiMap[apiClassName],
-  };
-  window._ipc.send(EXPOSE_API_IPC, registration);
-}
-
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////
 
 let _listeningForIPC = false;
@@ -187,12 +176,14 @@ let _listeningForIPC = false;
 function _installIpcListeners() {
   if (!_listeningForIPC) {
     // TODO: revisit the request/expose protocol
-    window._ipc.on(REQUEST_API_IPC, (apiClassName: string) => {
-      console.log("received API request for ", apiClassName);
-      sendApiRegistration(apiClassName);
-      console.log("sent registration");
+    window._ipc.on(API_REQUEST_IPC, (apiClassName: string) => {
+      const registration: ApiRegistration = {
+        className: apiClassName,
+        methodNames: _windowApiMap[apiClassName],
+      };
+      window._ipc.send(API_RESPONSE_IPC, registration);
     });
-    window._ipc.on(EXPOSE_API_IPC, (api: ApiRegistration) => {
+    window._ipc.on(API_RESPONSE_IPC, (api: ApiRegistration) => {
       _mainApiMap[api.className] = api.methodNames;
     });
     _listeningForIPC = true;

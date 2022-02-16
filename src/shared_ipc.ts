@@ -5,18 +5,10 @@
 // TODO: prefix IPC names to distinguish them.
 
 // Name of IPC requesting an API from main for binding.
-export const REQUEST_API_IPC = "request_api";
+export const API_REQUEST_IPC = "__api_request";
 
 // Name of IPC providing information need to bind to an API.
-export const API_INFO_IPC = "api_info";
-
-// Name of IPC announcing the availability of an API.
-// TODO: delete this when I can
-export const EXPOSE_API_IPC = "expose_api";
-
-// Name of IPC announcing that an API was bound.
-// TODO: delete this when I can; only used for timeouts and ACL
-export const BOUND_API_IPC = "bound_api";
+export const API_RESPONSE_IPC = "__api_response";
 
 // Period between attempts to announce or bind an API.
 const _RETRY_MILLIS = 50;

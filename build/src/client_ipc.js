@@ -65,7 +65,7 @@ var _boundMainApis = {};
 function bindMainApi(apiClassName, restorer) {
     _installIpcListeners();
     // Requests are only necessary after the window has been reloaded.
-    window._ipc.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
+    window._ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
     return new Promise(function (resolve) {
         var api = _boundMainApis[apiClassName];
         if (api !== undefined) {
@@ -128,7 +128,6 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
     }
     _boundMainApis[apiClassName] = boundApi;
     resolve(boundApi);
-    window._ipc.send(shared_ipc_1.BOUND_API_IPC, apiClassName);
     return true;
 }
 //// WINDOW API SUPPORT //////////////////////////////////////////////////////
@@ -172,25 +171,19 @@ function exposeWindowApi(windowApi, restorer) {
     }
 }
 exports.exposeWindowApi = exposeWindowApi;
-// Send an API registration to a window.
-function sendApiRegistration(apiClassName) {
-    var registration = {
-        className: apiClassName,
-        methodNames: _windowApiMap[apiClassName]
-    };
-    window._ipc.send(shared_ipc_1.EXPOSE_API_IPC, registration);
-}
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////
 var _listeningForIPC = false;
 function _installIpcListeners() {
     if (!_listeningForIPC) {
         // TODO: revisit the request/expose protocol
-        window._ipc.on(shared_ipc_1.REQUEST_API_IPC, function (apiClassName) {
-            console.log("received API request for ", apiClassName);
-            sendApiRegistration(apiClassName);
-            console.log("sent registration");
+        window._ipc.on(shared_ipc_1.API_REQUEST_IPC, function (apiClassName) {
+            var registration = {
+                className: apiClassName,
+                methodNames: _windowApiMap[apiClassName]
+            };
+            window._ipc.send(shared_ipc_1.API_RESPONSE_IPC, registration);
         });
-        window._ipc.on(shared_ipc_1.EXPOSE_API_IPC, function (api) {
+        window._ipc.on(shared_ipc_1.API_RESPONSE_IPC, function (api) {
             _mainApiMap[api.className] = api.methodNames;
         });
         _listeningForIPC = true;

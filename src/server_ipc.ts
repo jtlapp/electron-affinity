@@ -4,12 +4,11 @@
 
 // TODO: revisit/revise all comments after removing most timeouts
 
-import { ipcMain, BrowserWindow, WebContents } from "electron";
+import { ipcMain, BrowserWindow } from "electron";
 
 import {
-  REQUEST_API_IPC,
-  EXPOSE_API_IPC,
-  BOUND_API_IPC,
+  API_REQUEST_IPC,
+  API_RESPONSE_IPC,
   ApiRegistration,
   ApiRegistrationMap,
   ApiBinding,
@@ -26,12 +25,6 @@ import { RestorerFunction } from "./restorer";
 
 // Structure mapping API names to the methods each contains.
 let _mainApiMap: ApiRegistrationMap = {};
-
-// Structure tracking which windows have bound to which main APIs before the
-// window has been reloaded. After a window has reloaded, it is known that
-// window is capable of binding to all APIs, and it's up to the window to
-// be sure it rebinds all APIs, as main won't timeout for a reload.
-let _boundMainApisByWebContentsID: Record<number, Record<string, boolean>> = {};
 
 // Error logger mainly of value for debugging the test suite.
 let _errorLoggerFunc: (err: Error) => void;
@@ -63,19 +56,15 @@ export class RelayedError {
 }
 
 /**
- * Exposes a main API to a particular window, which must bind to the API.
- * Failure of the window to bind before timeout results in an error.
+ * Exposes a main API to all windows for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
- * @param toWindow The window to which to expose the API
- * @param mainApi The API to expose to the window
+ * @param mainApi The API to expose
  * @param restorer Optional function for restoring the classes of
  *    arguments passed to main. Instances of classes not restored arrive
  *    as untyped structures.
  */
 export function exposeMainApi<T>(
-  // TODO: not specific to a window; let any window bind
-  toWindow: BrowserWindow,
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
 ): void {
@@ -117,34 +106,6 @@ export function exposeMainApi<T>(
     }
     _mainApiMap[apiClassName] = methodNames;
   }
-
-  // TODO: main should not require window to bind
-  retryUntilTimeout(
-    0,
-    () => {
-      if (toWindow.isDestroyed()) {
-        throw Error(`Window destroyed before binding to '${apiClassName}'`);
-      }
-      const boundMainApis =
-        _boundMainApisByWebContentsID[toWindow.webContents.id];
-      if (boundMainApis !== undefined && boundMainApis[apiClassName]) {
-        return true;
-      }
-      sendApiRegistration(toWindow.webContents, apiClassName);
-      return false;
-    },
-    // TODO: make error message clearer
-    `Timed out waiting for main API '${apiClassName}' to bind to window ${toWindow.id}`
-  );
-}
-
-// Send an API registration to a window.
-function sendApiRegistration(toWebContents: WebContents, apiClassName: string) {
-  const registration: ApiRegistration = {
-    className: apiClassName,
-    methodNames: _mainApiMap[apiClassName],
-  };
-  toWebContents.send(EXPOSE_API_IPC, registration);
 }
 
 /**
@@ -210,7 +171,7 @@ function _attemptBindWindowApi<T>(
 ): boolean {
   let windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
   if (!windowApiMap || !windowApiMap[apiClassName]) {
-    window.webContents.send(REQUEST_API_IPC, apiClassName);
+    window.webContents.send(API_REQUEST_IPC, apiClassName);
     return false;
   }
   const methodNames = windowApiMap[apiClassName] as [keyof ApiBinding<T>];
@@ -246,23 +207,14 @@ let _listeningForIPC = false;
 function _installIpcListeners() {
   if (!_listeningForIPC) {
     // TODO: revisit the request/expose protocol
-    ipcMain.on(REQUEST_API_IPC, (event, apiClassName: string) => {
-      // Previously-bound APIs are known to be available after window reload.
-      const windowApis = _boundMainApisByWebContentsID[event.sender.id];
-      // TODO: This is serving as an ACL, which I decided I don't need.
-      if (windowApis && windowApis[apiClassName]) {
-        sendApiRegistration(event.sender, apiClassName);
-      }
+    ipcMain.on(API_REQUEST_IPC, (event, apiClassName: string) => {
+      const registration: ApiRegistration = {
+        className: apiClassName,
+        methodNames: _mainApiMap[apiClassName],
+      };
+      event.sender.send(API_RESPONSE_IPC, registration);
     });
-    ipcMain.on(BOUND_API_IPC, (event, apiClassName: string) => {
-      let windowApis = _boundMainApisByWebContentsID[event.sender.id];
-      if (windowApis === undefined) {
-        windowApis = {};
-        _boundMainApisByWebContentsID[event.sender.id] = windowApis;
-      }
-      windowApis[apiClassName] = true;
-    });
-    ipcMain.on(EXPOSE_API_IPC, (event, api: ApiRegistration) => {
+    ipcMain.on(API_RESPONSE_IPC, (event, api: ApiRegistration) => {
       let windowApiMap = _windowApiMapByWebContentsID[event.sender.id];
       if (!windowApiMap) {
         windowApiMap = {};

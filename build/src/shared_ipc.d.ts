@@ -1,10 +1,8 @@
 /**
  * Code used by both main and renderer processes.
  */
-export declare const REQUEST_API_IPC = "request_api";
-export declare const API_INFO_IPC = "api_info";
-export declare const EXPOSE_API_IPC = "expose_api";
-export declare const BOUND_API_IPC = "bound_api";
+export declare const API_REQUEST_IPC = "__api_request";
+export declare const API_RESPONSE_IPC = "__api_response";
 /**
  * Type to which a bound API of class T conforms. It only exposes the
  * methods of class T not containing underscores.

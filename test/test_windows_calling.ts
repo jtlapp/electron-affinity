@@ -22,11 +22,11 @@ describe("two windows calling the same main APIs", () => {
 
   before(async () => {
     window1 = await createWindow();
-    exposeMainApi(window1, mainApi1, restorer);
-    exposeMainApi(window1, mainApi2, restorer);
+    exposeMainApi(mainApi1, restorer);
+    exposeMainApi(mainApi2, restorer);
     window2 = await createWindow();
-    exposeMainApi(window2, mainApi1, restorer);
-    exposeMainApi(window2, mainApi2, restorer);
+    exposeMainApi(mainApi1, restorer);
+    exposeMainApi(mainApi2, restorer);
   });
 
   describe("window 1 invoking main", () => {

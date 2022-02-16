@@ -47,11 +47,6 @@ var restorer_1 = require("./restorer");
 //// MAIN API SUPPORT ////////////////////////////////////////////////////////
 // Structure mapping API names to the methods each contains.
 var _mainApiMap = {};
-// Structure tracking which windows have bound to which main APIs before the
-// window has been reloaded. After a window has reloaded, it is known that
-// window is capable of binding to all APIs, and it's up to the window to
-// be sure it rebinds all APIs, as main won't timeout for a reload.
-var _boundMainApisByWebContentsID = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
@@ -67,19 +62,15 @@ var RelayedError = /** @class */ (function () {
 }());
 exports.RelayedError = RelayedError;
 /**
- * Exposes a main API to a particular window, which must bind to the API.
- * Failure of the window to bind before timeout results in an error.
+ * Exposes a main API to all windows for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
- * @param toWindow The window to which to expose the API
- * @param mainApi The API to expose to the window
+ * @param mainApi The API to expose
  * @param restorer Optional function for restoring the classes of
  *    arguments passed to main. Instances of classes not restored arrive
  *    as untyped structures.
  */
-function exposeMainApi(
-// TODO: not specific to a window; let any window bind
-toWindow, mainApi, restorer) {
+function exposeMainApi(mainApi, restorer) {
     var _this = this;
     var apiClassName = mainApi.constructor.name;
     _installIpcListeners();
@@ -127,30 +118,8 @@ toWindow, mainApi, restorer) {
         }
         _mainApiMap[apiClassName] = methodNames;
     }
-    // TODO: main should not require window to bind
-    (0, shared_ipc_1.retryUntilTimeout)(0, function () {
-        if (toWindow.isDestroyed()) {
-            throw Error("Window destroyed before binding to '".concat(apiClassName, "'"));
-        }
-        var boundMainApis = _boundMainApisByWebContentsID[toWindow.webContents.id];
-        if (boundMainApis !== undefined && boundMainApis[apiClassName]) {
-            return true;
-        }
-        sendApiRegistration(toWindow.webContents, apiClassName);
-        return false;
-    }, 
-    // TODO: make error message clearer
-    "Timed out waiting for main API '".concat(apiClassName, "' to bind to window ").concat(toWindow.id));
 }
 exports.exposeMainApi = exposeMainApi;
-// Send an API registration to a window.
-function sendApiRegistration(toWebContents, apiClassName) {
-    var registration = {
-        className: apiClassName,
-        methodNames: _mainApiMap[apiClassName]
-    };
-    toWebContents.send(shared_ipc_1.EXPOSE_API_IPC, registration);
-}
 /**
  * Receives errors thrown in APIs not wrapped in RelayedError.
  */
@@ -196,7 +165,7 @@ exports.bindWindowApi = bindWindowApi;
 function _attemptBindWindowApi(window, apiClassName, resolve) {
     var windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
     if (!windowApiMap || !windowApiMap[apiClassName]) {
-        window.webContents.send(shared_ipc_1.REQUEST_API_IPC, apiClassName);
+        window.webContents.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
         return false;
     }
     var methodNames = windowApiMap[apiClassName];
@@ -235,23 +204,14 @@ var _listeningForIPC = false;
 function _installIpcListeners() {
     if (!_listeningForIPC) {
         // TODO: revisit the request/expose protocol
-        electron_1.ipcMain.on(shared_ipc_1.REQUEST_API_IPC, function (event, apiClassName) {
-            // Previously-bound APIs are known to be available after window reload.
-            var windowApis = _boundMainApisByWebContentsID[event.sender.id];
-            // TODO: This is serving as an ACL, which I decided I don't need.
-            if (windowApis && windowApis[apiClassName]) {
-                sendApiRegistration(event.sender, apiClassName);
-            }
+        electron_1.ipcMain.on(shared_ipc_1.API_REQUEST_IPC, function (event, apiClassName) {
+            var registration = {
+                className: apiClassName,
+                methodNames: _mainApiMap[apiClassName]
+            };
+            event.sender.send(shared_ipc_1.API_RESPONSE_IPC, registration);
         });
-        electron_1.ipcMain.on(shared_ipc_1.BOUND_API_IPC, function (event, apiClassName) {
-            var windowApis = _boundMainApisByWebContentsID[event.sender.id];
-            if (windowApis === undefined) {
-                windowApis = {};
-                _boundMainApisByWebContentsID[event.sender.id] = windowApis;
-            }
-            windowApis[apiClassName] = true;
-        });
-        electron_1.ipcMain.on(shared_ipc_1.EXPOSE_API_IPC, function (event, api) {
+        electron_1.ipcMain.on(shared_ipc_1.API_RESPONSE_IPC, function (event, api) {
             var windowApiMap = _windowApiMapByWebContentsID[event.sender.id];
             if (!windowApiMap) {
                 windowApiMap = {};
