@@ -54,6 +54,32 @@ export type ApiRegistration = {
 // Structure associating API names with names of methods in the API.
 export type ApiRegistrationMap = Record<string, string[]>;
 
+type ElectronApi<T> = {
+  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => any : any;
+};
+
+export function exposeApi<T>(
+  apiMap: ApiRegistrationMap,
+  api: ElectronApi<T>,
+  installHandler: (ipcName: string, method: any) => void
+) {
+  const apiClassName = api.constructor.name;
+  if (apiMap[apiClassName]) {
+    return; // was previously exposed
+  }
+  const methodNames: string[] = [];
+  for (const methodName of getPropertyNames(api)) {
+    if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+      const method = (api as any)[methodName];
+      if (typeof method == "function") {
+        installHandler(toIpcName(apiClassName, methodName), method);
+        methodNames.push(methodName);
+      }
+    }
+  }
+  apiMap[apiClassName] = methodNames;
+}
+
 // Returns all properties of the class not defined by JavaScript.
 export function getPropertyNames(obj: any): string[] {
   const propertyNames: string[] = [];

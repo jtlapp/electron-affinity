@@ -16,9 +16,9 @@ import {
   ApiRegistrationMap,
   ApiBinding,
   PublicProperty,
-  getPropertyNames,
   retryUntilTimeout,
   toIpcName,
+  exposeApi,
 } from "./shared_ipc";
 import { Restorer, RestorerFunction } from "./restorer";
 
@@ -141,30 +141,17 @@ export function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,
   restorer?: RestorerFunction
 ): void {
-  const apiClassName = windowApi.constructor.name;
   _installIpcListeners();
-
-  if (_windowApiMap[apiClassName]) {
-    return; // was previously exposed
-  }
-  const methodNames: string[] = [];
-  for (const methodName of getPropertyNames(windowApi)) {
-    if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-      const method = (windowApi as any)[methodName];
-      if (typeof method == "function") {
-        window._ipc.on(toIpcName(apiClassName, methodName), (args: any[]) => {
-          if (args !== undefined) {
-            for (let i = 0; i < args.length; ++i) {
-              args[i] = Restorer.restoreValue(args[i], restorer);
-            }
-          }
-          method.bind(windowApi)(...args);
-        });
-        methodNames.push(methodName);
+  exposeApi(_windowApiMap, windowApi, (ipcName, method) => {
+    window._ipc.on(ipcName, (args: any[]) => {
+      if (args !== undefined) {
+        for (let i = 0; i < args.length; ++i) {
+          args[i] = Restorer.restoreValue(args[i], restorer);
+        }
       }
-    }
-  }
-  _windowApiMap[apiClassName] = methodNames;
+      method.bind(windowApi)(...args);
+    });
+  });
 }
 
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////

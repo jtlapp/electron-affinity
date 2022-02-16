@@ -21,6 +21,11 @@ export declare type ApiRegistration = {
     methodNames: string[];
 };
 export declare type ApiRegistrationMap = Record<string, string[]>;
+declare type ElectronApi<T> = {
+    [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => any : any;
+};
+export declare function exposeApi<T>(apiMap: ApiRegistrationMap, api: ElectronApi<T>, installHandler: (ipcName: string, method: any) => void): void;
 export declare function getPropertyNames(obj: any): string[];
 export declare function toIpcName(apiClassName: string, methodName: string): string;
 export declare function retryUntilTimeout(elapsedMillis: number, attemptFunc: () => boolean, timeoutMessage: string): void;
+export {};

@@ -139,33 +139,17 @@ var _windowApiMap = {};
  *    arrive as untyped structures.
  */
 function exposeWindowApi(windowApi, restorer) {
-    var apiClassName = windowApi.constructor.name;
     _installIpcListeners();
-    if (_windowApiMap[apiClassName]) {
-        return; // was previously exposed
-    }
-    var methodNames = [];
-    var _loop_2 = function (methodName) {
-        if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
-            var method_1 = windowApi[methodName];
-            if (typeof method_1 == "function") {
-                window._ipc.on((0, shared_ipc_1.toIpcName)(apiClassName, methodName), function (args) {
-                    if (args !== undefined) {
-                        for (var i = 0; i < args.length; ++i) {
-                            args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
-                        }
-                    }
-                    method_1.bind(windowApi).apply(void 0, args);
-                });
-                methodNames.push(methodName);
+    (0, shared_ipc_1.exposeApi)(_windowApiMap, windowApi, function (ipcName, method) {
+        window._ipc.on(ipcName, function (args) {
+            if (args !== undefined) {
+                for (var i = 0; i < args.length; ++i) {
+                    args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
+                }
             }
-        }
-    };
-    for (var _i = 0, _a = (0, shared_ipc_1.getPropertyNames)(windowApi); _i < _a.length; _i++) {
-        var methodName = _a[_i];
-        _loop_2(methodName);
-    }
-    _windowApiMap[apiClassName] = methodNames;
+            method.bind(windowApi).apply(void 0, args);
+        });
+    });
 }
 exports.exposeWindowApi = exposeWindowApi;
 //// COMMON MAIN & WINDOW SUPPORT API ////////////////////////////////////////
