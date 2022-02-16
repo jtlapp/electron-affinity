@@ -144,11 +144,7 @@ export function exposeWindowApi<T>(
   _installIpcListeners();
   exposeApi(_windowApiMap, windowApi, (ipcName, method) => {
     window._ipc.on(ipcName, (args: any[]) => {
-      if (args !== undefined) {
-        for (let i = 0; i < args.length; ++i) {
-          args[i] = Restorer.restoreValue(args[i], restorer);
-        }
-      }
+      Restorer.restoreArgs(args, restorer);
       method.bind(windowApi)(...args);
     });
   });

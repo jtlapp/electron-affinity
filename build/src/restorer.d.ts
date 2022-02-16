@@ -26,6 +26,7 @@ export declare namespace Restorer {
     function makeRestorable(obj: any): any;
     function makeReturnedError(error: any): object;
     function wasThrownError(error: any): boolean;
+    function restoreArgs(args: any[], restorer?: RestorerFunction): void;
     function restoreValue(obj: any, restorer?: RestorerFunction): any;
     function restoreThrownError(error: any, restorer?: RestorerFunction): Error;
 }

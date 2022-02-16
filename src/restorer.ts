@@ -79,6 +79,15 @@ export namespace Restorer {
     return error != undefined && error.__eipc_thrown;
   }
 
+  // Restores argument list using provided restorer function.
+  export function restoreArgs(args: any[], restorer?: RestorerFunction) {
+    if (args !== undefined) {
+      for (let i = 0; i < args.length; ++i) {
+        args[i] = Restorer.restoreValue(args[i], restorer);
+      }
+    }
+  }
+
   // Restores the class of an argument or return value when possible.
   export function restoreValue(obj: any, restorer?: RestorerFunction): any {
     if (obj !== undefined && obj !== null && obj.__eipc_class) {

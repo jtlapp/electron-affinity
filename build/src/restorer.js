@@ -54,6 +54,15 @@ var Restorer;
         return error != undefined && error.__eipc_thrown;
     }
     Restorer.wasThrownError = wasThrownError;
+    // Restores argument list using provided restorer function.
+    function restoreArgs(args, restorer) {
+        if (args !== undefined) {
+            for (var i = 0; i < args.length; ++i) {
+                args[i] = Restorer.restoreValue(args[i], restorer);
+            }
+        }
+    }
+    Restorer.restoreArgs = restoreArgs;
     // Restores the class of an argument or return value when possible.
     function restoreValue(obj, restorer) {
         if (obj !== undefined && obj !== null && obj.__eipc_class) {

@@ -75,16 +75,12 @@ function exposeMainApi(mainApi, restorer) {
     _installIpcListeners();
     (0, shared_ipc_1.exposeApi)(_mainApiMap, mainApi, function (ipcName, method) {
         electron_1.ipcMain.handle(ipcName, function (_event, args) { return __awaiter(_this, void 0, void 0, function () {
-            var i, replyValue, err_1;
+            var replyValue, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        if (args !== undefined) {
-                            for (i = 0; i < args.length; ++i) {
-                                args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
-                            }
-                        }
+                        restorer_1.Restorer.restoreArgs(args, restorer);
                         return [4 /*yield*/, method.bind(mainApi).apply(void 0, args)];
                     case 1:
                         replyValue = _a.sent();

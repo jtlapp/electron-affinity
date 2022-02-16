@@ -72,11 +72,7 @@ export function exposeMainApi<T>(
   exposeApi(_mainApiMap, mainApi, (ipcName, method) => {
     ipcMain.handle(ipcName, async (_event, args: any[]) => {
       try {
-        if (args !== undefined) {
-          for (let i = 0; i < args.length; ++i) {
-            args[i] = Restorer.restoreValue(args[i], restorer);
-          }
-        }
+        Restorer.restoreArgs(args, restorer);
         //await before returning to keep Electron from writing errors
         const replyValue = await method.bind(mainApi)(...args);
         return Restorer.makeRestorable(replyValue);

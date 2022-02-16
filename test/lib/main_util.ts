@@ -128,11 +128,7 @@ export function createResultCollector(restorer: RestorerFunction) {
     resultCollector.currentResult.testName = testName;
   });
   ipcMain.on("request_data", (_event, args: any) => {
-    if (args) {
-      for (let i = 0; i < args.length; ++i) {
-        args[i] = Restorer.restoreValue(args[i], restorer);
-      }
-    }
+    Restorer.restoreArgs(args, restorer);
     resultCollector.currentResult.requestData = args;
   });
   ipcMain.on("reply_data", (_event, data: any) => {

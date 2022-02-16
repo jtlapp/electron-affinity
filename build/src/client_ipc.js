@@ -142,11 +142,7 @@ function exposeWindowApi(windowApi, restorer) {
     _installIpcListeners();
     (0, shared_ipc_1.exposeApi)(_windowApiMap, windowApi, function (ipcName, method) {
         window._ipc.on(ipcName, function (args) {
-            if (args !== undefined) {
-                for (var i = 0; i < args.length; ++i) {
-                    args[i] = restorer_1.Restorer.restoreValue(args[i], restorer);
-                }
-            }
+            restorer_1.Restorer.restoreArgs(args, restorer);
             method.bind(windowApi).apply(void 0, args);
         });
     });
