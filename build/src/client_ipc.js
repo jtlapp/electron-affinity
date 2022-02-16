@@ -65,13 +65,13 @@ var _boundMainApis = {};
 function bindMainApi(apiClassName, restorer) {
     _installIpcListeners();
     // Requests are only necessary after the window has been reloaded.
-    window._ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
     return new Promise(function (resolve) {
-        var api = _boundMainApis[apiClassName];
-        if (api !== undefined) {
-            resolve(api);
+        if (_boundMainApis[apiClassName]) {
+            resolve(_boundMainApis[apiClassName]);
         }
         else {
+            // Make only one request, as main must prevously expose the API.
+            window._ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
             // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
@@ -96,19 +96,14 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                 args[_i] = arguments[_i];
             }
             return __awaiter(_this, void 0, void 0, function () {
-                var _a, args_1, arg, response;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var response;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
-                            if (args !== undefined) {
-                                for (_a = 0, args_1 = args; _a < args_1.length; _a++) {
-                                    arg = args_1[_a];
-                                    restorer_1.Restorer.makeRestorable(arg);
-                                }
-                            }
+                            restorer_1.Restorer.makeArgsRestorable(args);
                             return [4 /*yield*/, window._ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
-                            response = _b.sent();
+                            response = _a.sent();
                             if (restorer_1.Restorer.wasThrownError(response)) {
                                 throw restorer_1.Restorer.restoreThrownError(response, restorer);
                             }

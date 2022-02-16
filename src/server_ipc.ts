@@ -152,6 +152,7 @@ function _attemptBindWindowApi<T>(
 ): boolean {
   let windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
   if (!windowApiMap || !windowApiMap[apiClassName]) {
+    // Keep trying until window loads and initializes enough to receive request.
     window.webContents.send(API_REQUEST_IPC, apiClassName);
     return false;
   }
@@ -160,11 +161,7 @@ function _attemptBindWindowApi<T>(
   for (const methodName of methodNames) {
     const typedMethodName: keyof ApiBinding<T> = methodName;
     boundApi[typedMethodName] = ((...args: any[]) => {
-      if (args !== undefined) {
-        for (const arg of args) {
-          Restorer.makeRestorable(arg);
-        }
-      }
+      Restorer.makeArgsRestorable(args);
       window.webContents.send(
         toIpcName(apiClassName, methodName as string),
         args

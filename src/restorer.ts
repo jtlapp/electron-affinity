@@ -39,6 +39,15 @@ export namespace Restorer {
     }
   }
 
+  // Makes all the arguments of an argument list restorable.
+  export function makeArgsRestorable(args: any[]): void {
+    if (args !== undefined) {
+      for (const arg of args) {
+        Restorer.makeRestorable(arg);
+      }
+    }
+  }
+
   // Makes an object restorable to its class by marking it with its class.
   export function makeRestorable(obj: any): any {
     if (obj !== null && typeof obj == "object") {

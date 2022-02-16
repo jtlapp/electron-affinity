@@ -24,9 +24,7 @@ export async function testInvoke(
 export function testSend(testName: string, args: any) {
   window._ipc.send("started_test", testName);
   try {
-    for (let i = 0; i < args.length; ++i) {
-      args[i] = Restorer.makeRestorable(args[i]);
-    }
+    Restorer.makeArgsRestorable(args);
     window._ipc.send("request_data", args);
     window._ipc.send("completed_test", null);
   } catch (err: any) {

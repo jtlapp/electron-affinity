@@ -23,6 +23,7 @@ export declare namespace Restorer {
         thrownValue: any;
         constructor(thrownValue: any);
     }
+    function makeArgsRestorable(args: any[]): void;
     function makeRestorable(obj: any): any;
     function makeReturnedError(error: any): object;
     function wasThrownError(error: any): boolean;

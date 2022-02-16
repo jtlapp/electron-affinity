@@ -60,12 +60,12 @@ export function bindMainApi<T>(
   _installIpcListeners();
 
   // Requests are only necessary after the window has been reloaded.
-  window._ipc.send(API_REQUEST_IPC, apiClassName);
   return new Promise((resolve) => {
-    const api = _boundMainApis[apiClassName];
-    if (api !== undefined) {
-      resolve(api);
+    if (_boundMainApis[apiClassName]) {
+      resolve(_boundMainApis[apiClassName]);
     } else {
+      // Make only one request, as main must prevously expose the API.
+      window._ipc.send(API_REQUEST_IPC, apiClassName);
       // Client retries so it can bind at earliest possible time.
       retryUntilTimeout(
         0,
@@ -92,11 +92,7 @@ function _attemptBindMainApi<T>(
   for (const methodName of methodNames) {
     const typedMethodName: keyof ApiBinding<T> = methodName;
     boundApi[typedMethodName] = (async (...args: any[]) => {
-      if (args !== undefined) {
-        for (const arg of args) {
-          Restorer.makeRestorable(arg);
-        }
-      }
+      Restorer.makeArgsRestorable(args);
       const response = await window._ipc.invoke(
         toIpcName(apiClassName, methodName as string),
         args

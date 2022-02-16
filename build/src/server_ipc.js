@@ -146,6 +146,7 @@ exports.bindWindowApi = bindWindowApi;
 function _attemptBindWindowApi(window, apiClassName, resolve) {
     var windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
     if (!windowApiMap || !windowApiMap[apiClassName]) {
+        // Keep trying until window loads and initializes enough to receive request.
         window.webContents.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
         return false;
     }
@@ -158,12 +159,7 @@ function _attemptBindWindowApi(window, apiClassName, resolve) {
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
             }
-            if (args !== undefined) {
-                for (var _a = 0, args_1 = args; _a < args_1.length; _a++) {
-                    var arg = args_1[_a];
-                    restorer_1.Restorer.makeRestorable(arg);
-                }
-            }
+            restorer_1.Restorer.makeArgsRestorable(args);
             window.webContents.send((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args);
         }); // typescript can't confirm the method signature
     };

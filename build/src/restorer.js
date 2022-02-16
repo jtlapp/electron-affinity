@@ -18,6 +18,16 @@ var Restorer;
         return __ThrownNonObject;
     }());
     Restorer.__ThrownNonObject = __ThrownNonObject;
+    // Makes all the arguments of an argument list restorable.
+    function makeArgsRestorable(args) {
+        if (args !== undefined) {
+            for (var _i = 0, args_1 = args; _i < args_1.length; _i++) {
+                var arg = args_1[_i];
+                Restorer.makeRestorable(arg);
+            }
+        }
+    }
+    Restorer.makeArgsRestorable = makeArgsRestorable;
     // Makes an object restorable to its class by marking it with its class.
     function makeRestorable(obj) {
         if (obj !== null && typeof obj == "object") {
