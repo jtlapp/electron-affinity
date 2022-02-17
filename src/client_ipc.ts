@@ -76,10 +76,15 @@ function _attemptBindMainApi<T>(
   restorer: RestorerFunction | undefined,
   resolve: (boundApi: ApiBinding<T>) => void
 ): boolean {
+  // Wait for the window API binding to arrive.
+
   const methodNames = _mainApiMap[apiClassName] as [keyof ApiBinding<T>];
   if (!methodNames) {
     return false;
   }
+
+  // Construct the main API binding.
+
   const boundApi = {} as ApiBinding<T>;
   for (const methodName of methodNames) {
     const typedMethodName: keyof ApiBinding<T> = methodName;
@@ -95,7 +100,13 @@ function _attemptBindMainApi<T>(
       return Restorer.restoreValue(response, restorer);
     }) as any; // typescript can't confirm the method signature
   }
+
+  // Save the binding to return on duplicate binding requests.
+
   _boundMainApis[apiClassName] = boundApi;
+
+  // Return the binding to the window.
+
   resolve(boundApi);
   return true;
 }

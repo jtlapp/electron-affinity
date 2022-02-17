@@ -96,14 +96,11 @@ export function setIpcErrorLogger(loggerFunc: (err: Error) => void): void {
 
 //// WINDOW API SUPPORT //////////////////////////////////////////////////////
 
-// TODO: purge window data when window closes
-
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.
 const _windowApiMapByWebContentsID: Record<number, ApiRegistrationMap> = {};
 
 // Structure tracking bound window APIs, indexed by window ID.
-// TODO: Can I replace WindowApiBinding<any> with 'true'?
 const _boundWindowApisByWindowID: Record<
   number,
   Record<string, ApiBinding<any>>
@@ -149,12 +146,18 @@ function _attemptBindWindowApi<T>(
   apiClassName: string,
   resolve: (boundApi: ApiBinding<T>) => void
 ): boolean {
-  let windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
+  // Wait for the window API binding to arrive.
+
+  const windowID = window.webContents.id; // save in case window is destroyed
+  let windowApiMap = _windowApiMapByWebContentsID[windowID];
   if (!windowApiMap || !windowApiMap[apiClassName]) {
     // Keep trying until window loads and initializes enough to receive request.
     window.webContents.send(API_REQUEST_IPC, apiClassName);
     return false;
   }
+
+  // Construct the window API binding.
+
   const methodNames = windowApiMap[apiClassName] as [keyof ApiBinding<T>];
   const boundApi = {} as ApiBinding<T>;
   for (const methodName of methodNames) {
@@ -167,12 +170,31 @@ function _attemptBindWindowApi<T>(
       );
     }) as any; // typescript can't confirm the method signature
   }
-  let windowApis = _boundWindowApisByWindowID[window.webContents.id];
+
+  // Save the binding to return on duplicate binding requests.
+
+  let windowApis = _boundWindowApisByWindowID[windowID];
   if (!windowApis) {
     windowApis = {};
-    _boundWindowApisByWindowID[window.webContents.id] = windowApis;
+    _boundWindowApisByWindowID[windowID] = windowApis;
   }
   windowApis[apiClassName] = boundApi;
+
+  // Uninstall the binding when the window closes.
+
+  window.on("closed", (_event: any) => {
+    for (const methodName of methodNames) {
+      const typedMethodName: keyof ApiBinding<T> = methodName;
+      boundApi[typedMethodName] = ((..._args: any[]) => {
+        throw Error("Window has closed; API unavailable");
+      }) as any; // typescript can't confirm the method signature
+    }
+    // Deleting more than once doesn't cause an error.
+    delete _boundWindowApisByWindowID[windowID];
+  });
+
+  // Return the binding to main.
+
   resolve(boundApi);
   return true;
 }

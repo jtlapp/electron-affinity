@@ -50,7 +50,7 @@ describe("window times out waiting to bind main API", () => {
     // Don't close window1; its exception destroys it.
   });
 
-  test("main exposes an API other than the expected one, custom_timeout", async () => {
+  test("main exposes an API other than the expected one, custom timeout", async () => {
     window3 = await createWindow();
     exposeMainApi(mainApi1, restorer);
     resultCollector.runScripFiletInWindow(window3, "win3_mainapi2_timeout");

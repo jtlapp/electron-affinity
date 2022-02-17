@@ -77,11 +77,13 @@ function bindMainApi(apiClassName, restorer) {
 exports.bindMainApi = bindMainApi;
 // Implements a single attempt to bind to a main API.
 function _attemptBindMainApi(apiClassName, restorer, resolve) {
+    // Wait for the window API binding to arrive.
     var _this = this;
     var methodNames = _mainApiMap[apiClassName];
     if (!methodNames) {
         return false;
     }
+    // Construct the main API binding.
     var boundApi = {};
     var _loop_1 = function (methodName) {
         var typedMethodName = methodName;
@@ -112,7 +114,9 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
         var methodName = methodNames_1[_i];
         _loop_1(methodName);
     }
+    // Save the binding to return on duplicate binding requests.
     _boundMainApis[apiClassName] = boundApi;
+    // Return the binding to the window.
     resolve(boundApi);
     return true;
 }

@@ -108,12 +108,10 @@ function setIpcErrorLogger(loggerFunc) {
 }
 exports.setIpcErrorLogger = setIpcErrorLogger;
 //// WINDOW API SUPPORT //////////////////////////////////////////////////////
-// TODO: purge window data when window closes
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.
 var _windowApiMapByWebContentsID = {};
 // Structure tracking bound window APIs, indexed by window ID.
-// TODO: Can I replace WindowApiBinding<any> with 'true'?
 var _boundWindowApisByWindowID = {};
 /**
  * Returns a main-side binding for a window API of a given class, restricting
@@ -144,12 +142,15 @@ function bindWindowApi(window, apiClassName) {
 exports.bindWindowApi = bindWindowApi;
 // Implements a single attempt to bind to a window API.
 function _attemptBindWindowApi(window, apiClassName, resolve) {
-    var windowApiMap = _windowApiMapByWebContentsID[window.webContents.id];
+    // Wait for the window API binding to arrive.
+    var windowID = window.webContents.id; // save in case window is destroyed
+    var windowApiMap = _windowApiMapByWebContentsID[windowID];
     if (!windowApiMap || !windowApiMap[apiClassName]) {
         // Keep trying until window loads and initializes enough to receive request.
         window.webContents.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
         return false;
     }
+    // Construct the window API binding.
     var methodNames = windowApiMap[apiClassName];
     var boundApi = {};
     var _loop_1 = function (methodName) {
@@ -167,12 +168,30 @@ function _attemptBindWindowApi(window, apiClassName, resolve) {
         var methodName = methodNames_1[_i];
         _loop_1(methodName);
     }
-    var windowApis = _boundWindowApisByWindowID[window.webContents.id];
+    // Save the binding to return on duplicate binding requests.
+    var windowApis = _boundWindowApisByWindowID[windowID];
     if (!windowApis) {
         windowApis = {};
-        _boundWindowApisByWindowID[window.webContents.id] = windowApis;
+        _boundWindowApisByWindowID[windowID] = windowApis;
     }
     windowApis[apiClassName] = boundApi;
+    // Uninstall the binding when the window closes.
+    window.on("closed", function (_event) {
+        for (var _i = 0, methodNames_2 = methodNames; _i < methodNames_2.length; _i++) {
+            var methodName = methodNames_2[_i];
+            var typedMethodName = methodName;
+            boundApi[typedMethodName] = (function () {
+                var _args = [];
+                for (var _i = 0; _i < arguments.length; _i++) {
+                    _args[_i] = arguments[_i];
+                }
+                throw Error("Window has closed; API unavailable");
+            }); // typescript can't confirm the method signature
+        }
+        // Deleting more than once doesn't cause an error.
+        delete _boundWindowApisByWindowID[windowID];
+    });
+    // Return the binding to main.
     resolve(boundApi);
     return true;
 }

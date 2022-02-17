@@ -6,18 +6,24 @@ import * as path from "path";
 import * as assert from "assert";
 import { exec } from "child_process";
 
-const EXEC_TIMEOUT_MILLIS = 4000;
+const EXEC_TIMEOUT_MILLIS = 8000;
 const test = it;
 
 const rootPath = path.join(__dirname, "../../");
 const mochaPath = path.join(rootPath, "node_modules/.bin/electron-mocha");
 
-// TODO: add test of default main timeout
-
 describe("when main should crash with an error", () => {
-  test("main times out waiting to bind to first window", (done) => {
+  test("main times out waiting to bind to first window (default timeout)", (done) => {
     verifyCrash(
-      "main_win1_timeout",
+      "main_win1_timeout1",
+      "Main timed out waiting to bind to window API 'WinApi1'",
+      done
+    );
+  });
+
+  test("main times out waiting to bind to first window (custom timeout)", (done) => {
+    verifyCrash(
+      "main_win1_timeout2",
       "Main timed out waiting to bind to window API 'WinApi1'",
       done
     );
@@ -31,7 +37,11 @@ describe("when main should crash with an error", () => {
     );
   });
 
-  test("main crashes when API throws an non-relayed error", (done) => {
+  test("main throws when calling API of a window that closed", (done) => {
+    verifyCrash("main_window_closed", "Window has closed", done);
+  });
+
+  test("main throws when API throws an non-relayed error", (done) => {
     verifyCrash("main_nonrelayed_error", "Expected crash", done);
   });
 });
