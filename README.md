@@ -1,6 +1,6 @@
-# electron-ipc-methods
+# electron-affinity
 
-IPC via method call in Electron
+IPC via simple method calls in Electron
 
 WORK IN PROGRESS
 
