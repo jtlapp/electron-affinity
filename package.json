@@ -1,6 +1,6 @@
 {
   "name": "electron-ipc-methods",
-  "version": "0.3.11",
+  "version": "0.4.0",
   "description": "IPC via method calls in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
