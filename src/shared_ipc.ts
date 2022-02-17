@@ -4,16 +4,16 @@
 
 // TODO: prefix IPC names to distinguish them.
 
-// Name of IPC requesting an API from main for binding.
+// Name of IPC requesting an API for binding.
 export const API_REQUEST_IPC = "__api_request";
 
-// Name of IPC providing information need to bind to an API.
+// Name of IPC providing information needed to bind to an API.
 export const API_RESPONSE_IPC = "__api_response";
 
-// Period between attempts to announce or bind an API.
+// Period between attempts to bind an API.
 const _RETRY_MILLIS = 50;
 
-// Configurable timeout attempting to announce or bind an API.
+// Configurable timeout attempting to bind an API.
 let _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
 
 /**
@@ -25,27 +25,27 @@ export type ApiBinding<T> = {
 };
 
 /**
- * Sets the timeout for the opposing process to expose or bind to an API.
+ * Sets the timeout for binding to an API.
  */
 export function setIpcBindingTimeout(millis: number): void {
   _bindingTimeoutMillis = millis;
 }
 
-// Matches object properties beginning with an underscore.
+// Matches object properties beginning with an underscore or pound.
 export type PrivateProperty<P> = P extends `_${string}`
   ? P
   : P extends `#${string}`
   ? P
   : never;
 
-// Matches object properties not beginning with an underscore.
+// Matches object properties beginning with neither underscore nor pound.
 export type PublicProperty<P> = P extends PrivateProperty<P>
   ? never
   : P extends string
   ? P
   : never;
 
-// Structure sent to window announcing availability of a main API.
+// Information needed to bind to a remote API.
 export type ApiRegistration = {
   className: string;
   methodNames: string[];
@@ -54,10 +54,12 @@ export type ApiRegistration = {
 // Structure associating API names with names of methods in the API.
 export type ApiRegistrationMap = Record<string, string[]>;
 
+// Generic API type, for either main or window.
 type ElectronApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => any : any;
 };
 
+// Makes an API available for remote binding, installing method handlers.
 export function exposeApi<T>(
   apiMap: ApiRegistrationMap,
   api: ElectronApi<T>,
@@ -89,6 +91,7 @@ export function getPropertyNames(obj: any): string[] {
   }
   return propertyNames;
 }
+
 // Constructs an API-specific IPC name for a method.
 export function toIpcName(apiClassName: string, methodName: string): string {
   return `${apiClassName}:${methodName}`;

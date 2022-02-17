@@ -5,7 +5,7 @@ import { ApiBinding, PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 declare global {
     interface Window {
-        _ipc: {
+        __ipc: {
             invoke: (channel: string, data?: any) => Promise<any>;
             send: (channel: string, data: any) => void;
             on: (channel: string, func: (data: any) => void) => void;
@@ -26,11 +26,11 @@ declare global {
  */
 export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<ApiBinding<T>>;
 /**
- * Type to which a window API of class T conforms, requiring each API to
- * return void. All properties of the method not beginning with an
- * underscore are considered IPC APIs. All properties beginning with an
- * underscore are ignored, allowing an API class to have internal
- * structure on which the APIs rely.
+ * Type to which a window API of class T conforms, expecting each API
+ * to return void. All properties of the method not beginning with an
+ * underscore or pound are considered IPC APIs. All properties beginning
+ * with an underscore or poundare ignored, allowing an API class to have
+ * internal structure on which the APIs rely.
  */
 export declare type ElectronWindowApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;

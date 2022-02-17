@@ -11,7 +11,7 @@ export declare type ApiBinding<T> = {
     [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
 /**
- * Sets the timeout for the opposing process to expose or bind to an API.
+ * Sets the timeout for binding to an API.
  */
 export declare function setIpcBindingTimeout(millis: number): void;
 export declare type PrivateProperty<P> = P extends `_${string}` ? P : P extends `#${string}` ? P : never;

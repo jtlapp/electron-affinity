@@ -9,6 +9,6 @@ import { callMainApi2 } from "../api/call_mainapi2";
     await callMainApi2("win1");
     windowFinished();
   } catch (err) {
-    window._ipc.send("test_aborted", err);
+    window.__ipc.send("test_aborted", err);
   }
 })();

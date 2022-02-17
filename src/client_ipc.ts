@@ -2,13 +2,6 @@
  * Code specific to handling IPC in the renderer process.
  */
 
-// TODO: Auto install APIs on the window object, in addition to returning it,
-// to give the app flexibility.
-
-// TODO: Change _ipc to __ipc.
-
-// TODO: After I've finished the test suite, look at combining main/window logic.
-
 import {
   API_REQUEST_IPC,
   API_RESPONSE_IPC,
@@ -24,10 +17,10 @@ import { Restorer, RestorerFunction } from "./restorer";
 
 //// MAIN API SUPPORT //////////////////////////////////////////////////////
 
-// window._ipc methods declared in preload.ts
+// These window.__ipc methods are defined in preload.ts
 declare global {
   interface Window {
-    _ipc: {
+    __ipc: {
       invoke: (channel: string, data?: any) => Promise<any>;
       send: (channel: string, data: any) => void;
       on: (channel: string, func: (data: any) => void) => void;
@@ -59,13 +52,12 @@ export function bindMainApi<T>(
 ): Promise<ApiBinding<T>> {
   _installIpcListeners();
 
-  // Requests are only necessary after the window has been reloaded.
   return new Promise((resolve) => {
     if (_boundMainApis[apiClassName]) {
       resolve(_boundMainApis[apiClassName]);
     } else {
       // Make only one request, as main must prevously expose the API.
-      window._ipc.send(API_REQUEST_IPC, apiClassName);
+      window.__ipc.send(API_REQUEST_IPC, apiClassName);
       // Client retries so it can bind at earliest possible time.
       retryUntilTimeout(
         0,
@@ -93,7 +85,7 @@ function _attemptBindMainApi<T>(
     const typedMethodName: keyof ApiBinding<T> = methodName;
     boundApi[typedMethodName] = (async (...args: any[]) => {
       Restorer.makeArgsRestorable(args);
-      const response = await window._ipc.invoke(
+      const response = await window.__ipc.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
@@ -114,11 +106,11 @@ function _attemptBindMainApi<T>(
 let _windowApiMap: ApiRegistrationMap = {};
 
 /**
- * Type to which a window API of class T conforms, requiring each API to
- * return void. All properties of the method not beginning with an
- * underscore are considered IPC APIs. All properties beginning with an
- * underscore are ignored, allowing an API class to have internal
- * structure on which the APIs rely.
+ * Type to which a window API of class T conforms, expecting each API
+ * to return void. All properties of the method not beginning with an
+ * underscore or pound are considered IPC APIs. All properties beginning
+ * with an underscore or poundare ignored, allowing an API class to have
+ * internal structure on which the APIs rely.
  */
 export type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
@@ -139,7 +131,7 @@ export function exposeWindowApi<T>(
 ): void {
   _installIpcListeners();
   exposeApi(_windowApiMap, windowApi, (ipcName, method) => {
-    window._ipc.on(ipcName, (args: any[]) => {
+    window.__ipc.on(ipcName, (args: any[]) => {
       Restorer.restoreArgs(args, restorer);
       method.bind(windowApi)(...args);
     });
@@ -152,15 +144,14 @@ let _listeningForIPC = false;
 
 function _installIpcListeners() {
   if (!_listeningForIPC) {
-    // TODO: revisit the request/expose protocol
-    window._ipc.on(API_REQUEST_IPC, (apiClassName: string) => {
+    window.__ipc.on(API_REQUEST_IPC, (apiClassName: string) => {
       const registration: ApiRegistration = {
         className: apiClassName,
         methodNames: _windowApiMap[apiClassName],
       };
-      window._ipc.send(API_RESPONSE_IPC, registration);
+      window.__ipc.send(API_RESPONSE_IPC, registration);
     });
-    window._ipc.on(API_RESPONSE_IPC, (api: ApiRegistration) => {
+    window.__ipc.on(API_RESPONSE_IPC, (api: ApiRegistration) => {
       _mainApiMap[api.className] = api.methodNames;
     });
     _listeningForIPC = true;

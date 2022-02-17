@@ -5,21 +5,22 @@
 exports.__esModule = true;
 exports.retryUntilTimeout = exports.toIpcName = exports.getPropertyNames = exports.exposeApi = exports.setIpcBindingTimeout = exports.API_RESPONSE_IPC = exports.API_REQUEST_IPC = void 0;
 // TODO: prefix IPC names to distinguish them.
-// Name of IPC requesting an API from main for binding.
+// Name of IPC requesting an API for binding.
 exports.API_REQUEST_IPC = "__api_request";
-// Name of IPC providing information need to bind to an API.
+// Name of IPC providing information needed to bind to an API.
 exports.API_RESPONSE_IPC = "__api_response";
-// Period between attempts to announce or bind an API.
+// Period between attempts to bind an API.
 var _RETRY_MILLIS = 50;
-// Configurable timeout attempting to announce or bind an API.
+// Configurable timeout attempting to bind an API.
 var _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
 /**
- * Sets the timeout for the opposing process to expose or bind to an API.
+ * Sets the timeout for binding to an API.
  */
 function setIpcBindingTimeout(millis) {
     _bindingTimeoutMillis = millis;
 }
 exports.setIpcBindingTimeout = setIpcBindingTimeout;
+// Makes an API available for remote binding, installing method handlers.
 function exposeApi(apiMap, api, installHandler) {
     var apiClassName = api.constructor.name;
     if (apiMap[apiClassName]) {

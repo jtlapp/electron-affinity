@@ -17,7 +17,7 @@ export type RestorableClass<C> = {
  * It receives the name of the class at the time it was sent via IPC
  * and the unstructured object that the class instances was converted
  * into for transmission via IPC. It returns the value in the appropriate
- * class, or leave it unchanged if the class name is not recognized.
+ * class, or leaves it unchanged if the class name is not recognized.
  */
 export type RestorerFunction = (
   className: string,
@@ -28,17 +28,6 @@ export type RestorerFunction = (
 // TODO: test sending errors as arguments
 
 export namespace Restorer {
-  // Wraps thrown non-object values for relay to client. Prefixed with
-  // underscores to prevent name conflict with application classes.
-  export class __ThrownNonObject {
-    __eipc_thrown = true;
-    thrownValue: any;
-
-    constructor(thrownValue: any) {
-      this.thrownValue = thrownValue;
-    }
-  }
-
   // Makes all the arguments of an argument list restorable.
   export function makeArgsRestorable(args: any[]): void {
     if (args !== undefined) {
@@ -63,7 +52,7 @@ export namespace Restorer {
     // the message property and no other properties. In order to
     // retain the error properties, I have to return an object that
     // is not an instance of error. However, I'm intentionally not
-    // preserving the stack trace for use by the client.
+    // preserving the stack trace, hiding it from the client.
     if (typeof error !== "object") {
       return makeRestorable(new __ThrownNonObject(error));
     }
@@ -111,7 +100,7 @@ export namespace Restorer {
     return obj;
   }
 
-  // Restores an error returned via IPC.
+  // Restores an error that was thrown for return via IPC.
   export function restoreThrownError(
     error: any,
     restorer?: RestorerFunction
@@ -137,5 +126,16 @@ export namespace Restorer {
       error.stack = `${error.constructor.name}: ${error.message}\n\tin main process`;
     }
     return error;
+  }
+
+  // Wraps thrown non-object values for relay to client. Prefixed with
+  // underscores to prevent name conflict with application classes.
+  export class __ThrownNonObject {
+    __eipc_thrown = true;
+    thrownValue: any;
+
+    constructor(thrownValue: any) {
+      this.thrownValue = thrownValue;
+    }
   }
 }

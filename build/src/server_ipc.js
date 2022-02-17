@@ -40,7 +40,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = void 0;
-// TODO: revisit/revise all comments after removing most timeouts
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
@@ -50,9 +49,9 @@ var _mainApiMap = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
- * Wrapper for exceptions occurring in a main API that are relayed to the
- * caller in the calling window. Any uncaught exception of a main API not
- * of this type is throw within Electron and not returned to the window.
+ * Wrapper for exceptions occurring in a main API that are to be relayed
+ * as errors back to the calling window. Any uncaught exception of a main API
+ * not of this type is throw within Electron and not returned to the window.
  */
 var RelayedError = /** @class */ (function () {
     function RelayedError(errorToRelay) {
@@ -102,7 +101,7 @@ function exposeMainApi(mainApi, restorer) {
 }
 exports.exposeMainApi = exposeMainApi;
 /**
- * Receives errors thrown in APIs not wrapped in RelayedError.
+ * Receives errors thrown in main APIs that were not wrapped in RelayedError.
  */
 function setIpcErrorLogger(loggerFunc) {
     _errorLoggerFunc = loggerFunc;
@@ -119,7 +118,8 @@ var _boundWindowApisByWindowID = {};
 /**
  * Returns a main-side binding for a window API of a given class, restricting
  * the binding to the given window. Failure of the window to expose the API
- * before timeout results in an error.
+ * before timeout results in an error. There is a default timeout, but you
+ * can override it with `setIpcBindingTimeout()`.
  *
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
@@ -180,7 +180,6 @@ function _attemptBindWindowApi(window, apiClassName, resolve) {
 var _listeningForIPC = false;
 function _installIpcListeners() {
     if (!_listeningForIPC) {
-        // TODO: revisit the request/expose protocol
         electron_1.ipcMain.on(shared_ipc_1.API_REQUEST_IPC, function (event, apiClassName) {
             var registration = {
                 className: apiClassName,

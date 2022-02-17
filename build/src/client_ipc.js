@@ -40,10 +40,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 exports.exposeWindowApi = exports.bindMainApi = void 0;
-// TODO: Auto install APIs on the window object, in addition to returning it,
-// to give the app flexibility.
-// TODO: Change _ipc to __ipc.
-// TODO: After I've finished the test suite, look at combining main/window logic.
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
@@ -64,14 +60,13 @@ var _boundMainApis = {};
  */
 function bindMainApi(apiClassName, restorer) {
     _installIpcListeners();
-    // Requests are only necessary after the window has been reloaded.
     return new Promise(function (resolve) {
         if (_boundMainApis[apiClassName]) {
             resolve(_boundMainApis[apiClassName]);
         }
         else {
             // Make only one request, as main must prevously expose the API.
-            window._ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
+            window.__ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
             // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
@@ -101,7 +96,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                     switch (_a.label) {
                         case 0:
                             restorer_1.Restorer.makeArgsRestorable(args);
-                            return [4 /*yield*/, window._ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
+                            return [4 /*yield*/, window.__ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _a.sent();
                             if (restorer_1.Restorer.wasThrownError(response)) {
@@ -136,7 +131,7 @@ var _windowApiMap = {};
 function exposeWindowApi(windowApi, restorer) {
     _installIpcListeners();
     (0, shared_ipc_1.exposeApi)(_windowApiMap, windowApi, function (ipcName, method) {
-        window._ipc.on(ipcName, function (args) {
+        window.__ipc.on(ipcName, function (args) {
             restorer_1.Restorer.restoreArgs(args, restorer);
             method.bind(windowApi).apply(void 0, args);
         });
@@ -147,15 +142,14 @@ exports.exposeWindowApi = exposeWindowApi;
 var _listeningForIPC = false;
 function _installIpcListeners() {
     if (!_listeningForIPC) {
-        // TODO: revisit the request/expose protocol
-        window._ipc.on(shared_ipc_1.API_REQUEST_IPC, function (apiClassName) {
+        window.__ipc.on(shared_ipc_1.API_REQUEST_IPC, function (apiClassName) {
             var registration = {
                 className: apiClassName,
                 methodNames: _windowApiMap[apiClassName]
             };
-            window._ipc.send(shared_ipc_1.API_RESPONSE_IPC, registration);
+            window.__ipc.send(shared_ipc_1.API_RESPONSE_IPC, registration);
         });
-        window._ipc.on(shared_ipc_1.API_RESPONSE_IPC, function (api) {
+        window.__ipc.on(shared_ipc_1.API_RESPONSE_IPC, function (api) {
             _mainApiMap[api.className] = api.methodNames;
         });
         _listeningForIPC = true;

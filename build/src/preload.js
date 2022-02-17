@@ -1,8 +1,14 @@
 "use strict";
+/**
+ * Installs the generic IPC on which APIs are built in the renderer.
+ * The API methods cannot themselves be installed this way because
+ * they require receiving class and method names via IPC, and because
+ * they need to support parameterized construction.
+ */
 exports.__esModule = true;
 var electron_1 = require("electron");
 var electron_2 = require("electron");
-electron_1.contextBridge.exposeInMainWorld("_ipc", {
+electron_1.contextBridge.exposeInMainWorld("__ipc", {
     invoke: function (channel, data) {
         return electron_2.ipcRenderer.invoke(channel, data);
     },

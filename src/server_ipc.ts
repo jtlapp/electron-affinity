@@ -2,8 +2,6 @@
  * Code specific to handling IPC in the main process.
  */
 
-// TODO: revisit/revise all comments after removing most timeouts
-
 import { ipcMain, BrowserWindow } from "electron";
 
 import {
@@ -32,9 +30,9 @@ let _errorLoggerFunc: (err: Error) => void;
 /**
  * Type to which a main API of class T conforms, requiring each API to
  * return a promise. All properties of the method not beginning with an
- * underscore are considered IPC APIs. All properties beginning with an
- * underscore are ignored, allowing an API class to have internal
- * structure on which the APIs rely.
+ * underscore or a pound are considered IPC APIs. All properties beginning
+ * with neither an underscore nor a pound are ignored, allowing an API
+ * class to have internal structure on which the APIs rely.
  */
 export type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
@@ -43,9 +41,9 @@ export type ElectronMainApi<T> = {
 };
 
 /**
- * Wrapper for exceptions occurring in a main API that are relayed to the
- * caller in the calling window. Any uncaught exception of a main API not
- * of this type is throw within Electron and not returned to the window.
+ * Wrapper for exceptions occurring in a main API that are to be relayed
+ * as errors back to the calling window. Any uncaught exception of a main API
+ * not of this type is throw within Electron and not returned to the window.
  */
 export class RelayedError {
   errorToRelay: any;
@@ -90,7 +88,7 @@ export function exposeMainApi<T>(
 }
 
 /**
- * Receives errors thrown in APIs not wrapped in RelayedError.
+ * Receives errors thrown in main APIs that were not wrapped in RelayedError.
  */
 export function setIpcErrorLogger(loggerFunc: (err: Error) => void): void {
   _errorLoggerFunc = loggerFunc;
@@ -114,7 +112,8 @@ const _boundWindowApisByWindowID: Record<
 /**
  * Returns a main-side binding for a window API of a given class, restricting
  * the binding to the given window. Failure of the window to expose the API
- * before timeout results in an error.
+ * before timeout results in an error. There is a default timeout, but you
+ * can override it with `setIpcBindingTimeout()`.
  *
  * @param <T> Class to which to bind.
  * @param apiClassName Name of the class being bound. Must be identical to
@@ -184,7 +183,6 @@ let _listeningForIPC = false;
 
 function _installIpcListeners() {
   if (!_listeningForIPC) {
-    // TODO: revisit the request/expose protocol
     ipcMain.on(API_REQUEST_IPC, (event, apiClassName: string) => {
       const registration: ApiRegistration = {
         className: apiClassName,

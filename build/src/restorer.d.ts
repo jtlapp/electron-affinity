@@ -14,15 +14,10 @@ export declare type RestorableClass<C> = {
  * It receives the name of the class at the time it was sent via IPC
  * and the unstructured object that the class instances was converted
  * into for transmission via IPC. It returns the value in the appropriate
- * class, or leave it unchanged if the class name is not recognized.
+ * class, or leaves it unchanged if the class name is not recognized.
  */
 export declare type RestorerFunction = (className: string, obj: Record<string, any>) => any;
 export declare namespace Restorer {
-    class __ThrownNonObject {
-        __eipc_thrown: boolean;
-        thrownValue: any;
-        constructor(thrownValue: any);
-    }
     function makeArgsRestorable(args: any[]): void;
     function makeRestorable(obj: any): any;
     function makeReturnedError(error: any): object;
@@ -30,4 +25,9 @@ export declare namespace Restorer {
     function restoreArgs(args: any[], restorer?: RestorerFunction): void;
     function restoreValue(obj: any, restorer?: RestorerFunction): any;
     function restoreThrownError(error: any, restorer?: RestorerFunction): Error;
+    class __ThrownNonObject {
+        __eipc_thrown: boolean;
+        thrownValue: any;
+        constructor(thrownValue: any);
+    }
 }

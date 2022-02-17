@@ -10,10 +10,10 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     o[k2] = m[k];
 }));
 exports.__esModule = true;
-exports.setIpcBindingTimeout = exports.exposeWindowApi = exports.bindMainApi = void 0;
+exports.setIpcBindingTimeout = exports.bindMainApi = exports.exposeWindowApi = void 0;
 var client_ipc_1 = require("./client_ipc");
-__createBinding(exports, client_ipc_1, "bindMainApi");
 __createBinding(exports, client_ipc_1, "exposeWindowApi");
+__createBinding(exports, client_ipc_1, "bindMainApi");
 var shared_ipc_1 = require("./shared_ipc");
 __createBinding(exports, shared_ipc_1, "setIpcBindingTimeout");
 //# sourceMappingURL=window.js.map

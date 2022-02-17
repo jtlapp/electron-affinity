@@ -8,16 +8,6 @@ exports.Restorer = void 0;
 // TODO: test sending errors as arguments
 var Restorer;
 (function (Restorer) {
-    // Wraps thrown non-object values for relay to client. Prefixed with
-    // underscores to prevent name conflict with application classes.
-    var __ThrownNonObject = /** @class */ (function () {
-        function __ThrownNonObject(thrownValue) {
-            this.__eipc_thrown = true;
-            this.thrownValue = thrownValue;
-        }
-        return __ThrownNonObject;
-    }());
-    Restorer.__ThrownNonObject = __ThrownNonObject;
     // Makes all the arguments of an argument list restorable.
     function makeArgsRestorable(args) {
         if (args !== undefined) {
@@ -43,7 +33,7 @@ var Restorer;
         // the message property and no other properties. In order to
         // retain the error properties, I have to return an object that
         // is not an instance of error. However, I'm intentionally not
-        // preserving the stack trace for use by the client.
+        // preserving the stack trace, hiding it from the client.
         if (typeof error !== "object") {
             return makeRestorable(new __ThrownNonObject(error));
         }
@@ -88,7 +78,7 @@ var Restorer;
         return obj;
     }
     Restorer.restoreValue = restoreValue;
-    // Restores an error returned via IPC.
+    // Restores an error that was thrown for return via IPC.
     function restoreThrownError(error, restorer) {
         delete error.__eipc_thrown;
         error = restoreValue(error, restorer);
@@ -110,5 +100,15 @@ var Restorer;
         return error;
     }
     Restorer.restoreThrownError = restoreThrownError;
+    // Wraps thrown non-object values for relay to client. Prefixed with
+    // underscores to prevent name conflict with application classes.
+    var __ThrownNonObject = /** @class */ (function () {
+        function __ThrownNonObject(thrownValue) {
+            this.__eipc_thrown = true;
+            this.thrownValue = thrownValue;
+        }
+        return __ThrownNonObject;
+    }());
+    Restorer.__ThrownNonObject = __ThrownNonObject;
 })(Restorer = exports.Restorer || (exports.Restorer = {}));
 //# sourceMappingURL=restorer.js.map
