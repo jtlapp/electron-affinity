@@ -6,7 +6,6 @@ import * as path from "path";
 import * as assert from "assert";
 import { exec } from "child_process";
 
-const EXEC_TIMEOUT_MILLIS = 8000;
 const test = it;
 
 const rootPath = path.join(__dirname, "../../");
@@ -55,10 +54,6 @@ function verifyCrash(
   // neither via process.removeAllListeners() + process.on() nor via
   // process.prependOnceListener(), so I test the output of electron-mocha.
 
-  const timer = setTimeout(
-    () => assert.fail("Timed out waiting on child process"),
-    EXEC_TIMEOUT_MILLIS
-  );
   const scriptPath = path.join(
     rootPath,
     "build/test/main-scripts",
@@ -66,7 +61,6 @@ function verifyCrash(
   );
   const command = `node ${mochaPath} ${scriptPath} --timeout 8000`;
   exec(command, (err, stdout, stderr) => {
-    clearTimeout(timer);
     if (
       stdout.includes(expectedErrorText) ||
       stderr.includes(expectedErrorText)

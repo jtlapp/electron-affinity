@@ -24,7 +24,6 @@ export type RestorerFunction = (
   obj: Record<string, any>
 ) => any;
 
-// TODO: delete extraneous crash timeout
 // TODO: test throwing non-Error objects
 // TODO: test without restorer
 // TODO: test with different restorers

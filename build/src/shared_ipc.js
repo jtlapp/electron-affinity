@@ -4,11 +4,10 @@
  */
 exports.__esModule = true;
 exports.retryUntilTimeout = exports.toIpcName = exports.getPropertyNames = exports.exposeApi = exports.setIpcBindingTimeout = exports.API_RESPONSE_IPC = exports.API_REQUEST_IPC = void 0;
-// TODO: prefix IPC names to distinguish them.
 // Name of IPC requesting an API for binding.
-exports.API_REQUEST_IPC = "__api_request";
+exports.API_REQUEST_IPC = "_affinity_api_request";
 // Name of IPC providing information needed to bind to an API.
-exports.API_RESPONSE_IPC = "__api_response";
+exports.API_RESPONSE_IPC = "_affinity_api_response";
 // Period between attempts to bind an API.
 var _RETRY_MILLIS = 50;
 // Configurable timeout attempting to bind an API.
