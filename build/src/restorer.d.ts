@@ -17,17 +17,23 @@ export declare type RestorableClass<C> = {
  * class, or leaves it unchanged if the class name is not recognized.
  */
 export declare type RestorerFunction = (className: string, obj: Record<string, any>) => any;
+interface RestorationInfo {
+    argIndex?: number;
+    className: string;
+    isError: boolean;
+}
 export declare namespace Restorer {
     function makeArgsRestorable(args: any[]): void;
-    function makeRestorable(obj: any): any;
-    function makeReturnedError(error: any): object;
-    function wasThrownError(error: any): boolean;
+    function makeRestorationInfo(obj: any): RestorationInfo | null;
+    function makeRethrownReturnValue(thrown: any): object;
+    function wasThrownValue(value: any): boolean;
     function restoreArgs(args: any[], restorer?: RestorerFunction): void;
-    function restoreValue(obj: any, restorer?: RestorerFunction): any;
-    function restoreThrownError(error: any, restorer?: RestorerFunction): Error;
+    function restoreValue(obj: any, info?: RestorationInfo, restorer?: RestorerFunction): any;
+    function restoreThrownValue(value: any, info: RestorationInfo, restorer?: RestorerFunction): Error;
     class __ThrownNonObject {
-        __eipc_thrown: boolean;
+        __affinity_thrown: boolean;
         thrownValue: any;
         constructor(thrownValue: any);
     }
 }
+export {};

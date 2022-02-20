@@ -52,7 +52,7 @@ function getPropertyNames(obj) {
 exports.getPropertyNames = getPropertyNames;
 // Constructs an API-specific IPC name for a method.
 function toIpcName(apiClassName, methodName) {
-    return "".concat(apiClassName, ":").concat(methodName);
+    return apiClassName + ":" + methodName;
 }
 exports.toIpcName = toIpcName;
 // Utility for retrying a function until success or timeout.

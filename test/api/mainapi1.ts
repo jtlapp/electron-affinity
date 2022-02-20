@@ -48,10 +48,8 @@ export class MainApi1 extends MainApi {
 
   async sendReceiveDate(date: Date) {
     this._setRequestData(date);
-    // Reply with dup of date because the reply attaches an __eipc_class
-    // property, which messes up the test verification that this property
-    // was removed from the argument to the method.
-    return new Date(date);
+    // Also tests returning a provided object.
+    return date;
   }
 
   async throwFSError() {

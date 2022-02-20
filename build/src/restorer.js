@@ -4,107 +4,112 @@
  */
 exports.__esModule = true;
 exports.Restorer = void 0;
-// TODO: test sending and receiving nulls
-// TODO: test sending errors as arguments
 var Restorer;
 (function (Restorer) {
     // Makes all the arguments of an argument list restorable.
     function makeArgsRestorable(args) {
+        var infos = [];
         if (args !== undefined) {
-            for (var _i = 0, args_1 = args; _i < args_1.length; _i++) {
-                var arg = args_1[_i];
-                Restorer.makeRestorable(arg);
+            for (var i = 0; i < args.length; ++i) {
+                var info = Restorer.makeRestorationInfo(args[i]);
+                if (info) {
+                    info.argIndex = i;
+                    infos.push(info);
+                }
             }
         }
+        // Passed argument list always ends with restoration information.
+        args.push(infos);
     }
     Restorer.makeArgsRestorable = makeArgsRestorable;
-    // Makes an object restorable to its class by marking it with its class.
-    function makeRestorable(obj) {
-        if (obj !== null && typeof obj == "object") {
-            obj.__eipc_class = obj.constructor.name;
+    // Returns information needed to restore an object to its original class.
+    function makeRestorationInfo(obj) {
+        if (obj === null || typeof obj != "object") {
+            return null;
         }
-        return obj;
+        return {
+            className: obj.constructor.name,
+            isError: obj instanceof Error
+        };
     }
-    Restorer.makeRestorable = makeRestorable;
-    // Makes an error returnable to the caller for restoration.
-    function makeReturnedError(error) {
+    Restorer.makeRestorationInfo = makeRestorationInfo;
+    // Makes an error returnable to the caller for restoration and
+    // re-throwing, returning the value that the API must return.
+    // The thrown value need not be an instance of error.
+    function makeRethrownReturnValue(thrown) {
         // Electron will throw an instance of Error either thrown from
         // here or returned from here, but that instance will only carry
         // the message property and no other properties. In order to
         // retain the error properties, I have to return an object that
         // is not an instance of error. However, I'm intentionally not
         // preserving the stack trace, hiding it from the client.
-        if (typeof error !== "object") {
-            return makeRestorable(new __ThrownNonObject(error));
+        if (typeof thrown !== "object") {
+            thrown = new __ThrownNonObject(thrown);
+            return [thrown, Restorer.makeRestorationInfo(thrown)];
         }
-        var returnedError = Object.assign({
-            __eipc_thrown: true
-        }, error instanceof Error
-            ? {
-                __eipc_error: true,
-                message: error.message
-            }
-            : {}, makeRestorable(error));
+        var info = Restorer.makeRestorationInfo(thrown);
+        var returnedError = Object.assign({ __affinity_thrown: true }, thrown instanceof Error ? { message: thrown.message } : {}, thrown);
         delete returnedError.stack;
-        return returnedError;
+        return [returnedError, info];
     }
-    Restorer.makeReturnedError = makeReturnedError;
-    // Determines whether a returned value is actually a thrown error.
-    function wasThrownError(error) {
-        return error != undefined && error.__eipc_thrown;
+    Restorer.makeRethrownReturnValue = makeRethrownReturnValue;
+    // Determines whether a returned value is actually a thrown value.
+    function wasThrownValue(value) {
+        return value != undefined && value.__affinity_thrown;
     }
-    Restorer.wasThrownError = wasThrownError;
+    Restorer.wasThrownValue = wasThrownValue;
     // Restores argument list using provided restorer function.
     function restoreArgs(args, restorer) {
         if (args !== undefined) {
-            for (var i = 0; i < args.length; ++i) {
-                args[i] = Restorer.restoreValue(args[i], restorer);
+            var infos = args.pop();
+            var infoIndex = 0;
+            for (var argIndex = 0; argIndex < args.length; ++argIndex) {
+                args[argIndex] = Restorer.restoreValue(args[argIndex], infoIndex < infos.length && argIndex == infos[infoIndex].argIndex
+                    ? infos[infoIndex++]
+                    : undefined, restorer);
             }
         }
     }
     Restorer.restoreArgs = restoreArgs;
     // Restores the class of an argument or return value when possible.
-    function restoreValue(obj, restorer) {
-        if (obj !== undefined && obj !== null && obj.__eipc_class) {
-            var className = obj.__eipc_class;
-            delete obj.__eipc_class;
-            if (className == "__ThrownNonObject") {
+    function restoreValue(obj, info, restorer) {
+        if (info) {
+            if (info.className == "__ThrownNonObject") {
                 obj = new __ThrownNonObject(obj.thrownValue);
             }
             else if (restorer !== undefined) {
-                obj = restorer(className, obj);
+                obj = restorer(info.className, obj);
             }
         }
         return obj;
     }
     Restorer.restoreValue = restoreValue;
-    // Restores an error that was thrown for return via IPC.
-    function restoreThrownError(error, restorer) {
-        delete error.__eipc_thrown;
-        error = restoreValue(error, restorer);
+    // Restores a value that was thrown for re-throwing after being returned.
+    function restoreThrownValue(value, info, restorer) {
+        delete value.__affinity_thrown;
+        value = restoreValue(value, info, restorer);
         // If a non-object value was thrown
-        if (error instanceof __ThrownNonObject) {
-            return error.thrownValue;
+        if (value instanceof __ThrownNonObject) {
+            return value.thrownValue;
         }
         // If restorer didn't restore the original Error class
-        if (!(error instanceof Error) && error.__eipc_error) {
-            delete error.__eipc_error;
-            var message = error.message;
-            delete error.message;
-            error = Object.assign(new Error(message), error);
+        if (!(value instanceof Error) && info.isError) {
+            var message = value.message;
+            delete value.message;
+            value = Object.assign(new Error(message), value);
         }
         // Replace any newly generated stack.
-        if (error instanceof Error) {
-            error.stack = "".concat(error.constructor.name, ": ").concat(error.message, "\n\tin main process");
+        if (value instanceof Error) {
+            value.stack = value.constructor.name + ": " + value.message + "\n\tin main process";
         }
-        return error;
+        return value;
     }
-    Restorer.restoreThrownError = restoreThrownError;
+    Restorer.restoreThrownValue = restoreThrownValue;
     // Wraps thrown non-object values for relay to client. Prefixed with
     // underscores to prevent name conflict with application classes.
     var __ThrownNonObject = /** @class */ (function () {
         function __ThrownNonObject(thrownValue) {
-            this.__eipc_thrown = true;
+            this.__affinity_thrown = true;
             this.thrownValue = thrownValue;
         }
         return __ThrownNonObject;

@@ -94,11 +94,12 @@ function _attemptBindMainApi<T>(
         toIpcName(apiClassName, methodName as string),
         args
       );
-      // TODO: Can I undo tags on args here?
-      if (Restorer.wasThrownError(response)) {
-        throw Restorer.restoreThrownError(response, restorer);
+      const returnValue = response[0];
+      const info = response[1];
+      if (Restorer.wasThrownValue(returnValue)) {
+        throw Restorer.restoreThrownValue(returnValue, info, restorer);
       }
-      return Restorer.restoreValue(response, restorer);
+      return Restorer.restoreValue(returnValue, info, restorer);
     }) as any; // typescript can't confirm the method signature
   }
 

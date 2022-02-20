@@ -128,6 +128,7 @@ export function createResultCollector(restorer: RestorerFunction) {
     resultCollector.currentResult.testName = testName;
   });
   ipcMain.on("request_data", (_event, args: any) => {
+    // TODO: should I be checking strings here?
     Restorer.restoreArgs(args, restorer);
     resultCollector.currentResult.requestData = args;
   });
@@ -137,8 +138,11 @@ export function createResultCollector(restorer: RestorerFunction) {
   ipcMain.on("completed_test", (_event, error: any) => {
     resultCollector.currentResult.error = null;
     if (error) {
-      resultCollector.currentResult.error = Restorer.restoreThrownError(
-        error,
+      const returnValue = error[0];
+      const info = error[1];
+      resultCollector.currentResult.error = Restorer.restoreThrownValue(
+        returnValue,
+        info,
         restorer
       );
     }

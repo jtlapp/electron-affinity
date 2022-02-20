@@ -70,7 +70,7 @@ function bindMainApi(apiClassName, restorer) {
             // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
+            }, "Timed out waiting to bind main API '" + apiClassName + "'");
         }
     });
 }
@@ -93,7 +93,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                 args[_i] = arguments[_i];
             }
             return __awaiter(_this, void 0, void 0, function () {
-                var response;
+                var response, returnValue, info;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -101,11 +101,12 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                             return [4 /*yield*/, window.__ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _a.sent();
-                            // TODO: Can I undo tags on args here?
-                            if (restorer_1.Restorer.wasThrownError(response)) {
-                                throw restorer_1.Restorer.restoreThrownError(response, restorer);
+                            returnValue = response[0];
+                            info = response[1];
+                            if (restorer_1.Restorer.wasThrownValue(returnValue)) {
+                                throw restorer_1.Restorer.restoreThrownValue(returnValue, info, restorer);
                             }
-                            return [2 /*return*/, restorer_1.Restorer.restoreValue(response, restorer)];
+                            return [2 /*return*/, restorer_1.Restorer.restoreValue(returnValue, info, restorer)];
                     }
                 });
             });

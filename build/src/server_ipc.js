@@ -74,7 +74,7 @@ function exposeMainApi(mainApi, restorer) {
     _installIpcListeners();
     (0, shared_ipc_1.exposeApi)(_mainApiMap, mainApi, function (ipcName, method) {
         electron_1.ipcMain.handle(ipcName, function (_event, args) { return __awaiter(_this, void 0, void 0, function () {
-            var replyValue, err_1;
+            var returnValue, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -82,12 +82,12 @@ function exposeMainApi(mainApi, restorer) {
                         restorer_1.Restorer.restoreArgs(args, restorer);
                         return [4 /*yield*/, method.bind(mainApi).apply(void 0, args)];
                     case 1:
-                        replyValue = _a.sent();
-                        return [2 /*return*/, restorer_1.Restorer.makeRestorable(replyValue)];
+                        returnValue = _a.sent();
+                        return [2 /*return*/, [returnValue, restorer_1.Restorer.makeRestorationInfo(returnValue)]];
                     case 2:
                         err_1 = _a.sent();
                         if (err_1 instanceof RelayedError) {
-                            return [2 /*return*/, restorer_1.Restorer.makeReturnedError(err_1.errorToRelay)];
+                            return [2 /*return*/, restorer_1.Restorer.makeRethrownReturnValue(err_1.errorToRelay)];
                         }
                         if (_errorLoggerFunc !== undefined) {
                             _errorLoggerFunc(err_1);
@@ -134,8 +134,8 @@ function bindWindowApi(window, apiClassName) {
         else {
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindWindowApi(window, apiClassName, resolve);
-            }, "Main timed out waiting to bind to window API '".concat(apiClassName, "'") +
-                " (window ID ".concat(window.id, ")"));
+            }, "Main timed out waiting to bind to window API '" + apiClassName + "'" +
+                (" (window ID " + window.id + ")"));
         }
     });
 }

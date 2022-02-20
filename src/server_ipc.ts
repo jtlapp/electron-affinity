@@ -72,11 +72,11 @@ export function exposeMainApi<T>(
       try {
         Restorer.restoreArgs(args, restorer);
         //await before returning to keep Electron from writing errors
-        const replyValue = await method.bind(mainApi)(...args);
-        return Restorer.makeRestorable(replyValue);
+        const returnValue = await method.bind(mainApi)(...args);
+        return [returnValue, Restorer.makeRestorationInfo(returnValue)];
       } catch (err: any) {
         if (err instanceof RelayedError) {
-          return Restorer.makeReturnedError(err.errorToRelay);
+          return Restorer.makeRethrownReturnValue(err.errorToRelay);
         }
         if (_errorLoggerFunc !== undefined) {
           _errorLoggerFunc(err);

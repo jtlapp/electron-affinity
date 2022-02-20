@@ -28,7 +28,7 @@ export async function testInvoke(
     window.__ipc.send("reply_data", replyData);
     window.__ipc.send("completed_test", null);
   } catch (err: any) {
-    window.__ipc.send("completed_test", Restorer.makeReturnedError(err));
+    window.__ipc.send("completed_test", Restorer.makeRethrownReturnValue(err));
   }
 }
 
@@ -36,10 +36,11 @@ export function testSend(testName: string, args: any) {
   window.__ipc.send("started_test", testName);
   try {
     Restorer.makeArgsRestorable(args);
+    // TODO: I think I need to change request_data to a string here
     window.__ipc.send("request_data", args);
     window.__ipc.send("completed_test", null);
   } catch (err: any) {
-    window.__ipc.send("completed_test", Restorer.makeReturnedError(err));
+    window.__ipc.send("completed_test", Restorer.makeRethrownReturnValue(err));
   }
 }
 
