@@ -40,7 +40,7 @@ export namespace Restorer {
   // Makes an object restorable to its class by marking it with its class.
   export function makeRestorable(obj: any): any {
     if (obj !== null && typeof obj == "object") {
-      obj.__eipc_class = (obj as object).constructor.name;
+      obj.__eipc_class = obj.constructor.name;
     }
     return obj;
   }

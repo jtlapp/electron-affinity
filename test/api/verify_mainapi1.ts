@@ -17,7 +17,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "no reply no error (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -25,7 +25,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "single param (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [21]);
-      assert.equal(result.replyData, 42);
+      assert.equal(result.replyData, "number:42");
     });
   });
 
@@ -33,7 +33,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "multi param (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [5, 10]);
-      assert.equal(result.replyData, 15);
+      assert.equal(result.replyData, "number:15");
     });
   });
 
@@ -41,7 +41,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "send class instance (api1)", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
-      assert.equal(result.replyData, "thisthat");
+      assert.equal(result.replyData, 'string:"thisthat"');
     });
   });
 
@@ -49,8 +49,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "get class instance (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
-      assert.ok(result.replyData instanceof Catter);
-      assert.equal(result.replyData.cat(), "thisthat");
+      assert.equal(result.replyData, 'Catter:{"s1":"this","s2":"that"}');
     });
   });
 
@@ -58,7 +57,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "all good (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [true]);
-      assert.equal(result.replyData, "all good");
+      assert.equal(result.replyData, 'string:"all good"');
     });
   });
 
@@ -71,7 +70,7 @@ export default (winTag: string, collector: ResultCollector) => {
         "Error: Just a plain error\n\tin main process"
       );
       assert.deepEqual(result.requestData, [false]);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -79,7 +78,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "same method (api1)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, null);
-      assert.equal(result.replyData, "API 1");
+      assert.equal(result.replyData, 'string:"API 1"');
     });
   });
 
@@ -101,7 +100,7 @@ export default (winTag: string, collector: ResultCollector) => {
       assert.equal((error as any).syscall, "open");
       assert.ok((error as any).stack.includes("in main process"));
       assert.equal(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -116,7 +115,7 @@ export default (winTag: string, collector: ResultCollector) => {
         "CustomError: bad thing\n\tin main process"
       );
       assert.equal(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -127,7 +126,7 @@ export default (winTag: string, collector: ResultCollector) => {
       assert.equal(typeof error, "string");
       assert.equal((error as any).message, undefined);
       assert.equal(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -138,7 +137,7 @@ export default (winTag: string, collector: ResultCollector) => {
       assert.equal(error.message, ""); // Error message is never undefined
       assert.equal(result.error.stack, "NoMessageError: \n\tin main process");
       assert.equal(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -150,7 +149,7 @@ export default (winTag: string, collector: ResultCollector) => {
       assert.equal(error.value, "bad");
       assert.equal(result.error.stack, undefined);
       assert.equal(result.requestData, undefined);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -167,7 +166,7 @@ export default (winTag: string, collector: ResultCollector) => {
             "Error: non-restored\n\tin main process"
           );
           assert.deepEqual(result.requestData, undefined);
-          assert.equal(result.replyData, undefined);
+          assert.equal(result.replyData, "undefined");
         }
       );
     }

@@ -26,7 +26,7 @@ export async function createWindow(): Promise<BrowserWindow> {
 export class Result {
   testName = "unknown";
   requestData: any;
-  replyData: any;
+  replyData = "undefined";
   error: any = null;
   verified = false;
 }
@@ -132,10 +132,7 @@ export function createResultCollector(restorer: RestorerFunction) {
     resultCollector.currentResult.requestData = args;
   });
   ipcMain.on("reply_data", (_event, data: any) => {
-    resultCollector.currentResult.replyData = Restorer.restoreValue(
-      data,
-      restorer
-    );
+    resultCollector.currentResult.replyData = data;
   });
   ipcMain.on("completed_test", (_event, error: any) => {
     resultCollector.currentResult.error = null;

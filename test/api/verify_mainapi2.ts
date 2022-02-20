@@ -12,7 +12,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "send class instance (api2)", (result) => {
       assert.equal(result.error, null);
       assert.ok(result.requestData[0] instanceof Catter);
-      assert.equal(result.replyData, "thisthat");
+      assert.equal(result.replyData, 'string:"thisthat"');
     });
   });
 
@@ -20,8 +20,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "get class instance (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, ["this", "that"]);
-      assert.ok(result.replyData instanceof Catter);
-      assert.equal(result.replyData.cat(), "thisthat");
+      assert.equal(result.replyData, 'Catter:{"s1":"this","s2":"that"}');
     });
   });
 
@@ -29,7 +28,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "all good (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [true]);
-      assert.equal(result.replyData, "all good");
+      assert.equal(result.replyData, 'string:"all good"');
     });
   });
 
@@ -42,7 +41,7 @@ export default (winTag: string, collector: ResultCollector) => {
         "Error: Just a plain error\n\tin main process"
       );
       assert.deepEqual(result.requestData, [false]);
-      assert.equal(result.replyData, undefined);
+      assert.equal(result.replyData, "undefined");
     });
   });
 
@@ -50,7 +49,7 @@ export default (winTag: string, collector: ResultCollector) => {
     collector.verifyTest(winTag + "same method (api2)", (result) => {
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, null);
-      assert.equal(result.replyData, "API 2");
+      assert.equal(result.replyData, 'string:"API 2"');
     });
   });
 };
