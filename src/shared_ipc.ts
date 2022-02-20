@@ -2,13 +2,11 @@
  * Code used by both main and renderer processes.
  */
 
-// TODO: prefix IPC names to distinguish them.
-
 // Name of IPC requesting an API for binding.
-export const API_REQUEST_IPC = "__api_request";
+export const API_REQUEST_IPC = "_affinity_api_request";
 
 // Name of IPC providing information needed to bind to an API.
-export const API_RESPONSE_IPC = "__api_response";
+export const API_RESPONSE_IPC = "_affinity_api_response";
 
 // Period between attempts to bind an API.
 const _RETRY_MILLIS = 50;

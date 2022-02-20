@@ -80,7 +80,7 @@ export namespace Restorer {
     }
     const info = Restorer.makeRestorationInfo(thrown);
     const returnedError = Object.assign(
-      { __affinity_rethrow: true },
+      { _affinity_rethrow: true },
       thrown instanceof Error ? { message: thrown.message } : {},
       thrown
     );
@@ -90,7 +90,7 @@ export namespace Restorer {
 
   // Determines whether a returned value is actually a thrown value.
   export function wasThrownValue(value: any): boolean {
-    return value != undefined && value.__affinity_rethrow;
+    return value != undefined && value._affinity_rethrow;
   }
 
   // Restores argument list using provided restorer function.
@@ -132,7 +132,7 @@ export namespace Restorer {
     info: RestorationInfo,
     restorer?: RestorerFunction
   ): Error {
-    delete value.__affinity_rethrow;
+    delete value._affinity_rethrow;
     value = restoreValue(value, info, restorer);
 
     // If a non-object value was thrown
@@ -157,7 +157,7 @@ export namespace Restorer {
   // Wraps thrown non-object values for relay to client. Prefixed with
   // underscores to prevent name conflict with application classes.
   export class __ThrownNonObject {
-    __affinity_rethrow = true;
+    _affinity_rethrow = true;
     thrownValue: any;
 
     constructor(thrownValue: any) {
