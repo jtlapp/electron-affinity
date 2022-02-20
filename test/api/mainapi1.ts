@@ -1,7 +1,5 @@
 import * as fs from "fs";
 
-// TODO: test ...args parameter
-
 import { RelayedError } from "../../src/main";
 import { MainApi } from "./mainapi";
 import {
@@ -44,12 +42,6 @@ export class MainApi1 extends MainApi {
 
   async sameMethodUniqueReply() {
     return "API 1";
-  }
-
-  async sendReceiveDate(date: Date) {
-    this._setRequestData(date);
-    // Also tests returning a provided object.
-    return date;
   }
 
   async throwFSError() {

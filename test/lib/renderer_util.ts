@@ -1,12 +1,5 @@
 import { Restorer } from "../../src/restorer";
 
-// TODO: delete this
-export function testEvent(eventName: string, testName: string) {
-  window.__ipc.on(eventName, (args) => {
-    testSend(testName, args);
-  });
-}
-
 export async function testInvoke(
   testName: string,
   testFunc: () => Promise<any>

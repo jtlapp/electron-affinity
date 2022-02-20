@@ -31,12 +31,31 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
-  // test(winTag + "send built-in type (win api1)", async () => {
-  //   collector.verifyTest(winTag + "built-in type (win api1)", (result) => {
-  //     const expectedDate = new Date("January 1, 2021");
-  //     assert.equal(result.requestDataTests, expectedDate);
-  //   });
-  // });
+  test(winTag + "send null (win api1)", async () => {
+    collector.verifyTest(winTag + "null (win api1)", (result) => {
+      assert.equal(result.requestDataTests, "null");
+    });
+  });
+
+  test(winTag + "send boolean (win api1)", async () => {
+    collector.verifyTest(winTag + "boolean (win api1)", (result) => {
+      assert.equal(result.requestDataTests, "true");
+    });
+  });
+
+  test(winTag + "send array (win api1)", async () => {
+    collector.verifyTest(winTag + "array (win api1)", (result) => {
+      const value = ["foo", "bar"];
+      assert.equal(result.requestDataTests, value.toString());
+    });
+  });
+
+  test(winTag + "send built-in type (win api1)", async () => {
+    collector.verifyTest(winTag + "built-in type (win api1)", (result) => {
+      const expectedDate = new Date("January 1, 2021");
+      assert.equal(result.requestDataTests, expectedDate.toString());
+    });
+  });
 
   // test(winTag + "send structured error (win api1)", async () => {
   //   collector.verifyTest(winTag + "structured error (win api1)", (result) => {

@@ -82,8 +82,33 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
-  test(winTag + "send/receive built-in class Date (api1)", async () => {
-    collector.verifyTest(winTag + "send/receive Date (api1)", (result) => {
+  test(winTag + "echo back null (api1)", async () => {
+    collector.verifyTest(winTag + "echo back null (api1)", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [null]);
+      assert.equal(result.replyData, "null");
+    });
+  });
+
+  test(winTag + "echo back boolean (api1)", async () => {
+    collector.verifyTest(winTag + "echo back boolean (api1)", (result) => {
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [true]);
+      assert.equal(result.replyData, "boolean:true");
+    });
+  });
+
+  test(winTag + "echo back single array (api1)", async () => {
+    collector.verifyTest(winTag + "echo back single array (api1)", (result) => {
+      const expectedResult = ["foo", "bar"];
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [expectedResult]);
+      assert.equal(result.replyData, "Array:" + JSON.stringify(expectedResult));
+    });
+  });
+
+  test(winTag + "echo back built-in class Date (api1)", async () => {
+    collector.verifyTest(winTag + "echo back Date (api1)", (result) => {
       const expectedDate = new Date("January 1, 2021");
       assert.equal(result.error, null);
       assert.deepEqual(result.requestData, [expectedDate]);

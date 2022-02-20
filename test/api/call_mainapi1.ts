@@ -32,8 +32,17 @@ export async function callMainApi1(winTag: string) {
   await testInvoke(winTag + "same method (api1)", () => {
     return mainApi1.sameMethodUniqueReply();
   });
-  await testInvoke(winTag + "send/receive Date (api1)", () => {
-    return mainApi1.sendReceiveDate(new Date("January 1, 2021"));
+  await testInvoke(winTag + "echo back null (api1)", () => {
+    return mainApi1.echoBack(null);
+  });
+  await testInvoke(winTag + "echo back boolean (api1)", () => {
+    return mainApi1.echoBack(true);
+  });
+  await testInvoke(winTag + "echo back single array (api1)", () => {
+    return mainApi1.echoBack(["foo", "bar"]);
+  });
+  await testInvoke(winTag + "echo back Date (api1)", () => {
+    return mainApi1.echoBack(new Date("January 1, 2021"));
   });
   await testInvoke(winTag + "structured error (api1)", () => {
     return mainApi1.throwFSError();

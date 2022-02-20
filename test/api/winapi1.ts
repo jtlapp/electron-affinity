@@ -33,10 +33,27 @@ export class WinApi1 {
     });
   }
 
-  // TODO
-  // sendDate(date: Date) {
-  //   testSend("win1 built-in type (win api1)", [date]);
-  // }
+  sendNull(value: any) {
+    testSend(this._winTag + "null (win api1)", () => [
+      value === null ? "null" : "nope",
+    ]);
+  }
+
+  sendTrue(value: any) {
+    testSend(this._winTag + "boolean (win api1)", () => [
+      value === true ? "true" : "nope",
+    ]);
+  }
+
+  sendDate(date: Date) {
+    testSend(this._winTag + "built-in type (win api1)", () => [
+      date.toString(),
+    ]);
+  }
+
+  sendArray(value: any) {
+    testSend(this._winTag + "array (win api1)", () => [value.toString()]);
+  }
 
   // sendFSError(err: Error) {
   //   testSend("win1 structured error (win api1)", [err]);

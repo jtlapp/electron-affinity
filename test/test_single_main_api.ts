@@ -10,8 +10,6 @@ import { MainApi1 } from "./api/mainapi1";
 import { restorer } from "./lib/shared_util";
 import verifyMainApi1 from "./api/verify_mainapi1";
 
-// TODO: test passing arrays
-
 const resultCollector = createResultCollector(restorer);
 const mainApi1 = new MainApi1(resultCollector);
 

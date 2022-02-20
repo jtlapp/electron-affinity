@@ -15,7 +15,13 @@ export async function callWindowApi1(window: BrowserWindow) {
 
   windowApi1.sendCatter(new Catter("this", "that"));
 
-  // windowApi1.sendReceiveDate(new Date("January 1, 2021"));
+  windowApi1.sendNull(null);
+
+  windowApi1.sendTrue(true);
+
+  windowApi1.sendArray(["foo", "bar"]);
+
+  windowApi1.sendDate(new Date("January 1, 2021"));
 
   // try {
   //   fs.readFileSync("__nonexistant_file__");

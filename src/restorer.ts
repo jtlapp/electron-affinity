@@ -24,7 +24,6 @@ export type RestorerFunction = (
   obj: Record<string, any>
 ) => any;
 
-// TODO: test sending and receiving nulls
 // TODO: test sending errors as arguments
 // TODO: test throwing non-Error objects
 // TODO: test without restorer
