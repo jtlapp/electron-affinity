@@ -101,6 +101,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                             return [4 /*yield*/, window.__ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _a.sent();
+                            // TODO: Can I undo tags on args here?
                             if (restorer_1.Restorer.wasThrownError(response)) {
                                 throw restorer_1.Restorer.restoreThrownError(response, restorer);
                             }

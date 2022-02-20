@@ -94,6 +94,7 @@ function _attemptBindMainApi<T>(
         toIpcName(apiClassName, methodName as string),
         args
       );
+      // TODO: Can I undo tags on args here?
       if (Restorer.wasThrownError(response)) {
         throw Restorer.restoreThrownError(response, restorer);
       }

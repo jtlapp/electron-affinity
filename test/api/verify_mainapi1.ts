@@ -82,14 +82,14 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
-  // test(winTag + "send/receive built-in class Date (api1)", async () => {
-  //   collector.verifyTest(winTag + "send/receive Date (api1)", (result) => {
-  //     const expectedDate = new Date("January 1, 2021");
-  //     assert.equal(result.error, null);
-  //     assert.equal(result.requestData, expectedDate);
-  //     assert.equal(result.replyData, expectedDate);
-  //   });
-  // });
+  test(winTag + "send/receive built-in class Date (api1)", async () => {
+    collector.verifyTest(winTag + "send/receive Date (api1)", (result) => {
+      const expectedDate = new Date("January 1, 2021");
+      assert.equal(result.error, null);
+      assert.deepEqual(result.requestData, [expectedDate]);
+      assert.equal(result.replyData, "Date:" + JSON.stringify(expectedDate));
+    });
+  });
 
   test(winTag + "invoke throwing structured error (api1)", async () => {
     collector.verifyTest(winTag + "structured error (api1)", (result) => {
