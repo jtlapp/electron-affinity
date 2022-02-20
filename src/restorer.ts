@@ -24,9 +24,6 @@ export type RestorerFunction = (
   obj: Record<string, any>
 ) => any;
 
-// TODO: test without restorer
-// TODO: test with different restorers
-
 // Structure describing how to restore an object IPC argument or return value.
 interface RestorationInfo {
   argIndex?: number; // if not return value, index of argument in args list

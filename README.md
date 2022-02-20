@@ -35,4 +35,8 @@ Other notes to include:
 
 To DO:
 
-- Decide on an appropriate default binding timeout
+- Decide on an appropriate default binding timeout.
+- Allow for exposing multiple bindings in one call.
+- Utility for getting in-place API errors.
+- test without restorer
+- test with different restorers
