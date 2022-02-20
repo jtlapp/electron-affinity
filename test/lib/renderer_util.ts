@@ -15,7 +15,16 @@ export async function testInvoke(
         if (replyData == "object" && returnValue.constructor.name != "Object") {
           replyData = returnValue.constructor.name;
         }
-        replyData += ":" + JSON.stringify(returnValue);
+        if (returnValue instanceof Error) {
+          // errors don't stringify
+          replyData += ":" + returnValue.message;
+          const code = (returnValue as any).code;
+          if (code !== undefined) {
+            replyData += ";" + code;
+          }
+        } else {
+          replyData += ":" + JSON.stringify(returnValue);
+        }
       }
     }
     window.__ipc.send("reply_data", replyData);

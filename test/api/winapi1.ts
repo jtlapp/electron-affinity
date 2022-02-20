@@ -55,11 +55,24 @@ export class WinApi1 {
     testSend(this._winTag + "array (win api1)", () => [value.toString()]);
   }
 
-  // sendFSError(err: Error) {
-  //   testSend("win1 structured error (win api1)", [err]);
-  // }
+  sendFSError(err: Error) {
+    testSend(this._winTag + "structured error (win api1)", () => {
+      const expectedMessage = "ENOENT: no such file or directory";
+      const results: string[] = [];
+      results.push((err instanceof Error).toString());
+      results.push(err.message.substring(0, expectedMessage.length));
+      // Electron strips the error code and stack.
+      return results;
+    });
+  }
 
-  // sendCustomError(err: Error) {
-  //   testSend("win1 custom error (win api1)", [err]);
-  // }
+  sendCustomError(err: Error) {
+    testSend(this._winTag + "custom error (win api1)", () => {
+      const results: string[] = [];
+      results.push((err instanceof Error).toString());
+      results.push(err.message);
+      // Electron strips the error code and stack.
+      return results;
+    });
+  }
 }

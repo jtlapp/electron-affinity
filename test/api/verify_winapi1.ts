@@ -57,27 +57,20 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
-  // test(winTag + "send structured error (win api1)", async () => {
-  //   collector.verifyTest(winTag + "structured error (win api1)", (result) => {
-  //     const error = result.requestDataTests;
-  //     assert.ok(error instanceof Error);
-  //     assert.ok(typeof error.message == "string");
-  //     assert.equal((error as any).code, "ENOENT");
-  //     assert.equal((error as any).syscall, "open");
-  //     assert.ok((error as any).stack.includes("in main process"));
-  //   });
-  // });
+  test(winTag + "send structured error (win api1)", async () => {
+    collector.verifyTest(winTag + "structured error (win api1)", (result) => {
+      // Electron strips the error code and stack.
+      assert.equal(
+        result.requestDataTests,
+        "true;ENOENT: no such file or directory"
+      );
+    });
+  });
 
-  // test(winTag + "send custom error (win api1)", async () => {
-  //   collector.verifyTest(winTag + "custom error (win api1)", (result) => {
-  //     const error = result.requestDataTests;
-  //     assert.ok(error instanceof CustomError);
-  //     assert.equal(error.message, "bad thing");
-  //     assert.equal(error.code, 99);
-  //     assert.equal(
-  //       result.error.stack,
-  //       "CustomError: bad thing\n\tin main process"
-  //     );
-  //   });
-  // });
+  test(winTag + "send custom error (win api1)", async () => {
+    collector.verifyTest(winTag + "custom error (win api1)", (result) => {
+      // Electron strips the error code and stack.
+      assert.equal(result.requestDataTests, "true;bad thing");
+    });
+  });
 };

@@ -116,6 +116,30 @@ export default (winTag: string, collector: ResultCollector) => {
     });
   });
 
+  test(winTag + "echo back plain error (api1)", async () => {
+    collector.verifyTest(winTag + "echo back plain error (api1)", (result) => {
+      const expectedResult = { message: "plain error" };
+      assert.equal(result.error, null);
+      const arg = result.requestData[0];
+      assert.ok(arg instanceof Error);
+      assert.equal(arg.message, [expectedResult.message]);
+      // Electron strips the stack.
+      assert.equal(result.replyData, "Error:" + expectedResult.message);
+    });
+  });
+
+  test(winTag + "echo back custom error (api1)", async () => {
+    collector.verifyTest(winTag + "echo back custom error (api1)", (result) => {
+      const expectedResult = { message: "bad thing", code: 99 };
+      assert.equal(result.error, null);
+      const arg = result.requestData[0];
+      assert.ok(arg instanceof CustomError);
+      assert.equal(arg.message, expectedResult.message);
+      // Electron strips the code and stack.
+      assert.equal(result.replyData, "CustomError:" + expectedResult.message);
+    });
+  });
+
   test(winTag + "invoke throwing structured error (api1)", async () => {
     collector.verifyTest(winTag + "structured error (api1)", (result) => {
       const error = result.error as any;

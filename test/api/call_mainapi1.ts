@@ -1,6 +1,6 @@
 import { bindMainApi } from "../../src/window";
 import type { MainApi1 } from "../api/mainapi1";
-import { Catter, restorer } from "../lib/shared_util";
+import { Catter, CustomError, restorer } from "../lib/shared_util";
 import { testInvoke } from "../lib/renderer_util";
 
 export async function callMainApi1(winTag: string) {
@@ -43,6 +43,12 @@ export async function callMainApi1(winTag: string) {
   });
   await testInvoke(winTag + "echo back Date (api1)", () => {
     return mainApi1.echoBack(new Date("January 1, 2021"));
+  });
+  await testInvoke(winTag + "echo back plain error (api1)", () => {
+    return mainApi1.echoBack(new Error("plain error"));
+  });
+  await testInvoke(winTag + "echo back custom error (api1)", () => {
+    return mainApi1.echoBack(new CustomError("bad thing", 99));
   });
   await testInvoke(winTag + "structured error (api1)", () => {
     return mainApi1.throwFSError();

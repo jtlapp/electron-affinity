@@ -21,9 +21,4 @@ export class WinApi2 {
       return results;
     });
   }
-
-  // TODO
-  // sendFSError(err: Error) {
-  //   testSend("win1 structured error (win api1)", [err]);
-  // }
 }
