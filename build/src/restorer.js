@@ -100,7 +100,7 @@ var Restorer;
         }
         // Replace any newly generated stack.
         if (value instanceof Error) {
-            value.stack = value.constructor.name + ": " + value.message + "\n\tin main process";
+            value.stack = "".concat(value.constructor.name, ": ").concat(value.message, "\n\tin main process");
         }
         return value;
     }

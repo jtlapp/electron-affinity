@@ -9,19 +9,28 @@ export class WinApi1 {
   }
 
   sendNoParams() {
-    testSend(this._winTag + "no params (win api1)", undefined);
+    testSend(this._winTag + "no params (win api1)", () => [""]);
   }
 
   sendStringSameMethod(s: string) {
-    testSend(this._winTag + "same method (win api1)", [s]);
+    testSend(this._winTag + "same method (win api1)", () => [s]);
   }
 
   sendCoordinates(x: number, y: number) {
-    testSend(this._winTag + "multi param (win api1)", [x, y]);
+    testSend(this._winTag + "multi param (win api1)", () => [
+      x.toString(),
+      y.toString(),
+    ]);
   }
 
   sendCatter(catter: Catter) {
-    testSend(this._winTag + "send catter (win api1)", [catter]);
+    testSend(this._winTag + "send catter (win api1)", () => {
+      const results: string[] = [];
+      results.push((catter instanceof Catter).toString());
+      results.push(catter.s1);
+      results.push(catter.s2);
+      return results;
+    });
   }
 
   // TODO

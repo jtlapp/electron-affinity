@@ -1,6 +1,5 @@
 import * as assert from "assert";
 
-import { Catter } from "../lib/shared_util";
 import { ResultCollector } from "../lib/main_util";
 
 const test = it;
@@ -10,28 +9,25 @@ export default (winTag: string, collector: ResultCollector) => {
 
   test(winTag + "send no parameters (api1)", async () => {
     collector.verifyTest(winTag + "no params (win api1)", (result) => {
-      assert.deepEqual(result.requestData, undefined);
+      assert.equal(result.requestData, "");
     });
   });
 
   test(winTag + "send same method (win api1)", async () => {
     collector.verifyTest(winTag + "same method (win api1)", (result) => {
-      assert.deepEqual(result.requestData, ["X"]);
+      assert.equal(result.requestData, "X");
     });
   });
 
   test(winTag + "send multiple params (win api1)", async () => {
     collector.verifyTest(winTag + "multi param (win api1)", (result) => {
-      assert.deepEqual(result.requestData, [5, 10]);
+      assert.equal(result.requestData, "5;10");
     });
   });
 
   test(winTag + "send restored custom class (win api1)", async () => {
     collector.verifyTest(winTag + "send catter (win api1)", (result) => {
-      const catter = result.requestData[0];
-      assert.ok(catter instanceof Catter);
-      assert.equal(catter.s1, "this");
-      assert.equal(catter.s2, "that");
+      assert.equal(result.requestData, "true;this;that");
     });
   });
 

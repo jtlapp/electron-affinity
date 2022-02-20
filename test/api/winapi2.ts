@@ -9,11 +9,17 @@ export class WinApi2 {
   }
 
   sendStringSameMethod(s: string) {
-    testSend(this._winTag + "same method (win api2)", [s]);
+    testSend(this._winTag + "same method (win api2)", () => [s]);
   }
 
   sendCatter2(catter: Catter) {
-    testSend(this._winTag + "send catter (win api2)", [catter]);
+    testSend(this._winTag + "send catter (win api2)", () => {
+      const results: string[] = [];
+      results.push((catter instanceof Catter).toString());
+      results.push(catter.s1);
+      results.push(catter.s2);
+      return results;
+    });
   }
 
   // TODO

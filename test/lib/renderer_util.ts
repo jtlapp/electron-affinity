@@ -32,12 +32,10 @@ export async function testInvoke(
   }
 }
 
-export function testSend(testName: string, args: any) {
+export function testSend(testName: string, testResultsFunc: () => string[]) {
   window.__ipc.send("started_test", testName);
   try {
-    Restorer.makeArgsRestorable(args);
-    // TODO: I think I need to change request_data to a string here
-    window.__ipc.send("request_data", args);
+    window.__ipc.send("request_data_tests", testResultsFunc().join(";"));
     window.__ipc.send("completed_test", null);
   } catch (err: any) {
     window.__ipc.send("completed_test", Restorer.makeRethrownReturnValue(err));

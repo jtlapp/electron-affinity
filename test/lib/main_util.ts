@@ -127,10 +127,8 @@ export function createResultCollector(restorer: RestorerFunction) {
   ipcMain.on("started_test", (_event, testName: string) => {
     resultCollector.currentResult.testName = testName;
   });
-  ipcMain.on("request_data", (_event, args: any) => {
-    // TODO: should I be checking strings here?
-    Restorer.restoreArgs(args, restorer);
-    resultCollector.currentResult.requestData = args;
+  ipcMain.on("request_data_tests", (_event, testResults: string) => {
+    resultCollector.currentResult.requestData = testResults;
   });
   ipcMain.on("reply_data", (_event, data: any) => {
     resultCollector.currentResult.replyData = data;

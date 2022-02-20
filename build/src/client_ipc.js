@@ -70,7 +70,7 @@ function bindMainApi(apiClassName, restorer) {
             // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
-            }, "Timed out waiting to bind main API '" + apiClassName + "'");
+            }, "Timed out waiting to bind main API '".concat(apiClassName, "'"));
         }
     });
 }
