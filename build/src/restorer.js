@@ -48,14 +48,14 @@ var Restorer;
             return [thrown, Restorer.makeRestorationInfo(thrown)];
         }
         var info = Restorer.makeRestorationInfo(thrown);
-        var returnedError = Object.assign({ __affinity_thrown: true }, thrown instanceof Error ? { message: thrown.message } : {}, thrown);
+        var returnedError = Object.assign({ __affinity_rethrow: true }, thrown instanceof Error ? { message: thrown.message } : {}, thrown);
         delete returnedError.stack;
         return [returnedError, info];
     }
     Restorer.makeRethrownReturnValue = makeRethrownReturnValue;
     // Determines whether a returned value is actually a thrown value.
     function wasThrownValue(value) {
-        return value != undefined && value.__affinity_thrown;
+        return value != undefined && value.__affinity_rethrow;
     }
     Restorer.wasThrownValue = wasThrownValue;
     // Restores argument list using provided restorer function.
@@ -86,7 +86,7 @@ var Restorer;
     Restorer.restoreValue = restoreValue;
     // Restores a value that was thrown for re-throwing after being returned.
     function restoreThrownValue(value, info, restorer) {
-        delete value.__affinity_thrown;
+        delete value.__affinity_rethrow;
         value = restoreValue(value, info, restorer);
         // If a non-object value was thrown
         if (value instanceof __ThrownNonObject) {
@@ -109,7 +109,7 @@ var Restorer;
     // underscores to prevent name conflict with application classes.
     var __ThrownNonObject = /** @class */ (function () {
         function __ThrownNonObject(thrownValue) {
-            this.__affinity_thrown = true;
+            this.__affinity_rethrow = true;
             this.thrownValue = thrownValue;
         }
         return __ThrownNonObject;

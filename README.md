@@ -28,6 +28,5 @@ Other notes to include:
 - window.apis.apiName.method() may be preferrable to window.apiName.method() because upon typing "window." into VSCode, all available window properties are shown, whereas upon typing "window.apis.", only available APIs are shown.
 - RelayedError is not an instance of Error, so don't extend it.
 - Must take care to bind before all usage, because not static.
-- When sending objects that are subsequently referenced on the sending side, the object may contain additional properties that may interfere with serialization of that object or deep copies or comparisons. To avoid this, clone objects prior to sending. (TODO: Can I prevent this by removing the tag after sending? It seems that I can for main and window arguments but not for main reply.)
 - // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
   Object.setPrototypeOf(this, CustomError.prototype);
