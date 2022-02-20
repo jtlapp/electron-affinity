@@ -12,7 +12,7 @@ export const API_RESPONSE_IPC = "_affinity_api_response";
 const _RETRY_MILLIS = 50;
 
 // Configurable timeout attempting to bind an API.
-let _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
+let _bindingTimeoutMillis = 4000;
 
 /**
  * Type to which a bound API of class T conforms. It only exposes the

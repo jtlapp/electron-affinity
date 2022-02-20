@@ -173,7 +173,7 @@ export default (winTag: string, collector: ResultCollector) => {
       const error = result.error as any;
       assert.equal(error, "error string");
       assert.equal(typeof error, "string");
-      assert.equal((error as any).message, undefined);
+      assert.equal(error.message, undefined);
       assert.equal(result.requestData, undefined);
       assert.equal(result.replyData, "undefined");
     });

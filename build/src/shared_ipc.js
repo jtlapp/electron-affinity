@@ -11,7 +11,7 @@ exports.API_RESPONSE_IPC = "_affinity_api_response";
 // Period between attempts to bind an API.
 var _RETRY_MILLIS = 50;
 // Configurable timeout attempting to bind an API.
-var _bindingTimeoutMillis = 4000; // TODO: set to the desired timeout
+var _bindingTimeoutMillis = 4000;
 /**
  * Sets the timeout for binding to an API.
  */
