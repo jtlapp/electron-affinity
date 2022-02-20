@@ -9,13 +9,13 @@ export default (winTag: string, collector: ResultCollector) => {
 
   test(winTag + "send same method (win api2)", async () => {
     collector.verifyTest(winTag + "same method (win api2)", (result) => {
-      assert.equal(result.requestData, "Y");
+      assert.equal(result.requestDataTests, "Y");
     });
   });
 
   test(winTag + "send restored custom class (win api2)", async () => {
     collector.verifyTest(winTag + "send catter (win api2)", (result) => {
-      assert.equal(result.requestData, "true;foo;bar");
+      assert.equal(result.requestDataTests, "true;foo;bar");
     });
   });
 };

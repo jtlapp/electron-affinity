@@ -26,6 +26,7 @@ export async function createWindow(): Promise<BrowserWindow> {
 export class Result {
   testName = "unknown";
   requestData: any;
+  requestDataTests = "*missing*";
   replyData = "undefined";
   error: any = null;
   verified = false;
@@ -128,7 +129,7 @@ export function createResultCollector(restorer: RestorerFunction) {
     resultCollector.currentResult.testName = testName;
   });
   ipcMain.on("request_data_tests", (_event, testResults: string) => {
-    resultCollector.currentResult.requestData = testResults;
+    resultCollector.currentResult.requestDataTests = testResults;
   });
   ipcMain.on("reply_data", (_event, data: any) => {
     resultCollector.currentResult.replyData = data;
