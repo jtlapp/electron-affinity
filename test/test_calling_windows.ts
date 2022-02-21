@@ -8,8 +8,10 @@ import { createWindow, createResultCollector } from "./lib/main_util";
 import { restorer } from "./lib/shared_util";
 import { callWindowApi1 } from "./api/call_winapi1";
 import { callWindowApi2 } from "./api/call_winapi2";
+import { callWindowApi3 } from "./api/call_winapi3";
 import verifyWindowApi1 from "./api/verify_winapi1";
 import verifyWindowApi2 from "./api/verify_winapi2";
+import verifyWindowApi3 from "./api/verify_winapi3";
 
 const resultCollector = createResultCollector(restorer);
 
@@ -22,11 +24,11 @@ describe("main calling the same APIs in two windows", () => {
     window2 = await createWindow();
 
     resultCollector.runScripFiletInWindow(window1, "win1_winapi1+2");
-    resultCollector.runScripFiletInWindow(window2, "win2_winapi1+2");
+    resultCollector.runScripFiletInWindow(window2, "win2_winapi1+3");
     await callWindowApi1(window1);
     await callWindowApi2(window1);
     await callWindowApi1(window2);
-    await callWindowApi2(window2);
+    await callWindowApi3(window2);
     resultCollector.completedAll();
     await resultCollector.waitForResults();
   });
@@ -34,7 +36,7 @@ describe("main calling the same APIs in two windows", () => {
   verifyWindowApi1("win1", resultCollector);
   verifyWindowApi2("win1", resultCollector);
   verifyWindowApi1("win2", resultCollector);
-  verifyWindowApi2("win2", resultCollector);
+  verifyWindowApi3("win2", resultCollector);
 
   after(() => {
     if (window1) window1.destroy();

@@ -8,15 +8,18 @@ import { exposeMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/mainapi1";
 import { MainApi2 } from "./api/mainapi2";
+import { MainApi4 } from "./api/mainapi4";
 import { restorer } from "./lib/shared_util";
 import verifyMainApi1 from "./api/verify_mainapi1";
 import verifyMainApi2 from "./api/verify_mainapi2";
+import verifyMainApi4 from "./api/verify_mainapi4";
 
 const resultCollector = createResultCollector(restorer);
 
 describe("two windows calling the same main APIs", () => {
   const mainApi1 = new MainApi1(resultCollector);
   const mainApi2 = new MainApi2(resultCollector);
+  const mainApi4 = new MainApi4(resultCollector);
   let window1: BrowserWindow;
   let window2: BrowserWindow;
 
@@ -26,7 +29,7 @@ describe("two windows calling the same main APIs", () => {
     exposeMainApi(mainApi2, restorer);
     window2 = await createWindow();
     exposeMainApi(mainApi1, restorer);
-    exposeMainApi(mainApi2, restorer);
+    exposeMainApi(mainApi4); // no restorer
   });
 
   describe("window 1 invoking main", () => {
@@ -46,12 +49,12 @@ describe("two windows calling the same main APIs", () => {
 
   describe("window 2 invoking main", () => {
     before(async () => {
-      resultCollector.runScripFiletInWindow(window2, "win2_mainapi1+2");
+      resultCollector.runScripFiletInWindow(window2, "win2_mainapi1+4");
       await resultCollector.waitForResults();
     });
 
     verifyMainApi1("win2", resultCollector);
-    verifyMainApi2("win2", resultCollector);
+    verifyMainApi4("win2", resultCollector);
 
     after(() => {
       resultCollector.verifyAllDone();

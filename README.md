@@ -32,6 +32,7 @@ Other notes to include:
 - // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
   Object.setPrototypeOf(this, CustomError.prototype);
 - Electron strips everything but the error message from errors sent to or received from either main or renderer, and I'm not adding them back in.
+- Electron auto-restores some classes (e.g. Date)
 
 To DO:
 
