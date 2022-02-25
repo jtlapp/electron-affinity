@@ -9,7 +9,7 @@ const mainApi3 = new MainApi3(resultCollector);
 it("waits for main to crash on API error", async () => {
   const window1 = await createWindow();
   exposeMainApi(mainApi3, restorer);
-  await resultCollector.runScripFiletInWindow(window1, "win1_mainapi3a");
+  await resultCollector.runScripFiletInWindow(window1, "win1_mainapi3b");
   await resultCollector.waitForResults();
   if (window1) window1.destroy();
 });

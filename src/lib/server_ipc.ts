@@ -73,6 +73,9 @@ export function exposeMainApi<T>(
         Restorer.restoreArgs(args, restorer);
         //await before returning to keep Electron from writing errors
         const returnValue = await method.bind(mainApi)(...args);
+        if (returnValue instanceof RelayedError) {
+          throw new Error("RelayedError must be thrown, not returned");
+        }
         return [returnValue, Restorer.makeRestorationInfo(returnValue)];
       } catch (err: any) {
         if (err instanceof RelayedError) {

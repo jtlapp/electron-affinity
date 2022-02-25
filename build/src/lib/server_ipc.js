@@ -83,6 +83,9 @@ function exposeMainApi(mainApi, restorer) {
                         return [4 /*yield*/, method.bind(mainApi).apply(void 0, args)];
                     case 1:
                         returnValue = _a.sent();
+                        if (returnValue instanceof RelayedError) {
+                            throw new Error("RelayedError must be thrown, not returned");
+                        }
                         return [2 /*return*/, [returnValue, restorer_1.Restorer.makeRestorationInfo(returnValue)]];
                     case 2:
                         err_1 = _a.sent();

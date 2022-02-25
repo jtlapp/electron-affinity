@@ -41,7 +41,11 @@ describe("when main should crash with an error", () => {
   });
 
   test("main throws when API throws an non-relayed error", (done) => {
-    verifyCrash("main_nonrelayed_error", "Expected crash", done);
+    verifyCrash("main_nonrelayed_error", "API exception", done);
+  });
+
+  test("main throws when API returns a relayed error", (done) => {
+    verifyCrash("main_return_relayed", "RelayedError must be thrown", done);
   });
 });
 
@@ -68,8 +72,10 @@ function verifyCrash(
       done();
     } else if (err) {
       done(Error(err + "..." + stdout));
+    } else if (stderr.includes("Error")) {
+      assert.fail(stderr);
     } else {
-      assert.fail("Child process unexpectedly completed..." + stdout);
+      assert.fail("Child process unexpectedly completed... " + stdout);
     }
   });
 }
