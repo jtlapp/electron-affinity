@@ -40,7 +40,7 @@ Each main API method can take any number of parameters, including none, but must
 Here is an example defining an API called `DataApi`:
 
 ```ts
-import { RelayedError } from "electron-affinity";
+import { RelayedError } from "electron-affinity/main";
 
 class DataApi {
   private _dataSource: DataSource;
@@ -88,7 +88,7 @@ Here are a few things to note about this API:
 Main makes this API available to windows by calling `exposeMainApi` before the windows attempt to use the API:
 
 ```ts
-import { exposeMainApi } from "electron-affinity";
+import { exposeMainApi } from "electron-affinity/main";
 
 exposeMainApi(new DataApi(), restorer);
 ```
@@ -98,7 +98,7 @@ exposeMainApi(new DataApi(), restorer);
 A window gains access to the API as follows:
 
 ```ts
-import { bindMainApi } from "electron-affinity";
+import { bindMainApi } from "electron-affinity/window";
 import type { DataApi } from "path/to/data_api";
 
 async function loadWeatherData() {
