@@ -4,10 +4,10 @@ IPC via simple method calls in Electron
 
 ## Introduction
 
-Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It has the following features:
+Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC. It has the following features:
 
 - IPC services are merely methods on a vanilla class, callable both locally and remotely.
-- Group IPC methods into different classes to organized them into named APIs.
+- Group IPC methods into different classes to organize them into named APIs.
 - Make an API remotely available by handing an instance of its class to the library function that exposes it.
 - Remotely bind an API by passing its name to the library function that binds it.
 - Change the TypeScript signature of an IPC method to instantly change the remotely available signature.
@@ -43,7 +43,7 @@ Here is an example defining an API called `DataApi`:
 import { RelayedError } from "electron-affinity";
 
 class DataApi {
-  private _dateSource: DataSource;
+  private _dataSource: DataSource;
   private _dataset: Dataset | null = null;
 
   constructor(dataSource: DataSource) {
@@ -70,7 +70,7 @@ class DataApi {
   }
 
   private _checkForError() {
-    const err = this._dateSource.getError();
+    const err: DataError | null = this._dataSource.getError();
     if (err) throw new RelayedError(err);
   }
 }
@@ -95,31 +95,64 @@ exposeMainApi(new DataApi(), restorer);
 
 `restorer` is an optional function parameter that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
 
-A window gains acces to the API as follows:
+A window gains access to the API as follows:
 
 ```ts
 import { bindMainApi } from "electron-affinity";
-import type { DataApi } from "data_api";
+import type { DataApi } from "path/to/data_api";
 
 async function loadWeatherData() {
   const dataApi = await bindMainApi<DataApi>("DataApi");
 
   dataApi.openDataset("weather-data", 500);
-  let data = await dataApi.readData();
-  while (data !== null) {
-    /* do something with the data */
-    data = await dataApi.readData();
+  try {
+    let data = await dataApi.readData();
+    while (data !== null) {
+      /* do something with the data */
+      data = await dataApi.readData();
+    }
+  } catch (err) {
+    if (err instanceof DataError) {
+      /* handle relayed error */
+    }
   }
+  dataApi.closeDataset();
 }
 ```
 
-TBD Notes:
+Note the following about calling the API:
 
-- Calls method on dataApi as if method were local.
-- Retrieves the type of `DataApi` rather than the `DataApi` object, which keeps the renderer from pulling into objects that only function in main.
-- Passes the `DataApi` type as a generic parameter AND the string `DataApi` as the first argument. The names must agree.
+- The code imports the _type_ `DataApi` rather than the object `DataApi`. This keeps the renderer from pulling in main-side code.
+- `bindMainApi()` takes both the type parameter `DataApi` and the string name of the API `"DataApi"`. The names must agree.
+- The code calls an API method as if the method were local to the window.
+- There is no need to wait on APIs, particularly those that technically didn't need to be declared asynchronous (but were to satisfy Electron Affinity).
+
+Finally, include the following line in your `preload.js`:
+
+```ts
+import "electron-ipc-methods/preload";
+```
+
+Alternatively, preload directly from `node_modules` using the appropriate path:
+
+```ts
+const window = new BrowserWindow({
+  webPreferences: {
+    preload: path.join(
+      __dirname,
+      "../node_modules/electron-affinity/preload.js"
+    ),
+    nodeIntegration: false,
+    contextIsolation: true,
+  },
+});
+```
+
+### Window APIs
 
 _WORK IN PROGRESS_
+
+### Restoring Classes
 
 ## TBD: Notes on problems addressed:
 
