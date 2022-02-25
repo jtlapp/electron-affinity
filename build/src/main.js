@@ -11,10 +11,10 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 }));
 exports.__esModule = true;
 exports.setIpcBindingTimeout = exports.RelayedError = exports.bindWindowApi = exports.exposeMainApi = void 0;
-var server_ipc_1 = require("./server_ipc");
+var server_ipc_1 = require("./lib/server_ipc");
 __createBinding(exports, server_ipc_1, "exposeMainApi");
 __createBinding(exports, server_ipc_1, "bindWindowApi");
 __createBinding(exports, server_ipc_1, "RelayedError");
-var shared_ipc_1 = require("./shared_ipc");
+var shared_ipc_1 = require("./lib/shared_ipc");
 __createBinding(exports, shared_ipc_1, "setIpcBindingTimeout");
 //# sourceMappingURL=main.js.map

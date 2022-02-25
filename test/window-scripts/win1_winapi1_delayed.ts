@@ -1,4 +1,4 @@
-import { exposeWindowApi } from "../../src/client_ipc";
+import { exposeWindowApi } from "../../src/window";
 import { ACCEPTABLE_DELAY_MILLIS } from "../lib/config";
 import { WinApi1 } from "../api/winapi1";
 import { restorer } from "../lib/shared_util";

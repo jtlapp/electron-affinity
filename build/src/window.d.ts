@@ -1,9 +1,9 @@
 /**
  * Function and types available to windows in Electron.
  */
-export { ElectronWindowApi, exposeWindowApi, bindMainApi } from "./client_ipc";
-export { setIpcBindingTimeout } from "./shared_ipc";
-export { RestorableClass, RestorerFunction } from "./restorer";
+export { ElectronWindowApi, exposeWindowApi, bindMainApi, } from "./lib/client_ipc";
+export { setIpcBindingTimeout } from "./lib/shared_ipc";
+export { RestorableClass, RestorerFunction } from "./lib/restorer";
 /**
  * Type to which an asynchronous function T resolve. Used for extracting
  * the resolved return type of a main API method.

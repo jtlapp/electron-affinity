@@ -7,6 +7,6 @@ export {
   exposeMainApi,
   bindWindowApi,
   RelayedError,
-} from "./server_ipc";
-export { setIpcBindingTimeout } from "./shared_ipc";
-export { RestorableClass, RestorerFunction } from "./restorer";
+} from "./lib/server_ipc";
+export { setIpcBindingTimeout } from "./lib/shared_ipc";
+export { RestorableClass, RestorerFunction } from "./lib/restorer";

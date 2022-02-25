@@ -1,4 +1,4 @@
-import { exposeWindowApi } from "../../src/client_ipc";
+import { exposeWindowApi } from "../../src/window";
 import { WinApi1 } from "../api/winapi1";
 import { WinApi3 } from "../api/winapi3";
 import { restorer } from "../lib/shared_util";

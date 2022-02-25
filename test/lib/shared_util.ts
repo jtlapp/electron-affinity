@@ -1,4 +1,4 @@
-import type { RestorableClass } from "../../src/restorer";
+import type { RestorableClass } from "../../src/lib/restorer";
 
 export class Catter {
   s1: string;
