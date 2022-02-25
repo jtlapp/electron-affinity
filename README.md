@@ -37,12 +37,12 @@ A main API is an instance of a class defined in main. All methods of this class,
 
 Each main API method can take any number of parameters, including none, but must return a promise. The promise need not resolve to a value.
 
-Here is an example defining an API called `DataApi`:
+Here is an example main API called `DataApi`:
 
 ```ts
 import { RelayedError } from "electron-affinity/main";
 
-class DataApi {
+export class DataApi {
   private _dataSource: DataSource;
   private _dataset: Dataset | null = null;
 
@@ -78,11 +78,10 @@ class DataApi {
 
 Here are a few things to note about this API:
 
-- Nothing about this API definition ties it to Electron or IPC.
-- All methods return promises even when they don't need to. This allows all IPC calls to main to use `ipcRenderer.invoke`, keeping Electron Affinity simple.
-- Even though `writeData` received `data` via IPC, it exists as an instance of `Data` with the `format` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the '\_' prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError` from being exposed as IPC methods.
-- If the data source encounters an error, `_checkForError` returns the error to the window to be thrown from within the renderer.
+- All methods return promises even when they don't need to. This allows all IPC calls to main to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
+- Even though `writeData()` received `data` via IPC, it exists as an instance of `Data` with the `format()` method available.
+- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the '\_' prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
+- If the data source encounters an error, `_checkForError()` returns the error (sans stack trace) to the window to be thrown from within the renderer.
 - Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within main.
 
 Main makes this API available to windows by calling `exposeMainApi` before the windows attempt to use the API:
@@ -90,12 +89,12 @@ Main makes this API available to windows by calling `exposeMainApi` before the w
 ```ts
 import { exposeMainApi } from "electron-affinity/main";
 
-exposeMainApi(new DataApi(), restorer);
+exposeMainApi(new DataApi(dataSource), restorer);
 ```
 
-`restorer` is an optional function parameter that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
+`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
 
-A window gains access to the API as follows:
+A window uses the API as follows:
 
 ```ts
 import { bindMainApi } from "electron-affinity/window";
@@ -122,8 +121,9 @@ async function loadWeatherData() {
 
 Note the following about calling the API:
 
-- The code imports the _type_ `DataApi` rather than the object `DataApi`. This keeps the renderer from pulling in main-side code.
+- The code imports the _type_ `DataApi` rather than the class `DataApi`. This keeps the renderer from pulling in main-side code.
 - `bindMainApi()` takes both the type parameter `DataApi` and the string name of the API `"DataApi"`. The names must agree.
+- Main must have previously exposed the API. The window will not wait for main to subsequently expose it.
 - The code calls an API method as if the method were local to the window.
 - There is no need to wait on APIs, particularly those that technically didn't need to be declared asynchronous (but were to satisfy Electron Affinity).
 
@@ -150,9 +150,111 @@ const window = new BrowserWindow({
 
 ### Window APIs
 
-_WORK IN PROGRESS_
+Window APIs are analogous to main APIs, except that they are defined in the renderer, are synchronous, and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore ('\_') or pound ('#'). As with main APIs, they can take any number of parameters, including none.
+
+Here is an example window API called `StatusApi`:
+
+```ts
+export class StatusApi {
+  private _receiver: StatusReceiver;
+
+  constructor(receiver: StatusReceiver) {
+    this._receiver = receiver;
+  }
+
+  progressUpdate(percentCompleted: number) {
+    this._receiver.updateStatusBar(percentCompleted);
+  }
+
+  systemReport(report: SystemReport) {
+    this._receiver.updateMessage(report.summarize());
+  }
+}
+```
+
+Note the following about this API:
+
+- The methods are synchronous and return no values; any values that window API methods return are ignored. They are implemented as `window.webContents.send()` calls.
+- Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
+- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the '\_' prefix that prevents members `_receiver` from being exposed as an IPC method.
+- Exceptions thrown by any of these methods do not get returned to main.
+
+The window makes the API available to main by calling `exposeWindowApi`:
+
+```ts
+import { exposeWindowApi } from "electron-affinity/window";
+
+exposeWindowApi(new StatusApi(receiver), restorer);
+```
+
+`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
+
+Main uses the API as follows:
+
+```ts
+import { bindWindowApi } from "electron-affinity/main";
+import type { StatusApi } from "path/to/status_api";
+
+async function doWork() {
+  const statusApi = await bindWindowApi<StatusApi>(window, "StatusApi");
+
+  /* ... */
+  statusApi.progressUpdate(percentCompleted);
+  /* ... */
+  statusApi.systemReport(report);
+  /* ... */
+}
+```
+
+Note the following about calling the API:
+
+- The code imports the _type_ `StatusApi` rather than the class `StatusApi`. This keeps main from pulling in window-side code.
+- `bindWindowApi()` takes both the type parameter `StatusApi` and the string name of the API `"StatusApi"`. The names must agree.
+- `bindWindowApi()` takes a reference to the `BrowserWindow` to which the API is bound. Each API is bound to a single window and messages only that window.
+- The code calls an API method as if the method were local to the window.
+- Main does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
+
+### Exposing and Binding Multiple APIs
+
+There is no limitation on the number of APIs that main and windows can expose or bind to. Expose or bind each API in a separate call.
+
+Here is an example of main exposing and binding multiple APIs:
+
+```ts
+import { exposeMainApi, bindWindowApi } from "electron-affinity/main";
+import type { StatusApi } from "path/to/status_api";
+import type { MessageApi } from "path/to/message_api";
+
+exposeMainApi(new DataApi(dataSource), restorer);
+exposeMainApi(new UploadApi()); // no restorer requried
+
+async function doWork() {
+  const statusApi = await bindWindowApi<StatusApi>(window, "StatusApi");
+  const MessageApi = await bindWindowApi<MessageApi>(window, "MessageApi");
+}
+```
+
+Here is an example of a window exposing and binding multiple APIs:
+
+```ts
+import { exposeWindowApi, bindMainApi } from "electron-affinity/window";
+import type { DataApi } from "path/to/data_api";
+import type { UploadApi } from "path/to/upload_api";
+
+exposeWindowApi(new StatusApi(receiver), restorer);
+exposeWindowApi(new MessageApi()); // no restorer requried
+
+async function doWork() {
+  const dataApi = await bindMainApi<DataApi>("DataApi");
+  const uploadApi = await bindMainApi<UploadApi>("UploadApi");
+}
+```
 
 ### Restoring Classes
+
+### Managing Timeout
+
+_WORK IN PROGRESS_
 
 ## TBD: Notes on problems addressed:
 
@@ -166,7 +268,7 @@ _WORK IN PROGRESS_
 - Causing thrown-errors to be passed on to the client.
 - Distinguishing between coding errors and client/user errors.
 
-## TBD: Other notes to include:
+## TBD: Other notes to include / caveats
 
 - Drawback of having to ensure that IPC only used after async initialization.
 - window.apis.apiName.method() may be preferrable to window.apiName.method() because upon typing "window." into VSCode, all available window properties are shown, whereas upon typing "window.apis.", only available APIs are shown.
@@ -189,3 +291,12 @@ _WORK IN PROGRESS_
 
 - Decide on an appropriate default binding timeout.
 - Utility for getting in-place API type errors.
+- Explain how to organize main and window API references.
+
+## Reference
+
+...
+
+```
+
+```
