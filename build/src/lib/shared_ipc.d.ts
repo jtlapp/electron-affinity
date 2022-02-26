@@ -11,6 +11,11 @@ export declare type ApiBinding<T> = {
     [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
 /**
+ * Type to which an asynchronous function T resolve. Used for extracting
+ * the resolved return type of a main API method.
+ */
+export declare type AwaitedType<T> = T extends (...args: any[]) => Promise<infer R> ? R : never;
+/**
  * Sets the timeout for binding to an API.
  */
 export declare function setIpcBindingTimeout(millis: number): void;
