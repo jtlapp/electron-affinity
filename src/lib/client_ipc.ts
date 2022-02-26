@@ -138,6 +138,16 @@ export type ElectronWindowApi<T> = {
 };
 
 /**
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi<T>`.
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see MainApiBinding
+ */
+export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T) {
+  return api;
+}
+
+/**
  * Exposes a window API to main for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
