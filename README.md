@@ -2,6 +2,8 @@
 
 IPC via simple method calls in Electron
 
+_WORK IN PROGRESS_
+
 ## Introduction
 
 Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC. It has the following features:
@@ -17,15 +19,11 @@ Electron Affinity a small TypeScript library that makes IPC as simple as possibl
 
 ## Installation
 
-```
-npm install electron-affinity
-```
+`npm install electron-affinity`
 
 or
 
-```
-yarn add electron-affinity
-```
+`yarn add electron-affinity`
 
 ## Usage
 
@@ -230,7 +228,7 @@ exposeMainApi(new UploadApi()); // no restorer requried
 
 async function doWork() {
   const statusApi = await bindWindowApi<StatusApi>(window, "StatusApi");
-  const MessageApi = await bindWindowApi<MessageApi>(window, "MessageApi");
+  const messageApi = await bindWindowApi<MessageApi>(window, "MessageApi");
 }
 ```
 
@@ -253,8 +251,6 @@ async function doWork() {
 ### Restoring Classes
 
 ### Managing Timeout
-
-_WORK IN PROGRESS_
 
 ## TBD: Notes on problems addressed:
 
