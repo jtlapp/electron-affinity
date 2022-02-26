@@ -322,7 +322,7 @@ mainWindow.apis.messageApi.sendMessage(message);
 ```ts
 // backend/svelte.d.ts
 
-declare module '*.svelte' {
+declare module '*.svelte' { // don't change '*.svelte'
   export { StatusApi } from '../frontend/apis/status_api.svelte';
   export { MessageApi } from '../frontend/apis/message_api.svelte';
 }
