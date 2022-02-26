@@ -2,7 +2,7 @@ import { testSend } from "../lib/renderer_util";
 import { Catter } from "../lib/shared_util";
 
 export class WinApi3 {
-  private _winTag: string;
+  _winTag: string;
 
   constructor(winTag: string) {
     this._winTag = winTag + " ";
