@@ -15,6 +15,13 @@ export declare type ElectronMainApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => Promise<any> : any;
 };
 /**
+ * Type checks the argument to ensure it conforms with `ElectronMainApi<T>`.
+ * @param api Instance of the main API class to type check
+ * @return The provided main API
+ * @see ElectronMainApi
+ */
+export declare function checkMainApi<T extends ElectronMainApi<T>>(api: T): T;
+/**
  * Wrapper for exceptions occurring in a main API that are to be relayed
  * as errors back to the calling window. Any uncaught exception of a main API
  * not of this type is throw within Electron and not returned to the window.

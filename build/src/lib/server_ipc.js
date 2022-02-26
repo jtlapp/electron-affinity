@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = void 0;
+exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = exports.checkMainApi = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
@@ -48,6 +48,16 @@ var restorer_1 = require("./restorer");
 var _mainApiMap = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
+/**
+ * Type checks the argument to ensure it conforms with `ElectronMainApi<T>`.
+ * @param api Instance of the main API class to type check
+ * @return The provided main API
+ * @see ElectronMainApi
+ */
+function checkMainApi(api) {
+    return api;
+}
+exports.checkMainApi = checkMainApi;
 /**
  * Wrapper for exceptions occurring in a main API that are to be relayed
  * as errors back to the calling window. Any uncaught exception of a main API

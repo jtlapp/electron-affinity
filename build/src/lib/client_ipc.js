@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.exposeWindowApi = exports.bindMainApi = void 0;
+exports.exposeWindowApi = exports.checkWindowApi = exports.bindMainApi = void 0;
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
@@ -125,6 +125,16 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
 //// WINDOW API SUPPORT //////////////////////////////////////////////////////
 // Structure mapping window API names to the methods each contains.
 var _windowApiMap = {};
+/**
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi<T>`.
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see MainApiBinding
+ */
+function checkWindowApi(api) {
+    return api;
+}
+exports.checkWindowApi = checkWindowApi;
 /**
  * Exposes a window API to main for possible binding.
  *

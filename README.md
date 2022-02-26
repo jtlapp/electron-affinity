@@ -8,7 +8,7 @@ This documentation should be enough to use the module, but I'm still fleshing it
 
 ## Introduction
 
-Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC and has the following features:
+Electron Affinity is a small TypeScript library that makes IPC as simple as possible in Electron. It has the following features:
 
 - IPC services are merely methods on a vanilla class, callable both locally and remotely.
 - Uses context isolation and does not require node integration, maximizing security.
@@ -21,6 +21,19 @@ Electron Affinity a small TypeScript library that makes IPC as simple as possibl
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 
 Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
+
+## The Problems with IPC
+
+This library was designed to address many of the problems that can arise when using IPC in Electron. Every design decision was intended to either eliminate a problem or produce a helpful error message. Here are some of the problems the library resolves:
+
+- Misspelled or inconsistently changed IPC channel names break calls.
+- There are two channel name spaces, and an IPC can be handled in one but called in the other.
+- Argument and return types need not be in agreement between main and renderer.
+- Class instances become untyped objects when transmitted over IPC.
+- Implementing IPC requires lots of boilerplate code on both sides.
+- Extra effort is required to make local IPC functionality locally available.
+- Exceptions are local, with no mechanism for transferring caller-caused errors back to the caller in IPCs that normally return values.
+- Coding IPC with context isolation and without node integration is typically complex.
 
 ## Installation
 
@@ -150,7 +163,7 @@ const window = new BrowserWindow({
 
 ### Window APIs
 
-Window APIs are analogous to main APIs, except that they are defined in the renderer, are synchronous, and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). As with main APIs, they can take any number of parameters, including none.
+Window APIs are analogous to main APIs, except that they are defined in the renderer and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). As with main APIs, they can take any number of parameters, including none.
 
 Here is an example window API called `StatusApi`:
 
@@ -255,7 +268,7 @@ export function installMainApis() {
 }
 ```
 
-Because this solution requires passing each API to `exposeMainApi` as type `any`, it loses the type-checking that makes sure the APIs are valid. The `checkMainApi` function provides a way to remedy this:
+Because this solution requires passing each API to `exposeMainApi` as type `any`, it loses the type-checking that makes sure the APIs are valid. The `checkMainApi` function remedies this:
 
 ```ts
 // src/backend/apis/main_apis.ts
@@ -323,6 +336,8 @@ export async function bindMainApis() {
 During initialization, have the window script call `bindMainApis`:
 
 ```ts
+// src/frontend/init.ts
+
 window.apis = await bindMainApis();
 ```
 
@@ -441,21 +456,124 @@ declare module '*.svelte' { // don't change '*.svelte'
 
 ### Restoring Classes
 
+Electron Affinity allows class instances to be sent and received via IPC so that they arrive as class instances instead of as untyped, methodless objects. Electron already provides this functionality for basic, built-in classes, such as `Date`, but you can use this library's class restoration mechanism to restore any custom class.
+
+You only restore the classes you want to restore, letting all other class instances transfer as untyped objects. Do so by defining a restorer function conforming to the `RestorerFunction` type (available to both main and windows):
+
+```ts
+type RestorerFunction = (className: string, obj: Record<string, any>) => any;
+```
+
+The function takes the name of a class and the untyped object into which the instance was converted during transfer, and it returns an instance of the class reconstructed from the object. If it does not recognize the class name or does not wish to restore the particular class, it simply returns the provide object. Here's an example:
+
+```ts
+class Catter {
+  s1: string;
+  s2: string;
+  
+  constructor(s1: string, s2: string) {
+    this.s1 = s1;
+    this.s2 = s2;
+  }
+  
+  // this method will be available after restoration
+  cat() {
+    return s1 + s2;
+  }
+}
+
+const restorer = (className: string, obj: Record<string, any>) {
+  if (className == "Catter") {
+    return new Catter1(obj.s1, obj.s2);
+  }
+  return obj;
+}
+```
+
+Proper encapsulation would have us put the restoration functionality on the class itself. You can hardcode this per class, if you like, but the library provides tools that make this easier. It uses the `RestorableClass` type (available to both main and windows). This type defines a static method on the class called `restoreClass`:
+
+```ts
+type RestorableClass<C> = {
+  // static method of the class returning an instance of the class
+  restoreClass(obj: Record<string, any>): C;
+};
+```
+
+Now we can generically restore any number of classes, as follows:
+
+```ts
+import type { RestorableClass } from "electron-affinity/main";
+
+class Catter {
+  s1: string;
+  s2: string;
+  
+  constructor(s1: string, s2: string) {
+    this.s1 = s1;
+    this.s2 = s2;
+  }
+  
+  // this method will be available after restoration
+  cat() {
+    return s1 + s2;
+  }
+  
+  static restoreClass(obj: any): Catter {
+    return new Catter(obj.s1, obj.s2);
+  }
+}
+
+class Joiner {
+  list: string[];
+  delim: string;
+  
+  constructor(list: string[], delim: string) {
+    this.list = list;
+    this.delim = delim;
+  }
+  
+  // this method will be available after restoration
+  join() {
+    return this.list.join(this.delim);
+  }
+  
+  static restoreClass(obj: any): Joiner {
+    return new Joiner(obj.list, obj.delim);
+  }
+}
+
+const restorationMap: Record<string, RestorableClass<any>> = {
+  Catter,
+  Joiner,
+};
+
+export function restorer(className: string, obj: Record<string, any>) {
+  const restorableClass = restorationMap[className];
+  return restorableClass === undefined
+    ? obj
+    : restorableClass["restoreClass"](obj);
+}
+```
+
+You can restore API arguments and return values. Arguments are restored by the method that exposes the API, and return values are restored by the method that binds the API. To employ a restorer function, just pass the function as the last parameter of the exposing or binding method. For example:
+
+```ts
+// main
+exposeMainApi(new DataApi(dataSource), restorer);
+const statusApi = await bindWindowApi<StatusApi>(window, 'StatusApi', restorer);
+
+// window
+exposeWindowApi(new StatusApi(), restorer);
+const uploadApi = await bindMainApi<UploadApi>('UploadApi', restorer);
+```
+
+The restorer function need not be the same for all APIs; each can use its own restorer, or it can opt to use no restorer at all.
+
+### Relaying Exceptions
+
 ### Managing Timeout
 
-### Example repo
-
-## TBD: Notes on problems addressed:
-
-- Misspellings and name changes to IPC names break calls.
-- There are two IPC names spaces, might define in one but call the other.
-- Keeping argument and return types in sync between main and renderer.
-- Custom mechanisms are required to convey structured errors over IPC.
-- Classes become untyped objects when transmitted over IPC.
-- Lots of boilerplate code required to implement IPC on both sides.
-- Extra effort is required to make IPC functionality locally available.
-- Causing thrown-errors to be passed on to the client.
-- Distinguishing between coding errors and client/user errors.
+### Example Repo
 
 ## TBD: Other notes to include / caveats
 

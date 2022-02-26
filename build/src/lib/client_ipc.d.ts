@@ -44,6 +44,13 @@ export declare type ElectronWindowApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
 };
 /**
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi<T>`.
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see MainApiBinding
+ */
+export declare function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T;
+/**
  * Exposes a window API to main for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
