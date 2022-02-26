@@ -4,7 +4,7 @@ IPC via simple method calls in Electron
 
 _WORK IN PROGRESS_
 
-(caveats, practical matters, and API reference still missing)
+This documentation should be enough to use the module, but I'm still fleshing it out.
 
 ## Introduction
 
@@ -20,7 +20,7 @@ Electron Affinity a small TypeScript library that makes IPC as simple as possibl
 - Allows main APIs to cause exceptions to be thrown in the calling window by wrapping the exception in an instance of `RelayedError` and throwing this instance.
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 
-Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might need to be documented.
+Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
 
 ## Installation
 
@@ -218,24 +218,134 @@ Note the following about calling the API:
 
 ### Organizing Main APIs
 
-TODO: Revise to explain a convenient way manage APIs.
-
-There is no limitation on the number of APIs that main and windows can expose or bind to. Expose or bind each API in a separate call.
-
-Here is an example of main exposing and binding multiple APIs:
+Each main API must be exposed and bound individually. A good practice is to define each API in its own file, exporting the API class. Your main code then imports them and exposes them one at a time. For example:
 
 ```ts
-import { exposeMainApi, bindWindowApi } from "electron-affinity/main";
-import type { StatusApi } from "path/to/status_api";
-import type { MessageApi } from "path/to/message_api";
+// src/backend/main.ts
 
-exposeMainApi(new DataApi(dataSource), restorer);
-exposeMainApi(new UploadApi()); // no restorer requried
+import { exposeMainApi } from "electron-affinity/main";
+import type { DataApi } from "path/to/status_api";
+import type { UploadApi } from "path/to/message_api";
 
-async function doWork() {
-  const statusApi = await bindWindowApi<StatusApi>(window, "StatusApi");
-  const messageApi = await bindWindowApi<MessageApi>(window, "MessageApi");
+exposeMainApi(new DataApi());
+exposeMainApi(new UploadApi());
+```
+
+However, main may want to call the APIs itself. In this case, it's useful to attach them to the `global` variable. We might do so as follows:
+
+```ts
+// src/backend/apis/main_apis.ts
+
+import { exposeMainApi } from "electron-affinity/main";
+import { DataApi } from "path/to/status_api";
+import { UploadApi } from "path/to/message_api";
+
+export type MainApis = ReturnType<typeof installMainApis>;
+
+export function installMainApis() {
+  const apis = {
+    dataApi: new DataApi(),
+    uploadApi: new UploadApi(),
+    /* ... */
+  };
+  for (const api of Object.values(apis)) {
+    exposeMainApi(api as any);
+  }
+  global.mainApis = apis as any;
 }
+```
+
+Because this solution requires passing each API to `exposeMainApi` as type `any`, it loses the type-checking that makes sure the APIs are valid. The `checkMainApi` function provides a way to remedy this:
+
+```ts
+// src/backend/apis/main_apis.ts
+
+import { exposeMainApi, checkMainApi } from "electron-affinity/main";
+import { DataApi } from "path/to/status_api";
+import { UploadApi } from "path/to/message_api";
+
+export type MainApis = ReturnType<typeof installMainApis>;
+
+export function installMainApis() {
+  const apis = {
+    dataApi: checkMainApi(new DataApi()),
+    uploadApi: checkMainApi(new UploadApi()),
+    /* ... */
+  };
+  for (const api of Object.values(apis)) {
+    exposeMainApi(api as any);
+  }
+  global.mainApis = apis as any;
+}
+```
+
+We'd also like type-checking on calls made to these APIs from within main. To accomplish this, put the following in a `global.d.ts` file:
+
+```ts
+// src/backend/global.d.ts
+
+import { MainApis } from './backend/apis/main_apis';
+
+declare global {
+  var mainApis: MainApis;
+}
+```
+
+Finally, call `installMainApis` during main's initialization. Now any code in main can call the APIs:
+
+```ts
+global.mainApis.dataApi.openDataset("weather-data", 500);
+let data = await global.mainApis.dataApi.readData();
+await global.mainApis.uploadApi.upload(filename);
+```
+
+Windows are able to bind to main APIs after main has installed them, but a window must wait for each binding to complete before using the binding. This requires the bindings to occur within asynchronous functions. One way to do this is to create a function for just this purpose:
+
+```ts
+// src/frontend/main_apis.ts
+
+import { bindMainApi, AwaitedType } from 'electron-affinity/window';
+
+import type { DataApi } from "path/to/status_api";
+import type { UploadApi } from "path/to/message_api";
+
+export type MainApis = AwaitedType<typeof bindMainApis>;
+
+export async function bindMainApis() {
+  return {
+    dataApi: await bindMainApi<DataApi>('DataApi'),
+    uploadApi: await bindMainApi<UploadApi>('UploadApi'),
+    /* ... */
+  };
+}
+```
+
+During initialization, have the window script call `bindMainApis`:
+
+```ts
+window.apis = await bindMainApis();
+```
+
+To get type-checking on these APIs, add the following to `global.d.ts`:
+
+```ts
+// src/frontend/global.d.ts
+
+import type { MainApis } from './lib/main_client';
+
+declare global {
+  interface Window {
+    apis: MainApis;
+  }
+}
+```
+
+Assuming all windows bind to all main APIs, you can use `window.apis` to call any of the main APIs:
+
+```ts
+window.apis.dataApi.openDataset("weather-data", 500);
+let data = await window.apis.dataApi.readData();
+await window.apis.uploadApi.upload(filename);
 ```
 
 ### Organizing Window APIs
@@ -321,7 +431,7 @@ mainWindow.apis.messageApi.sendMessage(message);
 > NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll want to put the API within `<script lang="ts" context="module">` of a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
 
 ```ts
-// backend/svelte.d.ts
+// src/backend/svelte.d.ts
 
 declare module '*.svelte' { // don't change '*.svelte'
   export { StatusApi } from '../frontend/apis/status_api.svelte';
