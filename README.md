@@ -317,7 +317,7 @@ mainWindow.apis.statusApi.progressUpdate(progressPercent);
 mainWindow.apis.messageApi.sendMessage(message);
 ```
 
-> NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll want to put the API in a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
+> NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll need to put the API within `<script lang="ts" context="module">` of a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
 
 ```ts
 // backend/svelte.d.ts
