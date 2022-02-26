@@ -8,16 +8,17 @@ _WORK IN PROGRESS_
 
 ## Introduction
 
-Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC. It has the following features:
+Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC and has the following features:
 
 - IPC services are merely methods on a vanilla class, callable both locally and remotely.
-- Group IPC methods into different classes to organize them into named APIs.
-- Make an API remotely available by handing an instance of its class to the library function that exposes it.
-- Remotely bind an API by passing its name to the library function that binds it.
-- Change the TypeScript signature of an IPC method to instantly change the remotely available signature.
-- Optionally provide the exposing and binding functions with a restortion function that transparently restores objects to class instances after transfer, enabling APIs to have class instance parameters and return values.
-- Cause a main API to throw an exception in the calling window by having the API wrap the exception in an instance of class `RelayedError` and throwing this instance.
-- Main APIs are all asynchronous functions using Electron `invoke`, while window APIs are all synchronous functions using Electron `send`.
+- Uses context isolation and does not require node integration, maximizing security.
+- Organizes IPC methods into distinct named APIs, each defined by its own class.
+- Makes APIs remotely available by handing instances of their classes to the library function for exposing them.
+- Remotely binds APIs by passing their names to the library function for binding them.
+- Changes made to the TypeScript signature of an IPC method to instantly change the remotely available signature.
+- Optionally restores transferred objects back into classes via custom restoration functions, enabling APIs to have class instance parameters and return values.
+- Allows main APIs to cause exceptions to be thrown in the calling window by wrapping the exception in an instance of `RelayedError` and throwing this instance.
+- Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 
 Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might need to be documented.
 
@@ -239,7 +240,7 @@ async function doWork() {
 
 ### Organizing Window APIs
 
-Each window API must be exposed and bound individually. A good practice is to define each API separately in its own file, exporting the API class. Your window script then imports them and exposes them one at a time. For example:
+Each window API must be exposed and bound individually. A good practice is to define each API in its own file, exporting the API class. Your window script then imports them and exposes them one at a time. For example:
 
 ```ts
 // src/frontend/init.ts
@@ -317,7 +318,7 @@ mainWindow.apis.statusApi.progressUpdate(progressPercent);
 mainWindow.apis.messageApi.sendMessage(message);
 ```
 
-> NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll need to put the API within `<script lang="ts" context="module">` of a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
+> NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll want to put the API within `<script lang="ts" context="module">` of a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
 
 ```ts
 // backend/svelte.d.ts
