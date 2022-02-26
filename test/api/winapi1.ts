@@ -8,7 +8,8 @@ export class WinApi1 {
     this._winTag = winTag + " ";
   }
 
-  sendNoParams() {
+  // also ensures it's not a problem for window APIs to be async
+  async sendNoParams() {
     testSend(this._winTag + "no params (win api1)", () => [""]);
   }
 
