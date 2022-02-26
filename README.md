@@ -140,10 +140,7 @@ Alternatively, preload directly from `node_modules` using the appropriate path:
 ```ts
 const window = new BrowserWindow({
   webPreferences: {
-    preload: path.join(
-      __dirname,
-      "../node_modules/electron-affinity/preload.js"
-    ),
+    preload: path.join(__dirname, "../node_modules/electron-affinity/preload.js"),
     nodeIntegration: false,
     contextIsolation: true,
   },
@@ -177,7 +174,7 @@ export class StatusApi {
 
 Note the following about this API:
 
-- The methods are implemented as `window.webContents.send()` calls and return no values; any values that window API methods return are ignored.
+- The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Main always shows their return values as void.
 - Methods can by asynchronous, but main cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_receiver` from being exposed as an IPC method.
@@ -218,7 +215,7 @@ Note the following about calling the API:
 - The code calls an API method as if the method were local to the window.
 - Main does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
 
-### Exposing and Binding Multiple APIs
+### Organizing Main APIs
 
 TODO: Revise to explain a convenient way manage APIs.
 
@@ -240,25 +237,102 @@ async function doWork() {
 }
 ```
 
-Here is an example of a window exposing and binding multiple APIs:
+### Organizing Window APIs
+
+Each window API must be exposed and bound individually. A good practice is to define each API separately in its own file, exporting the API class. Your window script then imports them and exposes them one at a time. For example:
 
 ```ts
-import { exposeWindowApi, bindMainApi } from "electron-affinity/window";
-import type { DataApi } from "path/to/data_api";
-import type { UploadApi } from "path/to/upload_api";
+// src/frontend/init.ts
 
-exposeWindowApi(new StatusApi(receiver), restorer);
-exposeWindowApi(new MessageApi()); // no restorer requried
+import { exposeWindowApi } from "electron-affinity/window";
 
-async function doWork() {
-  const dataApi = await bindMainApi<DataApi>("DataApi");
-  const uploadApi = await bindMainApi<UploadApi>("UploadApi");
+import { StatusApi } from "./apis/status_api";
+import { MessageApi } from "./apis/message_api";
+import { ReportStatusApi } from "./apis/report_status_api";
+
+exposeWindowApi(new StatusApi());
+exposeWindowApi(new MessageApi());
+exposeWindowApi(new ReportStatusApi());
+/* ... */
+```
+
+It helps to create a module in main that binds the APIs for each different kind of window. In the following, `AwaitedType` extracts the type of value to which a promise resolves and prevents you from having to redeclare the API:
+
+```ts
+// src/backend/window_apis.ts
+
+import type { BrowserWindow } from "electron";
+import { AwaitedType, bindWindowApi } from "electron-affinity/main";
+
+import type { StatusApi } from "../frontend/apis/status_api";
+import type { MessageApi } from "../frontend/apis/message_api";
+
+export type MainWindow = AwaitedType<typeof bindMainWindowApis>;
+export type ReportWindow = AwaitedType<typeof bindReportWindowApis>;
+
+export async function bindMainWindowApis(window: BrowserWindow) {
+  return Object.assign(window, {
+    apis: {
+      statusApi: await bindWindowApi<StatusApi>(window, "StatusApi"),
+      messageApi: await bindWindowApi<MessageApi>(window, "MessageApi"),
+    },
+  });
+}
+
+export async function bindReportWindowApis(window: BrowserWindow) {
+  return Object.assign(window, {
+    apis: {
+      reportStatusApi: await bindWindowApi<ReportStatusApi>(window, "ReportStatusApi"),
+    },
+  });
+}
+```
+
+These bind methods place APIs on `window.apis`. Here is how you might attach `apis` to the main window:
+
+```ts
+// src/backend/main.ts
+
+import { MainWindow } from "./window_apis";
+
+function createMainWindow(): MainWindow {
+  const mainWindow = new BrowserWindow({/* ... */}) as MainWindow;
+  mainWindow
+    .loadURL(url)
+    .then(async () => {
+      await bindMainWindowApis(mainWindow);
+      /* ... */
+    })
+  /* ... */
+  return mainWindow;
+}
+```
+
+Notice that (1) the window must exist in order to bind to any of its APIs, and (2) if you're going to wait for the binding to complete, you must have previously loaded the window script that exposes the APIs to be bound.
+
+And now you can call the APIs as follows:
+
+```ts
+mainWindow.apis.statusApi.progressUpdate(progressPercent);
+mainWindow.apis.messageApi.sendMessage(message);
+```
+
+> NOTE FOR SVELTE: If your window API needs to import from svelte modules, you'll want to put the API in a svelte file, but then you'll find your backend trying to `import type` from that svelte file. I found this doable with a little extra configuration. First, I added `"extends": "@tsconfig/svelte/tsconfig.json"` to the `tsconfig.json` for my backend code. Surprisingly, the only side-effect I encountered was having to `import type` everywhere in the backend that was only using the type. Second, I added a `.d.ts` file that declares the window APIs, such as the following (filename doesn't matter):
+
+```ts
+// backend/svelte.d.ts
+
+declare module '*.svelte' {
+  export { StatusApi } from '../frontend/apis/status_api.svelte';
+  export { MessageApi } from '../frontend/apis/message_api.svelte';
 }
 ```
 
 ### Restoring Classes
 
 ### Managing Timeout
+
+### Example repo
 
 ## TBD: Notes on problems addressed:
 
