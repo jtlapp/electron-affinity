@@ -6,6 +6,7 @@ export {
   ElectronMainApi,
   WindowApiBinding,
   exposeMainApi,
+  checkMainApi,
   bindWindowApi,
   RelayedError,
 } from "./lib/server_ipc";
