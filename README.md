@@ -4,6 +4,8 @@ IPC via simple method calls in Electron
 
 _WORK IN PROGRESS_
 
+(caveats, practical matters, and API reference still missing)
+
 ## Introduction
 
 Electron Affinity a small TypeScript library that makes IPC as simple as possible in Electron. It was designed to eliminate many of the problems that can arise when using IPC. It has the following features:
@@ -170,6 +172,8 @@ export class StatusApi {
 }
 ```
 
+TODO: Make systemReport async.
+
 Note the following about this API:
 
 - The methods are synchronous and return no values; any values that window API methods return are ignored. They are implemented as `window.webContents.send()` calls.
@@ -213,6 +217,8 @@ Note the following about calling the API:
 - Main does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
 
 ### Exposing and Binding Multiple APIs
+
+TODO: Revise to explain a convenient way manage APIs.
 
 There is no limitation on the number of APIs that main and windows can expose or bind to. Expose or bind each API in a separate call.
 
@@ -291,8 +297,4 @@ async function doWork() {
 
 ## Reference
 
-...
-
-```
-
-```
+(Why is auto-save appending an empty code block?)

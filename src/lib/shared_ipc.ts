@@ -23,6 +23,14 @@ export type ApiBinding<T> = {
 };
 
 /**
+ * Type to which an asynchronous function T resolve. Used for extracting
+ * the resolved return type of a main API method.
+ */
+export type AwaitedType<T> = T extends (...args: any[]) => Promise<infer R>
+  ? R
+  : never;
+
+/**
  * Sets the timeout for binding to an API.
  */
 export function setIpcBindingTimeout(millis: number): void {
