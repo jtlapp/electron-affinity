@@ -4,6 +4,7 @@
 
 export {
   ElectronMainApi,
+  WindowApiBinding,
   exposeMainApi,
   bindWindowApi,
   RelayedError,

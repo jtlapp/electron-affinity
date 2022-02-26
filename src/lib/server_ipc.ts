@@ -9,7 +9,6 @@ import {
   API_RESPONSE_IPC,
   ApiRegistration,
   ApiRegistrationMap,
-  ApiBinding,
   PublicProperty,
   toIpcName,
   retryUntilTimeout,
@@ -99,6 +98,19 @@ export function setIpcErrorLogger(loggerFunc: (err: Error) => void): void {
 
 //// WINDOW API SUPPORT //////////////////////////////////////////////////////
 
+/**
+ * Type to which a bound window API of class T conforms. It only exposes the
+ * methods of class T not starting with `_` or `#`, and regardless of what
+ * the method returns, the API returns void.
+ */
+export type WindowApiBinding<T> = {
+  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (
+    ...args: infer A
+  ) => any
+    ? (...args: A) => void
+    : never;
+};
+
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.
 const _windowApiMapByWebContentsID: Record<number, ApiRegistrationMap> = {};
@@ -106,7 +118,7 @@ const _windowApiMapByWebContentsID: Record<number, ApiRegistrationMap> = {};
 // Structure tracking bound window APIs, indexed by window ID.
 const _boundWindowApisByWindowID: Record<
   number,
-  Record<string, ApiBinding<any>>
+  Record<string, WindowApiBinding<any>>
 > = {};
 
 /**
@@ -123,7 +135,7 @@ const _boundWindowApisByWindowID: Record<
 export function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
-): Promise<ApiBinding<T>> {
+): Promise<WindowApiBinding<T>> {
   _installIpcListeners();
 
   return new Promise((resolve) => {
@@ -147,7 +159,7 @@ export function bindWindowApi<T>(
 function _attemptBindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string,
-  resolve: (boundApi: ApiBinding<T>) => void
+  resolve: (boundApi: WindowApiBinding<T>) => void
 ): boolean {
   // Wait for the window API binding to arrive.
 
@@ -161,10 +173,10 @@ function _attemptBindWindowApi<T>(
 
   // Construct the window API binding.
 
-  const methodNames = windowApiMap[apiClassName] as [keyof ApiBinding<T>];
-  const boundApi = {} as ApiBinding<T>;
+  const methodNames = windowApiMap[apiClassName] as [keyof WindowApiBinding<T>];
+  const boundApi = {} as WindowApiBinding<T>;
   for (const methodName of methodNames) {
-    const typedMethodName: keyof ApiBinding<T> = methodName;
+    const typedMethodName: keyof WindowApiBinding<T> = methodName;
     boundApi[typedMethodName] = ((...args: any[]) => {
       Restorer.makeArgsRestorable(args);
       window.webContents.send(
@@ -187,7 +199,7 @@ function _attemptBindWindowApi<T>(
 
   window.on("closed", (_event: any) => {
     for (const methodName of methodNames) {
-      const typedMethodName: keyof ApiBinding<T> = methodName;
+      const typedMethodName: keyof WindowApiBinding<T> = methodName;
       boundApi[typedMethodName] = ((..._args: any[]) => {
         throw Error("Window has closed; API unavailable");
       }) as any; // typescript can't confirm the method signature

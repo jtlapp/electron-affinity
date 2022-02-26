@@ -1,8 +1,16 @@
 /**
  * Code specific to handling IPC in the renderer process.
  */
-import { ApiBinding, PublicProperty } from "./shared_ipc";
+import { PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
+/**
+ * Type to which a bound main API of class T conforms. It only exposes the
+ * methods of class T not starting with `_` or `#`, and it returns the exact
+ * return types of the individual methods.
+ */
+export declare type MainApiBinding<T> = {
+    [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
+};
 declare global {
     interface Window {
         __ipc: {
@@ -24,7 +32,7 @@ declare global {
  *    classes not restored arrive as untyped structures.
  * @returns An API of type T that can be called as if T were local.
  */
-export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<ApiBinding<T>>;
+export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<MainApiBinding<T>>;
 /**
  * Type to which a window API of class T conforms, expecting each API
  * to return void. All properties of the method not beginning with an

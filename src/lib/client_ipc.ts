@@ -7,7 +7,6 @@ import {
   API_RESPONSE_IPC,
   ApiRegistration,
   ApiRegistrationMap,
-  ApiBinding,
   PublicProperty,
   retryUntilTimeout,
   toIpcName,
@@ -16,6 +15,15 @@ import {
 import { Restorer, RestorerFunction } from "./restorer";
 
 //// MAIN API SUPPORT //////////////////////////////////////////////////////
+
+/**
+ * Type to which a bound main API of class T conforms. It only exposes the
+ * methods of class T not starting with `_` or `#`, and it returns the exact
+ * return types of the individual methods.
+ */
+export type MainApiBinding<T> = {
+  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
+};
 
 // These window.__ipc methods are defined in preload.ts
 declare global {
@@ -31,8 +39,8 @@ declare global {
 // Structure mapping API names to the methods they contain.
 const _mainApiMap: ApiRegistrationMap = {};
 
-// Structure tracking bound APIs.
-const _boundMainApis: Record<string, ApiBinding<any>> = {};
+// Structure tracking bound main APIs.
+const _boundMainApis: Record<string, MainApiBinding<any>> = {};
 
 /**
  * Returns a window-side binding for a main API of a given class.
@@ -49,7 +57,7 @@ const _boundMainApis: Record<string, ApiBinding<any>> = {};
 export function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
-): Promise<ApiBinding<T>> {
+): Promise<MainApiBinding<T>> {
   _installIpcListeners();
 
   return new Promise((resolve) => {
@@ -74,20 +82,20 @@ export function bindMainApi<T>(
 function _attemptBindMainApi<T>(
   apiClassName: string,
   restorer: RestorerFunction | undefined,
-  resolve: (boundApi: ApiBinding<T>) => void
+  resolve: (boundApi: MainApiBinding<T>) => void
 ): boolean {
   // Wait for the window API binding to arrive.
 
-  const methodNames = _mainApiMap[apiClassName] as [keyof ApiBinding<T>];
+  const methodNames = _mainApiMap[apiClassName] as [keyof MainApiBinding<T>];
   if (!methodNames) {
     return false;
   }
 
   // Construct the main API binding.
 
-  const boundApi = {} as ApiBinding<T>;
+  const boundApi = {} as MainApiBinding<T>;
   for (const methodName of methodNames) {
-    const typedMethodName: keyof ApiBinding<T> = methodName;
+    const typedMethodName: keyof MainApiBinding<T> = methodName;
     boundApi[typedMethodName] = (async (...args: any[]) => {
       Restorer.makeArgsRestorable(args);
       const response = await window.__ipc.invoke(

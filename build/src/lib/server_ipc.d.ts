@@ -2,7 +2,7 @@
  * Code specific to handling IPC in the main process.
  */
 import { BrowserWindow } from "electron";
-import { ApiBinding, PublicProperty } from "./shared_ipc";
+import { PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 /**
  * Type to which a main API of class T conforms, requiring each API to
@@ -38,6 +38,14 @@ export declare function exposeMainApi<T>(mainApi: ElectronMainApi<T>, restorer?:
  */
 export declare function setIpcErrorLogger(loggerFunc: (err: Error) => void): void;
 /**
+ * Type to which a bound window API of class T conforms. It only exposes the
+ * methods of class T not starting with `_` or `#`, and regardless of what
+ * the method returns, the API returns void.
+ */
+export declare type WindowApiBinding<T> = {
+    [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (...args: infer A) => any ? (...args: A) => void : never;
+};
+/**
  * Returns a main-side binding for a window API of a given class, restricting
  * the binding to the given window. Failure of the window to expose the API
  * before timeout results in an error. There is a default timeout, but you
@@ -48,4 +56,4 @@ export declare function setIpcErrorLogger(loggerFunc: (err: Error) => void): voi
  *    the name of class T. Provides runtime information that <T> does not.
  * @returns An API of type T that can be called as if T were local.
  */
-export declare function bindWindowApi<T>(window: BrowserWindow, apiClassName: string): Promise<ApiBinding<T>>;
+export declare function bindWindowApi<T>(window: BrowserWindow, apiClassName: string): Promise<WindowApiBinding<T>>;

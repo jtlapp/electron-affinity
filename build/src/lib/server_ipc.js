@@ -110,7 +110,6 @@ function setIpcErrorLogger(loggerFunc) {
     _errorLoggerFunc = loggerFunc;
 }
 exports.setIpcErrorLogger = setIpcErrorLogger;
-//// WINDOW API SUPPORT //////////////////////////////////////////////////////
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.
 var _windowApiMapByWebContentsID = {};

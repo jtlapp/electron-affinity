@@ -15,14 +15,6 @@ const _RETRY_MILLIS = 50;
 let _bindingTimeoutMillis = 4000;
 
 /**
- * Type to which a bound API of class T conforms. It only exposes the
- * methods of class T not containing underscores.
- */
-export type ApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
-
-/**
  * Type to which an asynchronous function T resolve. Used for extracting
  * the resolved return type of a main API method.
  */

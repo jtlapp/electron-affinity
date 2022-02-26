@@ -4,6 +4,7 @@
 
 export {
   ElectronWindowApi,
+  MainApiBinding,
   exposeWindowApi,
   bindMainApi,
 } from "./lib/client_ipc";

@@ -44,7 +44,7 @@ var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
 var _mainApiMap = {};
-// Structure tracking bound APIs.
+// Structure tracking bound main APIs.
 var _boundMainApis = {};
 /**
  * Returns a window-side binding for a main API of a given class.

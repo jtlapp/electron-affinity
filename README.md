@@ -168,17 +168,17 @@ export class StatusApi {
     this._receiver.updateStatusBar(percentCompleted);
   }
 
-  systemReport(report: SystemReport) {
-    this._receiver.updateMessage(report.summarize());
+  async systemReport(report: SystemReport) {
+    const summary = await report.generateSummary();
+    this._receiver.updateMessage(summary);
   }
 }
 ```
 
-TODO: Make systemReport async.
-
 Note the following about this API:
 
-- The methods are synchronous and return no values; any values that window API methods return are ignored. They are implemented as `window.webContents.send()` calls.
+- The methods are implemented as `window.webContents.send()` calls and return no values; any values that window API methods return are ignored.
+- Methods can by asynchronous, but main cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_receiver` from being exposed as an IPC method.
 - Exceptions thrown by any of these methods do not get returned to main.
