@@ -19,6 +19,8 @@ Electron Affinity a small TypeScript library that makes IPC as simple as possibl
 - Cause a main API to throw an exception in the calling window by having the API wrap the exception in an instance of class `RelayedError` and throwing this instance.
 - Main APIs are all asynchronous functions using Electron `invoke`, while window APIs are all synchronous functions using Electron `send`.
 
+Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might need to be documented.
+
 ## Installation
 
 `npm install electron-affinity`
@@ -33,7 +35,7 @@ Electron Affinity supports main APIs and window APIs. Main APIs are defined in m
 
 ### Main APIs
 
-A main API is an instance of a class defined in main. All methods of this class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore ('\_') or pound ('#'). You can use these prefixes to define private methods and properties on which the IPC methods rely.
+A main API is an instance of a class defined in main. All methods of this class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). You can use these prefixes to define private methods and properties on which the IPC methods rely.
 
 Each main API method can take any number of parameters, including none, but must return a promise. The promise need not resolve to a value.
 
@@ -80,7 +82,7 @@ Here are a few things to note about this API:
 
 - All methods return promises even when they don't need to. This allows all IPC calls to main to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
 - Even though `writeData()` received `data` via IPC, it exists as an instance of `Data` with the `format()` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the '\_' prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
+- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
 - If the data source encounters an error, `_checkForError()` returns the error (sans stack trace) to the window to be thrown from within the renderer.
 - Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within main.
 
@@ -150,7 +152,7 @@ const window = new BrowserWindow({
 
 ### Window APIs
 
-Window APIs are analogous to main APIs, except that they are defined in the renderer, are synchronous, and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore ('\_') or pound ('#'). As with main APIs, they can take any number of parameters, including none.
+Window APIs are analogous to main APIs, except that they are defined in the renderer, are synchronous, and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). As with main APIs, they can take any number of parameters, including none.
 
 Here is an example window API called `StatusApi`:
 
@@ -178,7 +180,7 @@ Note the following about this API:
 
 - The methods are synchronous and return no values; any values that window API methods return are ignored. They are implemented as `window.webContents.send()` calls.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the '\_' prefix that prevents members `_receiver` from being exposed as an IPC method.
+- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_receiver` from being exposed as an IPC method.
 - Exceptions thrown by any of these methods do not get returned to main.
 
 The window makes the API available to main by calling `exposeWindowApi`:
