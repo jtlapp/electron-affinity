@@ -653,7 +653,7 @@ The library does not at present provide a timeout for the duration of a main API
 
 The library was developed for the [ut-entomology/spectool](https://github.com/ut-entomology/spectool) repo, where you'll find plenty of code exmplifying how to use it. See the following files and directories:
 
-- [Installing main APIs and binding window APIs to the main window](https://github.com/ut-entomology/spectool/blob/main/src/app_main_.ts)
+- [Installing main APIs and binding window APIs to the main window](https://github.com/ut-entomology/spectool/blob/main/src/app_main.ts)
 - [Main process global.d.ts providing the main process with access to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/global.d.ts)
 - [Backend main API classes](https://github.com/ut-entomology/spectool/tree/main/src/backend/api)
 - [Main window binding to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/lib/main_client.ts)
