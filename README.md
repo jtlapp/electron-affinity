@@ -97,7 +97,7 @@ export class DataApi {
 Here are a few things to note about this API:
 
 - All methods return promises even when they don't need to. This allows all IPC calls to the main process to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
-- Even though `writeData()` received `data` via IPC, it exists as an instance of `Data` with the `format()` method available.
+- Even though `writeData()` received `data` via IPC, it exists as an instance of class `Data` with the `format()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
 - If the data source encounters an error, `_checkForError()` returns the error (sans stack trace) to the window to be thrown from within the renderer.
 - Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within the main process.
@@ -625,7 +625,41 @@ Exceptions thrown within window APIs are never returned to the main process.
 
 ### Managing Timeout
 
+The library will time out if it takes too long for the main process to bind to a window API or if it takes too long for a window to bind to a main API. The former can happen if the main process attempts to bind before a window has finished initializing and it takes a long time for the window to initialize. The latter can happen if the main process is too busy to respond or has gone unresponsive.
+
+The default timeout is 4 seconds, which should be long enough for either of these bindings; if it takes more than 4 seconds, it's likely that there's another problem requiring correction. Even so, there may be scenarios I haven't anticipated requiring a longer timeout, and possibly scenerios where a shorter timeout is desirable. The main process and each window sets its own timeout via the `setIpcBindingTimeout()` function, as follows:
+
+```ts
+// main process
+import { setIpcBindingTimeout } from 'electron-affinity/main';
+
+setIpcBindingTimeout(8000); // 8 seconds
+```
+
+```ts
+// window
+import { setIpcBindingTimeout } from 'electron-affinity/window';
+
+setIpcBindingTimeout(500); // 500 milliseconds
+```
+
+The timeout applies to all bindings, including in-progress bindings.
+
+The library does not at present provide a timeout for the duration of a main API, and it appears that Electron provides no timeout on `ipcRenderer.invoke` either.
+
 ### Example Repo
+
+The library was developed for the [ut-entomology/spectool] repo, where you'll find plenty of code exmplifying how to use it. See the following files and directories:
+
+- [Installing main APIs and binding window APIs to the main window](https://github.com/ut-entomology/spectool/blob/main/src/electron.ts)
+- [Main process global.d.ts providing the main process with access to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/global.d.ts)
+- [Backend main API classes](https://github.com/ut-entomology/spectool/tree/main/src/backend/api)
+- [Window binding to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/lib/main_client.ts)
+- [Attaching main APIs to the window and exposing a window API](https://github.com/ut-entomology/spectool/blob/main/src/frontend/App.svelte)
+- [Frontend global.d.ts providing windows with access to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/global.d.ts)
+- [Window API class](https://github.com/ut-entomology/spectool/blob/main/src/frontend/api/app_event_api.svelte)
+- [Calls from the window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
+- [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/app/app_menu.ts)
 
 ## TBD: Other notes to include / caveats
 
