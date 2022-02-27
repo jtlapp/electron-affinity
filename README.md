@@ -4,7 +4,7 @@ IPC via simple method calls in Electron
 
 _WORK IN PROGRESS_
 
-This documentation should be enough to use the module, but I'm still fleshing it out.
+This documentation should be enough to use the module, but I'm still fleshing it out. The code is complete and fully tested.
 
 ## Introduction
 
