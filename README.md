@@ -12,9 +12,9 @@ Electron Affinity is a small TypeScript library that makes IPC as simple as poss
 
 - IPC services are merely methods on vanilla classes, callable both locally and remotely.
 - Organizes IPC methods into distinct named APIs, each defined by its own class.
-- Makes APIs remotely available by handing instances of their classes to the library function for exposing them.
-- Remotely binds APIs by passing their names to the library function for binding them.
-- Changes made to the TypeScript signature of an IPC method to instantly change the remotely available signature.
+- Makes APIs remotely available merely by handing instances of their classes to a library function.
+- Remotely binds APIs merely by passing their names to a library function.
+- Changes made to the TypeScript signature of an API instantly change the remotely available signature.
 - Optionally restores transferred objects back into classes via custom restoration functions, enabling APIs to have class instance parameters and return values.
 - Allows main APIs to cause exceptions to be thrown in the calling window by wrapping the exception in an instance of `RelayedError` and throwing this instance.
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
