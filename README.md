@@ -154,6 +154,8 @@ import "electron-ipc-methods/preload";
 Alternatively, preload directly from `node_modules` using the appropriate path:
 
 ```ts
+// src/main.ts
+
 const window = new BrowserWindow({
   webPreferences: {
     preload: path.join(__dirname, "../node_modules/electron-affinity/preload.js"),
@@ -236,7 +238,7 @@ Note the following about calling the API:
 Each main API must be exposed and bound individually. A good practice is to define each API in its own file, exporting the API class. Your main process code then imports them and exposes them one at a time. For example:
 
 ```ts
-// src/backend/main.ts
+// src/main.ts
 
 import { exposeMainApi } from "electron-affinity/main";
 import type { DataApi } from "path/to/status_api";
@@ -419,7 +421,7 @@ export async function bindReportWindowApis(window: BrowserWindow) {
 These bind methods place APIs on `window.apis`. Here is how you might attach `apis` to the main window:
 
 ```ts
-// src/backend/main.ts
+// src/main.ts
 
 import { MainWindow } from "./window_apis";
 
@@ -651,15 +653,15 @@ The library does not at present provide a timeout for the duration of a main API
 
 The library was developed for the [ut-entomology/spectool](https://github.com/ut-entomology/spectool) repo, where you'll find plenty of code exmplifying how to use it. See the following files and directories:
 
-- [Installing main APIs and binding window APIs to the main window](https://github.com/ut-entomology/spectool/blob/main/src/electron.ts)
+- [Installing main APIs and binding window APIs to the main window](https://github.com/ut-entomology/spectool/blob/main/src/app_main_.ts)
 - [Main process global.d.ts providing the main process with access to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/global.d.ts)
 - [Backend main API classes](https://github.com/ut-entomology/spectool/tree/main/src/backend/api)
-- [Window binding to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/lib/main_client.ts)
-- [Attaching main APIs to the window and exposing a window API](https://github.com/ut-entomology/spectool/blob/main/src/frontend/App.svelte)
+- [Main window binding to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/lib/main_client.ts)
+- [Attaching main APIs to the main window and exposing a window API](https://github.com/ut-entomology/spectool/blob/main/src/frontend/App.svelte)
 - [Frontend global.d.ts providing windows with access to main APIs](https://github.com/ut-entomology/spectool/blob/main/src/frontend/global.d.ts)
 - [Window API class](https://github.com/ut-entomology/spectool/blob/main/src/frontend/api/app_event_api.svelte)
-- [Calls from the window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
-- [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/app/app_menu.ts)
+- [Calls from the main window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
+- [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/backend/app/app_menu.ts)
 
 ## TBD: Other notes to include / caveats
 
@@ -673,6 +675,7 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - Electron strips everything but the error message from errors sent to or received from either the main process or the renderer, and I'm not adding them back in.
 - Electron auto-restores some classes (e.g. Date)
 - Installs `window.__ipc`.
+- Relative to sync IPC, introduces possible errors for failing to await result.
 
 ## TBD: Type considerations:
 
