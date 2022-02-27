@@ -110,7 +110,7 @@ import { exposeMainApi } from "electron-affinity/main";
 exposeMainApi(new DataApi(dataSource), restorer);
 ```
 
-`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
+`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. [See below](#restoring-classes) for an explanation of its use.
 
 A window uses the API as follows:
 
@@ -204,7 +204,7 @@ import { exposeWindowApi } from "electron-affinity/window";
 exposeWindowApi(new StatusApi(receiver), restorer);
 ```
 
-`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
+`restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. [See below](#restoring-classes) for an explanation of its use.
 
 The main process uses the API as follows:
 
