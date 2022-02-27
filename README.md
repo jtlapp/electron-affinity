@@ -10,8 +10,7 @@ This documentation should be enough to use the module, but I'm still fleshing it
 
 Electron Affinity is a small TypeScript library that makes IPC as simple as possible in Electron. It has the following features:
 
-- IPC services are merely methods on a vanilla class, callable both locally and remotely.
-- Uses context isolation and does not require node integration, maximizing security.
+- IPC services are merely methods on vanilla classes, callable both locally and remotely.
 - Organizes IPC methods into distinct named APIs, each defined by its own class.
 - Makes APIs remotely available by handing instances of their classes to the library function for exposing them.
 - Remotely binds APIs by passing their names to the library function for binding them.
@@ -19,16 +18,17 @@ Electron Affinity is a small TypeScript library that makes IPC as simple as poss
 - Optionally restores transferred objects back into classes via custom restoration functions, enabling APIs to have class instance parameters and return values.
 - Allows main APIs to cause exceptions to be thrown in the calling window by wrapping the exception in an instance of `RelayedError` and throwing this instance.
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
+- Uses context isolation and does not require node integration, maximizing security.
 
 Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
 
-## The Problems with IPC
+## Problems Addressed
 
-This library was designed to address many of the problems that can arise when using IPC in Electron. Every design decision was intended to either eliminate a problem or produce a helpful error message. Here are some of the problems the library resolves:
+This library was designed to address many of the problems that can arise when using IPC in Electron. Every design decision was intended to either eliminate a problem or catch a problem and produce a helpful error message. Here are some of the problems addressed:
 
 - Misspelled or inconsistently changed IPC channel names break calls.
 - There are two channel name spaces, and an IPC can be handled in one but called in the other.
-- Argument and return types need not be in agreement between the main process and the renderer.
+- Types for each IPC are managed in multiple places, allowing argument and return types to disagree between the main process and the renderer.
 - Class instances become untyped objects when transmitted over IPC.
 - Implementing IPC requires lots of boilerplate code on both sides.
 - Extra effort is required to make local IPC functionality locally available.
@@ -46,6 +46,8 @@ or
 ## Usage
 
 Electron Affinity supports main APIs and window APIs. Main APIs are defined in the main process and callable from renderer windows. Window APIs are defined in renderer windows and callable from the main process. Window-to-window calling is not supported.
+
+The first two sections on usage, "Main APIs" and "Window APIs" are all you need to read to get an understanding of this library.
 
 ### Main APIs
 
@@ -505,18 +507,7 @@ Now we can generically restore any number of classes, as follows:
 import type { RestorableClass } from "electron-affinity/main";
 
 class Catter {
-  s1: string;
-  s2: string;
-  
-  constructor(s1: string, s2: string) {
-    this.s1 = s1;
-    this.s2 = s2;
-  }
-  
-  // this method will be available after restoration
-  cat() {
-    return s1 + s2;
-  }
+  /* ...same as above... */
   
   static restoreClass(obj: any): Catter {
     return new Catter(obj.s1, obj.s2);
@@ -581,7 +572,7 @@ The mechanism is simple:
 2. Wrap that object in an instance of `RelayedError`.
 3. Throw the instance of `RelayedError`.
 
-If the wrapped object is an instance of a `Error` and you're okay with the window receiving an instance of `Error`, then there is no need for you to do anything further. However, if you wish to restore the original class, such as for use in `instanceof` checks within a `catch`, you'll need to have a restorer function restore the class. (This is the restorer function you pass to `bindMainApi`.)
+If the wrapped object is an instance of a `Error` and you're okay with the window receiving an instance of `Error`, then there is no need to do anything more. However, if you wish to restore the original class, such as for use in `instanceof` checks within a `catch`, you'll need to have a restorer function restore the class. (This is the restorer function passed to `bindMainApi`.)
 
 Here is an example:
 
@@ -626,7 +617,7 @@ async function onSubmit() {
 }
 ```
 
-Whenever an instance (or subclass) of `Error` is created in the main process and returned to the client, by any means, the stack trace is removed prior to transfer.
+Whenever an instance (or subclass) of `Error` is created in the one process and transferred via IPC to another process, by any means, the stack trace is removed prior to transfer. Electron does this, and the library does not obviate it.
 
 A main API that throws an error not wrapped in `RelayedError` results in an uncaught exception within the main process. Main APIs can return error objects, but Electron strips them of everything but the message.
 
@@ -647,6 +638,7 @@ Exceptions thrown within window APIs are never returned to the main process.
   Object.setPrototypeOf(this, CustomError.prototype);
 - Electron strips everything but the error message from errors sent to or received from either the main process or the renderer, and I'm not adding them back in.
 - Electron auto-restores some classes (e.g. Date)
+- Installs `window.__ipc`.
 
 ## TBD: Type considerations:
 
