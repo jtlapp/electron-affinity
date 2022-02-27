@@ -28,7 +28,7 @@ This library was designed to address many of the problems that can arise when us
 
 - Misspelled or inconsistently changed IPC channel names break calls.
 - There are two channel name spaces, and an IPC can be handled in one but called in the other.
-- Argument and return types need not be in agreement between main and renderer.
+- Argument and return types need not be in agreement between the main process and the renderer.
 - Class instances become untyped objects when transmitted over IPC.
 - Implementing IPC requires lots of boilerplate code on both sides.
 - Extra effort is required to make local IPC functionality locally available.
@@ -45,11 +45,11 @@ or
 
 ## Usage
 
-Electron Affinity supports main APIs and window APIs. Main APIs are defined in main and callable from renderer windows. Window APIs are defined in renderer windows and callable from main. Window-to-window calling is not supported.
+Electron Affinity supports main APIs and window APIs. Main APIs are defined in the main process and callable from renderer windows. Window APIs are defined in renderer windows and callable from the main process. Window-to-window calling is not supported.
 
 ### Main APIs
 
-A main API is an instance of a class defined in main. All methods of this class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). You can use these prefixes to define private methods and properties on which the IPC methods rely.
+A main API is an instance of a class defined in the main process. All methods of this class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). You can use these prefixes to define private methods and properties on which the IPC methods rely.
 
 Each main API method can take any number of parameters, including none, but must return a promise. The promise need not resolve to a value.
 
@@ -94,13 +94,13 @@ export class DataApi {
 
 Here are a few things to note about this API:
 
-- All methods return promises even when they don't need to. This allows all IPC calls to main to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
+- All methods return promises even when they don't need to. This allows all IPC calls to the main process to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
 - Even though `writeData()` received `data` via IPC, it exists as an instance of `Data` with the `format()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
 - If the data source encounters an error, `_checkForError()` returns the error (sans stack trace) to the window to be thrown from within the renderer.
-- Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within main.
+- Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within the main process.
 
-Main makes this API available to windows by calling `exposeMainApi` before the windows attempt to use the API:
+The main process makes this API available to windows by calling `exposeMainApi` before the windows attempt to use the API:
 
 ```ts
 import { exposeMainApi } from "electron-affinity/main";
@@ -137,9 +137,9 @@ async function loadWeatherData() {
 
 Note the following about calling the API:
 
-- The code imports the _type_ `DataApi` rather than the class `DataApi`. This keeps the renderer from pulling in main-side code.
+- The code imports the _type_ `DataApi` rather than the class `DataApi`. This keeps the renderer from pulling in main process code.
 - `bindMainApi()` takes both the type parameter `DataApi` and the string name of the API `"DataApi"`. The names must agree.
-- Main must have previously exposed the API. The window will not wait for main to subsequently expose it.
+- The main process must have previously exposed the API. The window will not wait for the main process to subsequently expose it.
 - The code calls an API method as if the method were local to the window.
 - There is no need to wait on APIs, particularly those that technically didn't need to be declared asynchronous (but were to satisfy Electron Affinity).
 
@@ -188,13 +188,13 @@ export class StatusApi {
 
 Note the following about this API:
 
-- The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Main always shows their return values as void.
-- Methods can by asynchronous, but main cannot wait for them to resolve.
+- The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Code within the main process always shows their return values as void.
+- Methods can by asynchronous, but the main process cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_receiver` from being exposed as an IPC method.
-- Exceptions thrown by any of these methods do not get returned to main.
+- Exceptions thrown by any of these methods do not get returned to the main process.
 
-The window makes the API available to main by calling `exposeWindowApi`:
+The window makes the API available to the main process by calling `exposeWindowApi`:
 
 ```ts
 import { exposeWindowApi } from "electron-affinity/window";
@@ -204,7 +204,7 @@ exposeWindowApi(new StatusApi(receiver), restorer);
 
 `restorer` is an optional function-typed argument that takes responsibility for restoring the classes of transferred objects. It only restores those classes that the API requires be restored. Scroll down for an explanation of its use.
 
-Main uses the API as follows:
+The main process uses the API as follows:
 
 ```ts
 import { bindWindowApi } from "electron-affinity/main";
@@ -223,15 +223,15 @@ async function doWork() {
 
 Note the following about calling the API:
 
-- The code imports the _type_ `StatusApi` rather than the class `StatusApi`. This keeps main from pulling in window-side code.
+- The code imports the _type_ `StatusApi` rather than the class `StatusApi`. This keeps the main process from pulling in window-side code.
 - `bindWindowApi()` takes both the type parameter `StatusApi` and the string name of the API `"StatusApi"`. The names must agree.
 - `bindWindowApi()` takes a reference to the `BrowserWindow` to which the API is bound. Each API is bound to a single window and messages only that window.
 - The code calls an API method as if the method were local to the window.
-- Main does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
+- The main process does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
 
 ### Organizing Main APIs
 
-Each main API must be exposed and bound individually. A good practice is to define each API in its own file, exporting the API class. Your main code then imports them and exposes them one at a time. For example:
+Each main API must be exposed and bound individually. A good practice is to define each API in its own file, exporting the API class. Your main process code then imports them and exposes them one at a time. For example:
 
 ```ts
 // src/backend/main.ts
@@ -244,7 +244,7 @@ exposeMainApi(new DataApi());
 exposeMainApi(new UploadApi());
 ```
 
-However, main may want to call the APIs itself. In this case, it's useful to attach them to the `global` variable. We might do so as follows:
+However, the main process may want to call these APIs itself. In this case, it's useful to attach them to the `global` variable. We might do so as follows:
 
 ```ts
 // src/backend/apis/main_apis.ts
@@ -292,7 +292,7 @@ export function installMainApis() {
 }
 ```
 
-We'd also like type-checking on calls made to these APIs from within main. To accomplish this, put the following in a `global.d.ts` file:
+We'd also like type-checking on calls made to these APIs from within the main process. To accomplish this, put the following in a `global.d.ts` file:
 
 ```ts
 // src/backend/global.d.ts
@@ -304,7 +304,7 @@ declare global {
 }
 ```
 
-Finally, call `installMainApis` during main's initialization. Now any code in main can call the APIs:
+Finally, call `installMainApis` when initializing the main process. Now any main process code can call the APIs:
 
 ```ts
 global.mainApis.dataApi.openDataset("weather-data", 500);
@@ -312,7 +312,7 @@ let data = await global.mainApis.dataApi.readData();
 await global.mainApis.uploadApi.upload(filename);
 ```
 
-Windows are able to bind to main APIs after main has installed them, but a window must wait for each binding to complete before using the binding. This requires the bindings to occur within asynchronous functions. One way to do this is to create a function for just this purpose:
+Windows are able to bind to main APIs after the main process has installed them, but a window must wait for each binding to complete before using the binding. This requires the bindings to occur within asynchronous functions. One way to do this is to create a function for just this purpose:
 
 ```ts
 // src/frontend/main_apis.ts
@@ -382,7 +382,7 @@ exposeWindowApi(new ReportStatusApi());
 /* ... */
 ```
 
-It helps to create a module in main that binds the APIs for each different kind of window. In the following, `AwaitedType` extracts the type of value to which a promise resolves and prevents you from having to redeclare the API:
+It helps to create a module in the main process that binds the APIs for each different kind of window. In the following, `AwaitedType` extracts the type of value to which a promise resolves and prevents you from having to redeclare the API:
 
 ```ts
 // src/backend/window_apis.ts
@@ -458,7 +458,7 @@ declare module '*.svelte' { // don't change '*.svelte'
 
 Electron Affinity allows class instances to be sent and received via IPC so that they arrive as class instances instead of as untyped, methodless objects. Electron already provides this functionality for basic, built-in classes, such as `Date`, but you can use this library's class restoration mechanism to restore any custom class.
 
-You only restore the classes you want to restore, letting all other class instances transfer as untyped objects. Do so by defining a restorer function conforming to the `RestorerFunction` type (available to both main and windows):
+You only restore the classes you want to restore, letting all other class instances transfer as untyped objects. Do so by defining a restorer function conforming to the `RestorerFunction` type (available to both the main process and windows):
 
 ```ts
 type RestorerFunction = (className: string, obj: Record<string, any>) => any;
@@ -490,7 +490,7 @@ const restorer = (className: string, obj: Record<string, any>) {
 }
 ```
 
-Proper encapsulation would have us put the restoration functionality on the class itself. You can hardcode this per class, if you like, but the library provides tools that make this easier. It uses the `RestorableClass` type (available to both main and windows). This type defines a static method on the class called `restoreClass`:
+Proper encapsulation would have us put the restoration functionality on the class itself. You can hardcode this per class, if you like, but the library provides tools that make this easier. It uses the `RestorableClass` type (available to both the main process and windows). This type defines a static method on the class called `restoreClass`:
 
 ```ts
 type RestorableClass<C> = {
@@ -558,7 +558,7 @@ export function restorer(className: string, obj: Record<string, any>) {
 You can restore API arguments and return values. Arguments are restored by the method that exposes the API, and return values are restored by the method that binds the API. To employ a restorer function, just pass the function as the last parameter of the exposing or binding method. For example:
 
 ```ts
-// main
+// main process
 exposeMainApi(new DataApi(dataSource), restorer);
 const statusApi = await bindWindowApi<StatusApi>(window, 'StatusApi', restorer);
 
@@ -569,7 +569,68 @@ const uploadApi = await bindMainApi<UploadApi>('UploadApi', restorer);
 
 The restorer function need not be the same for all APIs; each can use its own restorer, or it can opt to use no restorer at all.
 
+You can also use the restorer function to restore exceptions that are relayed to the window for rethrowing in the window.
+
 ### Relaying Exceptions
+
+Main APIs can cause exceptions to be thrown in the calling window. This is useful for communicating errors for which the window is the cause, such as incorrect login credentials or incorrect file format for a user-selected file.
+
+The mechanism is simple:
+
+1. Create the object that is to be thrown in the window.
+2. Wrap that object in an instance of `RelayedError`.
+3. Throw the instance of `RelayedError`.
+
+If the wrapped object is an instance of a `Error` and you're okay with the window receiving an instance of `Error`, then there is no need for you to do anything further. However, if you wish to restore the original class, such as for use in `instanceof` checks within a `catch`, you'll need to have a restorer function restore the class. (This is the restorer function you pass to `bindMainApi`.)
+
+Here is an example:
+
+```ts
+// src/backend/apis/login_api.ts
+
+import { RelayedError } from 'electron-affinity/main';
+
+export class LoginApi {
+  private _site: SiteClient;
+  
+  constructor(site: SiteClient) {
+    this._site = site;
+  }
+  
+  async loginUser(username: string, password: string) {
+    try {
+      await this._site.login(username, password);
+    } catch (err: any) {
+      if (err.code == 'BAD_CREDS') {
+        throw new RelayedError(err);
+      }
+      throw err;
+    }
+  }
+}
+```
+
+```ts
+// src/frontend/login_form.ts
+
+async function onSubmit() {
+  try {
+    await window.apis.loginApi.loginUser(username, password);
+  } catch (err: any) {
+    if (err.code == 'BAD_CREDS') {
+      showMessage('Incorrect credentials');
+    } else {}
+      showMessage('UNEXPECTED ERROR: ' + err.message);
+    }
+  }
+}
+```
+
+Whenever an instance (or subclass) of `Error` is created in the main process and returned to the client, by any means, the stack trace is removed prior to transfer.
+
+A main API that throws an error not wrapped in `RelayedError` results in an uncaught exception within the main process. Main APIs can return error objects, but Electron strips them of everything but the message.
+
+Exceptions thrown within window APIs are never returned to the main process.
 
 ### Managing Timeout
 
@@ -584,22 +645,17 @@ The restorer function need not be the same for all APIs; each can use its own re
 - Supports invoking APIs on ancestor classes of API class
 - // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
   Object.setPrototypeOf(this, CustomError.prototype);
-- Electron strips everything but the error message from errors sent to or received from either main or renderer, and I'm not adding them back in.
+- Electron strips everything but the error message from errors sent to or received from either the main process or the renderer, and I'm not adding them back in.
 - Electron auto-restores some classes (e.g. Date)
 
 ## TBD: Type considerations:
 
+- Utility for getting in-place API type errors.
 - Wrapping APIs in functions that reveal type mismatch
 - Is void return enforced?
 - Any way to require an argument to have the class name of a generic?
 - Can't pass multiple different API types to binding
 
-## TBD: To Do:
-
-- Decide on an appropriate default binding timeout.
-- Utility for getting in-place API type errors.
-- Explain how to organize main and window API references.
-
 ## Reference
 
-(Why is auto-save appending an empty code block?)
+TBD
