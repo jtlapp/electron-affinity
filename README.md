@@ -689,7 +689,7 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 
 ### import from 'electron-affinity/main'
 
-See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-and-electron-affinitywindow).
+See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-or-electron-affinitywindow).
 
 #### type ElectronMainApi<T>
 
@@ -812,7 +812,7 @@ export class RelayedError {
 
 ### import from 'electron-affinity/window'
 
-See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-and-electron-affinitywindow).
+See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-or-electron-affinitywindow).
 
 #### type ElectronWindowApi<T>
 
