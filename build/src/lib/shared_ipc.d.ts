@@ -4,12 +4,19 @@
 export declare const API_REQUEST_IPC = "_affinity_api_request";
 export declare const API_RESPONSE_IPC = "_affinity_api_response";
 /**
- * Type to which an asynchronous function T resolve. Used for extracting
- * the resolved return type of a main API method.
+ * Utility type for providing the value to which an asynchronous function
+ * resolves. That is, if a function F returns Promise<R>, then AwaitedType<T>
+ * evaluates to type R. Use for extracting the types of bound APIs.
+ *
+ * @param <F> Function for which to determine the resolving type.
  */
-export declare type AwaitedType<T> = T extends (...args: any[]) => Promise<infer R> ? R : never;
+export declare type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R> ? R : never;
 /**
- * Sets the timeout for binding to an API.
+ * Sets the binding timeout. This is the maximum time allowed for the main
+ * process to bind to any window API and the maximum time allowed for a
+ * window to bind to a main API. Also applies to any bindings in progress.
+ *
+ * @param millis Duration of timeout in milliseconds
  */
 export declare function setIpcBindingTimeout(millis: number): void;
 export declare type PrivateProperty<P> = P extends `_${string}` ? P : P extends `#${string}` ? P : never;

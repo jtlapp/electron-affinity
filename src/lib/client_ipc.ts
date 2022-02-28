@@ -17,9 +17,12 @@ import { Restorer, RestorerFunction } from "./restorer";
 //// MAIN API SUPPORT //////////////////////////////////////////////////////
 
 /**
- * Type to which a bound main API of class T conforms. It only exposes the
- * methods of class T not starting with `_` or `#`, and it returns the exact
- * return types of the individual methods.
+ * Type to which a bound main API conforms within a window, as determined by
+ * the provided main API class. The type only exposes the methods of the
+ * class not starting with `_` or `#`, and it returns the exact
+ * return types of the individual methods, which are necessarily promises.
+ *
+ * @param <T> Type of the main API class
  */
 export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
@@ -43,16 +46,18 @@ const _mainApiMap: ApiRegistrationMap = {};
 const _boundMainApis: Record<string, MainApiBinding<any>> = {};
 
 /**
- * Returns a window-side binding for a main API of a given class.
- * Main must have previously exposed the API.
+ * Returns a window-side binding for a main API of a given class. Main must
+ * have previously exposed the API. Failure of the main process to expose the
+ * API before timeout results in an exception. There is a default timeout, but
+ * you can override it with `setIpcBindingTimeout()`.
  *
- * @param <T> Class to which to bind.
+ * @param <T> Type of the main API class to bind
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param restorer Optional function for restoring the classes of returned
- *    values to the classes they had when transmitted by main. Instances of
- *    classes not restored arrive as untyped structures.
- * @returns An API of type T that can be called as if T were local.
+ * @param restorer Optional function for restoring the classes of API return
+ *    values. Return values not restored arrive as untyped objects.
+ * @returns An API of type T that can be called as if T were local to
+ *    the window.
  */
 export function bindMainApi<T>(
   apiClassName: string,
@@ -127,34 +132,42 @@ function _attemptBindMainApi<T>(
 let _windowApiMap: ApiRegistrationMap = {};
 
 /**
- * Type to which a window API of class T conforms, expecting each API
- * to return void. All properties of the method not beginning with an
- * underscore or pound are considered IPC APIs. All properties beginning
- * with an underscore or poundare ignored, allowing an API class to have
- * internal structure on which the APIs rely.
+ * Type to which a window API class must conform. It requires that all
+ * properties of the class not beginning with `_` or `#` be functions, which
+ * will be exposed as API methods. All properties beginning with `_` or `#`
+ * are ignored, which allows the API class to have internal structure on
+ * which the APIs rely. Use `checkWindowApi` to type-check window API classes.
+ *
+ * @param <T> The type of the API class itself, typically inferred from a
+ *    function that accepts an argument of type `ElectronWindowApi`.
+ * @see checkWindowApi
  */
 export type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
 };
 
 /**
- * Type checks the argument to ensure it conforms with `ElectronWindowApi<T>`.
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
+ * and returns the argument for the convenience of the caller.
+ *
+ * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
  * @return The provided window API
- * @see MainApiBinding
+ * @see ElectronWindowApi
  */
 export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T) {
   return api;
 }
 
 /**
- * Exposes a window API to main for possible binding.
+ * Exposes a window API to the main process for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
- * @param windowApi The API to expose to main
+ * @param windowApi The API to expose to the main process, which must be
+ *    an instance of a class conforming to type `ElectronWindowApi`
  * @param restorer Optional function for restoring the classes of
- *    arguments passed from main. Instances of classes not restored
- *    arrive as untyped structures.
+ *    arguments passed to APIs from the main process. Arguments not
+ *    restored to original classes arrive as untyped objects.
  */
 export function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,

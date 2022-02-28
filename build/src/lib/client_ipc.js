@@ -47,16 +47,18 @@ var _mainApiMap = {};
 // Structure tracking bound main APIs.
 var _boundMainApis = {};
 /**
- * Returns a window-side binding for a main API of a given class.
- * Main must have previously exposed the API.
+ * Returns a window-side binding for a main API of a given class. Main must
+ * have previously exposed the API. Failure of the main process to expose the
+ * API before timeout results in an exception. There is a default timeout, but
+ * you can override it with `setIpcBindingTimeout()`.
  *
- * @param <T> Class to which to bind.
+ * @param <T> Type of the main API class to bind
  * @param apiClassName Name of the class being bound. Must be identical to
  *    the name of class T. Provides runtime information that <T> does not.
- * @param restorer Optional function for restoring the classes of returned
- *    values to the classes they had when transmitted by main. Instances of
- *    classes not restored arrive as untyped structures.
- * @returns An API of type T that can be called as if T were local.
+ * @param restorer Optional function for restoring the classes of API return
+ *    values. Return values not restored arrive as untyped objects.
+ * @returns An API of type T that can be called as if T were local to
+ *    the window.
  */
 function bindMainApi(apiClassName, restorer) {
     _installIpcListeners();
@@ -126,23 +128,27 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
 // Structure mapping window API names to the methods each contains.
 var _windowApiMap = {};
 /**
- * Type checks the argument to ensure it conforms with `ElectronWindowApi<T>`.
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
+ * and returns the argument for the convenience of the caller.
+ *
+ * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
  * @return The provided window API
- * @see MainApiBinding
+ * @see ElectronWindowApi
  */
 function checkWindowApi(api) {
     return api;
 }
 exports.checkWindowApi = checkWindowApi;
 /**
- * Exposes a window API to main for possible binding.
+ * Exposes a window API to the main process for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
- * @param windowApi The API to expose to main
+ * @param windowApi The API to expose to the main process, which must be
+ *    an instance of a class conforming to type `ElectronWindowApi`
  * @param restorer Optional function for restoring the classes of
- *    arguments passed from main. Instances of classes not restored
- *    arrive as untyped structures.
+ *    arguments passed to APIs from the main process. Arguments not
+ *    restored to original classes arrive as untyped objects.
  */
 function exposeWindowApi(windowApi, restorer) {
     _installIpcListeners();

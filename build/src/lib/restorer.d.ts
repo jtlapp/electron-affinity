@@ -4,17 +4,28 @@
 /**
  * Type of a class that can be called to restore class values. It defines
  * the static class method `restoreClass`, which takes the unstructured
- * object received via IPC and returns an instance of class C.
+ * object received via IPC and returns an instance of class C. Use for
+ * creating generic restorer functions, as explained in the documentation.
+ *
+ * @param <C> The class that conforms to this type.
  */
 export declare type RestorableClass<C> = {
     restoreClass(obj: Record<string, any>): C;
 };
 /**
- * Type for a function that restores argument and return value classes.
- * It receives the name of the class at the time it was sent via IPC
- * and the unstructured object that the class instances was converted
- * into for transmission via IPC. It returns the value in the appropriate
- * class, or leaves it unchanged if the class name is not recognized.
+ * Type for a function that restores the classes of arguments and return
+ * values. This function is optionally the last parameter passed when
+ * exposing a main API, binding to a main API, or exposing a window API.
+ * The function need not restore the class of a provided object, in which
+ * case it returns the provided object.
+ *
+ * @param className The name of the class at the time its instance was
+ *    transferred via IPC
+ * @param obj The unstructured object to which the class instance was
+ *    converted for transmission via IPC
+ * @return Either the provided object `obj` if it was not converted into
+ *    a class instance, or an instance of class `className` sourced from
+ *    the data in `obj`
  */
 export declare type RestorerFunction = (className: string, obj: Record<string, any>) => any;
 interface RestorationInfo {

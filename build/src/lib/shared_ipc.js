@@ -13,7 +13,11 @@ var _RETRY_MILLIS = 50;
 // Configurable timeout attempting to bind an API.
 var _bindingTimeoutMillis = 4000;
 /**
- * Sets the timeout for binding to an API.
+ * Sets the binding timeout. This is the maximum time allowed for the main
+ * process to bind to any window API and the maximum time allowed for a
+ * window to bind to a main API. Also applies to any bindings in progress.
+ *
+ * @param millis Duration of timeout in milliseconds
  */
 function setIpcBindingTimeout(millis) {
     _bindingTimeoutMillis = millis;
