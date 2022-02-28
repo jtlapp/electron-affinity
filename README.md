@@ -687,4 +687,312 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 
 ## Reference
 
-TBD
+### 'electron-affinity/main'
+
+See also [the library common to '/main' and '/window'](#electron-affinity-main-and-electron-affinity-window).
+
+#### type ElectronMainApi<T>
+
+```ts
+/**
+ * Type to which a main API class must conform. It requres each API method
+ * to return a promise. All properties of the method not beginning with `_`
+ * or `#` will be exposed as API methods. All properties beginning with `_` or
+ * `#` are ignored, which allows the API class to have internal structure on
+ * which the APIs rely. Use `checkMainApi` to type-check main API classes.
+ *
+ * @param <T> The type of the API class itself, typically inferred from a
+ *    function that accepts an argument of type `ElectronMainApi`.
+ * @see checkMainApi
+ */
+export type ElectronMainApi<T> = {
+  [K in keyof T]: K extends PublicProperty<K>
+    ? (...args: any[]) => Promise<any>
+    : any;
+};
+```
+
+#### type WindowApiBinding<T>
+
+```ts
+/**
+ * Type to which a bound window API conforms within the main process, as
+ * determined from the provided window API class. This type only exposes the
+ * methods of the class not starting with `_` or `#`, and regardless of what
+ * the method returns, the API returns void.
+ *
+ * @param <T> Type of the window API class
+ */
+export type WindowApiBinding<T> = {
+  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (
+    ...args: infer A
+  ) => any
+    ? (...args: A) => void
+    : never;
+};
+```
+
+#### function bindWindowApi()
+
+```ts
+/**
+ * Returns a main-side binding for a window API of a given class, restricting
+ * the binding to the given window. Failure of the window to expose the API
+ * before timeout results in an exception. There is a default timeout, but
+ * you can override it with `setIpcBindingTimeout()`. (The function takes no
+ * restorer parameter because window APIs do not return values.)
+ *
+ * @param <T> Type of the window API class to bind
+ * @param window Window to which to bind the window API
+ * @param apiClassName Name of the class being bound. Must be identical to
+ *    the name of class T. Provides runtime information that <T> does not.
+ * @returns An API of type T that can be called as if T were local to the
+ *    main process.
+ * @see setIpcBindingTimeout
+ */
+export function bindWindowApi<T>(
+  window: BrowserWindow,
+  apiClassName: string
+): Promise<WindowApiBinding<T>>
+```
+
+#### function checkMainApi()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms with `ElectronMainApi`,
+ * and returns the argument for the convenience of the caller.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the main API class to type check
+ * @return The provided main API
+ * @see ElectronMainApi
+ */
+export function checkMainApi<T extends ElectronMainApi<T>>(api: T)
+```
+
+#### function exposeMainApi()
+
+```ts
+/**
+ * Exposes a main API to all windows for possible binding.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param mainApi The API to expose to all windows, which must be an
+ *    instance of a class conforming to type `ElectronMainApi`
+ * @param restorer Optional function for restoring the classes of
+ *    arguments passed to APIs from the window. Arguments not
+ *    restored to original classes arrive as untyped objects.
+ */
+export function exposeMainApi<T>(
+  mainApi: ElectronMainApi<T>,
+  restorer?: RestorerFunction
+): void
+```
+
+#### class RelayedError
+
+```ts
+/**
+ * Class that wraps exceptions occurring in a main API that are to be
+ * relayed as errors back to the calling window. A main API wishing to
+ * have an exception thrown in the calling window wraps the error object
+ * in an instance of this class and throws the instance. The main process
+ * will ignore the throw except for transferring it to the calling window.
+ * Exceptions thrown within a main API not wrapped in `RelayedError` are
+ * thrown within the main process as "uncaught" exceptions.
+ *
+ * @param errorToRelay The error to throw within the calling window,
+ *    occurring within the window's call to the main API
+ */
+export class RelayedError {
+  constructor(errorToRelay: any)
+}
+```
+
+### 'electron-affinity/window'
+
+See also [the library common to '/main' and '/window'](#electron-affinity-main-and-electron-affinity-window).
+
+#### type ElectronWindowApi<T>
+
+```ts
+/**
+ * Type to which a window API class must conform. It requires that all
+ * properties of the class not beginning with `_` or `#` be functions, which
+ * will be exposed as API methods. All properties beginning with `_` or `#`
+ * are ignored, which allows the API class to have internal structure on
+ * which the APIs rely. Use `checkWindowApi` to type-check window API classes.
+ *
+ * @param <T> The type of the API class itself, typically inferred from a
+ *    function that accepts an argument of type `ElectronWindowApi`.
+ * @see checkWindowApi
+ */
+export type ElectronWindowApi<T> = {
+  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
+};
+```
+
+#### type MainApiBinding
+
+```ts
+/**
+ * Type to which a bound main API conforms within a window, as determined by
+ * the provided main API class. The type only exposes the methods of the
+ * class not starting with `_` or `#`, and it returns the exact
+ * return types of the individual methods, which are necessarily promises.
+ *
+ * @param <T> Type of the main API class
+ */
+export type MainApiBinding<T> = {
+  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
+};
+```
+
+#### function bindMainApi()
+
+```ts
+/**
+ * Returns a window-side binding for a main API of a given class. Main must
+ * have previously exposed the API. Failure of the main process to expose the
+ * API before timeout results in an exception. There is a default timeout, but
+ * you can override it with `setIpcBindingTimeout()`.
+ *
+ * @param <T> Type of the main API class to bind
+ * @param apiClassName Name of the class being bound. Must be identical to
+ *    the name of class T. Provides runtime information that <T> does not.
+ * @param restorer Optional function for restoring the classes of API return
+ *    values. Return values not restored arrive as untyped objects.
+ * @returns An API of type T that can be called as if T were local to
+ *    the window.
+ */
+export function bindMainApi<T>(
+  apiClassName: string,
+  restorer?: RestorerFunction
+): Promise<MainApiBinding<T>>
+```
+
+#### function checkWindowApi()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
+ * and returns the argument for the convenience of the caller.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see ElectronWindowApi
+ */
+export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
+```
+
+#### function exposeWindowApi()
+
+```ts
+/**
+ * Exposes a window API to the main process for possible binding.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param windowApi The API to expose to the main process, which must be
+ *    an instance of a class conforming to type `ElectronWindowApi`
+ * @param restorer Optional function for restoring the classes of
+ *    arguments passed to APIs from the main process. Arguments not
+ *    restored to original classes arrive as untyped objects.
+ */
+export function exposeWindowApi<T>(
+  windowApi: ElectronWindowApi<T>,
+  restorer?: RestorerFunction
+): void
+```
+
+### 'electron-affinity/main' and 'electron-affinity/window'
+
+#### type AwaitedType<F>
+
+```ts
+/**
+ * Utility type for providing the value to which an asynchronous function
+ * resolves. That is, if a function F returns Promise<R>, then AwaitedType<T>
+ * evaluates to type R. Use for extracting the types of bound APIs.
+ *
+ * @param <F> Function for which to determine the resolving type.
+ */
+export type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
+  ? R
+  : never;
+```
+
+#### type RestorableClass<C>
+
+```ts
+/**
+ * Type of a class that can be called to restore class values. It defines
+ * the static class method `restoreClass`, which takes the unstructured
+ * object received via IPC and returns an instance of class C. Use for
+ * creating generic restorer functions, as explained in the documentation.
+ *
+ * @param <C> The class that conforms to this type.
+ */
+export type RestorableClass<C> = {
+  // static method of the class returning an instance of the class
+  restoreClass(obj: Record<string, any>): C;
+};
+```
+
+#### type RestorerFunction
+
+```ts
+/**
+ * Type for a function that restores the classes of arguments and return
+ * values. This function is optionally the last parameter passed when
+ * exposing a main API, binding to a main API, or exposing a window API.
+ * The function need not restore the class of a provided object, in which
+ * case it returns the provided object.
+ *
+ * @param className The name of the class at the time its instance was
+ *    transferred via IPC
+ * @param obj The unstructured object to which the class instance was
+ *    converted for transmission via IPC
+ * @return Either the provided object `obj` if it was not converted into
+ *    a class instance, or an instance of class `className` sourced from
+ *    the data in `obj`
+ */
+export type RestorerFunction = (
+  className: string,
+  obj: Record<string, any>
+) => any;
+```
+
+#### function setIpcBindingTimeout()
+
+```ts
+/**
+ * Sets the binding timeout. This is the maximum time allowed for the main
+ * process to bind to any window API and the maximum time allowed for a
+ * window to bind to a main API. Also applies to any bindings in progress.
+ *
+ * @param millis Duration of timeout in milliseconds
+ */
+export function setIpcBindingTimeout(millis: number): void
+```
+
+### 'electron-affinity/preload'
+
+This is the JavaScript to preload into each window in order to enable the window to support IPC. Either include the following line in your `preload.js`:
+
+```ts
+import "electron-ipc-methods/preload";
+```
+
+... or preload directly from `node_modules` using the appropriate path:
+
+```ts
+const window = new BrowserWindow({
+  webPreferences: {
+    preload: path.join(__dirname, "../node_modules/electron-affinity/preload.js"),
+    nodeIntegration: false,
+    contextIsolation: true,
+  },
+});
+```
