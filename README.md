@@ -687,9 +687,9 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 
 ## Reference
 
-### 'electron-affinity/main'
+### import from 'electron-affinity/main'
 
-See also [the library common to '/main' and '/window'](#electron-affinity-main-and-electron-affinity-window).
+See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-and-electron-affinitywindow).
 
 #### type ElectronMainApi<T>
 
@@ -810,9 +810,9 @@ export class RelayedError {
 }
 ```
 
-### 'electron-affinity/window'
+### import from 'electron-affinity/window'
 
-See also [the library common to '/main' and '/window'](#electron-affinity-main-and-electron-affinity-window).
+See also [the library common to '/main' and '/window'](#import-from-electron-affinitymain-and-electron-affinitywindow).
 
 #### type ElectronWindowApi<T>
 
@@ -906,7 +906,7 @@ export function exposeWindowApi<T>(
 ): void
 ```
 
-### 'electron-affinity/main' and 'electron-affinity/window'
+### import from 'electron-affinity/main' or 'electron-affinity/window'
 
 #### type AwaitedType<F>
 
@@ -977,7 +977,7 @@ export type RestorerFunction = (
 export function setIpcBindingTimeout(millis: number): void
 ```
 
-### 'electron-affinity/preload'
+### import 'electron-affinity/preload'
 
 This is the JavaScript to preload into each window in order to enable the window to support IPC. Either include the following line in your `preload.js`:
 
