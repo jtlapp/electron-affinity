@@ -10,4 +10,8 @@ export {
   bindMainApi,
 } from "./lib/client_ipc";
 export { AwaitedType, setIpcBindingTimeout } from "./lib/shared_ipc";
-export { RestorableClass, RestorerFunction } from "./lib/restorer";
+export {
+  RestorableClass,
+  RestorerFunction,
+  genericRestorer,
+} from "./lib/restorer";

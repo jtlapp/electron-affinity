@@ -33,6 +33,22 @@ interface RestorationInfo {
     className: string;
     isError: boolean;
 }
+/**
+ * A generic implementation of a restorer function, which becomes an instance
+ * of `RestorerFunction` when bound to a map of restorable classes (each
+ * conforming to type `RestorableClass`). See the example in the docs.
+ *
+ * @param restorableClassMap An object whose properties map the names of
+ *    restorable classes to the restorable classes themselves
+ * @param className The name of the class at the time its instance was
+ *    transferred via IPC
+ * @param obj The unstructured object to which the class instance was
+ *    converted for transmission via IPC
+ * @return An instance of a class in `restorableClassMap` if `className` is in
+ *    this map, sourced from the provided `obj`, or the provided `obj` itself
+ *    if `className` is not in `restorableClassMap`
+ */
+export declare function genericRestorer(restorableClassMap: Record<string, RestorableClass<any>>, className: string, obj: Record<string, any>): any;
 export declare namespace Restorer {
     function makeArgsRestorable(args: any[]): void;
     function makeRestorationInfo(obj: any): RestorationInfo | null;

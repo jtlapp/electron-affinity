@@ -1,4 +1,4 @@
-import type { RestorableClass } from "../../src/lib/restorer";
+import { genericRestorer } from "../../src/lib/restorer";
 
 export class Catter {
   s1: string;
@@ -57,19 +57,12 @@ export class NonErrorObject {
   }
 }
 
-const restorationMap: Record<string, RestorableClass<any>> = {
+export const restorer = genericRestorer.bind(null, {
   Catter,
   CustomError,
   NoMessageError,
   NonErrorObject,
-};
-
-export function restorer(className: string, obj: Record<string, any>) {
-  const restorableClass = restorationMap[className];
-  return restorableClass === undefined
-    ? obj
-    : restorableClass["restoreClass"](obj);
-}
+});
 
 export async function sleep(delayMillis: number) {
   return new Promise<void>((resolve) => {

@@ -10,11 +10,13 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
     o[k2] = m[k];
 }));
 exports.__esModule = true;
-exports.setIpcBindingTimeout = exports.bindMainApi = exports.checkWindowApi = exports.exposeWindowApi = void 0;
+exports.genericRestorer = exports.setIpcBindingTimeout = exports.bindMainApi = exports.checkWindowApi = exports.exposeWindowApi = void 0;
 var client_ipc_1 = require("./lib/client_ipc");
 __createBinding(exports, client_ipc_1, "exposeWindowApi");
 __createBinding(exports, client_ipc_1, "checkWindowApi");
 __createBinding(exports, client_ipc_1, "bindMainApi");
 var shared_ipc_1 = require("./lib/shared_ipc");
 __createBinding(exports, shared_ipc_1, "setIpcBindingTimeout");
+var restorer_1 = require("./lib/restorer");
+__createBinding(exports, restorer_1, "genericRestorer");
 //# sourceMappingURL=window.js.map

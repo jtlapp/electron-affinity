@@ -3,7 +3,29 @@
  * Support for restoring the classes of arguments and return values.
  */
 exports.__esModule = true;
-exports.Restorer = void 0;
+exports.Restorer = exports.genericRestorer = void 0;
+/**
+ * A generic implementation of a restorer function, which becomes an instance
+ * of `RestorerFunction` when bound to a map of restorable classes (each
+ * conforming to type `RestorableClass`). See the example in the docs.
+ *
+ * @param restorableClassMap An object whose properties map the names of
+ *    restorable classes to the restorable classes themselves
+ * @param className The name of the class at the time its instance was
+ *    transferred via IPC
+ * @param obj The unstructured object to which the class instance was
+ *    converted for transmission via IPC
+ * @return An instance of a class in `restorableClassMap` if `className` is in
+ *    this map, sourced from the provided `obj`, or the provided `obj` itself
+ *    if `className` is not in `restorableClassMap`
+ */
+function genericRestorer(restorableClassMap, className, obj) {
+    var restorableClass = restorableClassMap[className];
+    return restorableClass === undefined
+        ? obj
+        : restorableClass["restoreClass"](obj);
+}
+exports.genericRestorer = genericRestorer;
 var Restorer;
 (function (Restorer) {
     // Makes all the arguments of an argument list restorable.

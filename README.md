@@ -32,8 +32,8 @@ This library was designed to address many of the problems that can arise when us
 - Class instances become untyped objects when transmitted over IPC.
 - Implementing IPC requires lots of boilerplate code on both sides.
 - Extra effort is required to make local IPC functionality locally available.
-- Exceptions are local, with no mechanism for transferring caller-caused errors back to the caller in IPCs that normally return values.
-- Coding IPC with context isolation and without node integration is typically complex.
+- Exceptions are local, with no mechanism for transferring caller-caused errors back to the caller to be rethrown.
+- Coding IPC with context isolation, without node integration is typically complex.
 
 ## Installation
 
@@ -47,7 +47,7 @@ or
 
 Electron Affinity supports main APIs and window APIs. Main APIs are defined in the main process and callable from renderer windows. Window APIs are defined in renderer windows and callable from the main process. Window-to-window calling is not supported.
 
-The first two sections on usage, "Main APIs" and "Window APIs" are all you need to read to get an understanding of this library.
+The first two sections on usage, "Main APIs" and "Window APIs", are all you need to read to get an understanding of this library.
 
 ### Main APIs
 
@@ -350,7 +350,7 @@ To get type-checking on these APIs, add the following to `global.d.ts`:
 ```ts
 // src/frontend/global.d.ts
 
-import type { MainApis } from './lib/main_client';
+import type { MainApis } from './lib/main_apis';
 
 declare global {
   interface Window {
@@ -494,21 +494,12 @@ const restorer = (className: string, obj: Record<string, any>) {
 }
 ```
 
-Proper encapsulation would have us put the restoration functionality on the class itself. You can hardcode this per class, if you like, but the library provides tools that make this easier. It uses the `RestorableClass` type (available to both the main process and windows). This type defines a static method on the class called `restoreClass`:
+Proper encapsulation would have us put the restoration functionality on the class itself. Fortunately, Electron Affinity makes this easy to do. First, add a static method called `restoreClass` to each class that is to be restorable, having it take an untyped object and return an instance of the class sourced from that object. Second, bind a class name to class mapping of these classes to the library function `genericRestorer`, and use this bound function as your restoration function. For example:
 
 ```ts
-type RestorableClass<C> = {
-  // static method of the class returning an instance of the class
-  restoreClass(obj: Record<string, any>): C;
-};
-```
+import type { genericRestorer } from "electron-affinity/main";
 
-Now we can generically restore any number of classes, as follows:
-
-```ts
-import type { RestorableClass } from "electron-affinity/main";
-
-class Catter {
+export class Catter {
   /* ...same as above... */
   
   static restoreClass(obj: any): Catter {
@@ -516,7 +507,7 @@ class Catter {
   }
 }
 
-class Joiner {
+export class Joiner {
   list: string[];
   delim: string;
   
@@ -535,20 +526,14 @@ class Joiner {
   }
 }
 
-const restorationMap: Record<string, RestorableClass<any>> = {
+// Use this bound restorer function.
+export const restorer = genericRestorer.bind(null, {
   Catter,
   Joiner,
-};
-
-export function restorer(className: string, obj: Record<string, any>) {
-  const restorableClass = restorationMap[className];
-  return restorableClass === undefined
-    ? obj
-    : restorableClass["restoreClass"](obj);
-}
+});
 ```
 
-You can restore API arguments and return values. Arguments are restored by the method that exposes the API, and return values are restored by the method that binds the API. To employ a restorer function, just pass the function as the last parameter of the exposing or binding method. For example:
+You can restore both API arguments and return values. Arguments are restored by the method that exposes the API, and return values are restored by the method that binds the API. To employ a restorer function, just pass the function as the last parameter of the exposing or binding method. For example:
 
 ```ts
 // main process
@@ -962,6 +947,31 @@ export type RestorerFunction = (
   className: string,
   obj: Record<string, any>
 ) => any;
+```
+
+#### function genericRestorer()
+
+```ts
+/**
+ * A generic implementation of a restorer function, which becomes an instance
+ * of `RestorerFunction` when bound to a map of restorable classes (each
+ * conforming to type `RestorableClass`). See the example in the docs.
+ *
+ * @param restorableClassMap An object whose properties map the names of
+ *    restorable classes to the restorable classes themselves
+ * @param className The name of the class at the time its instance was
+ *    transferred via IPC
+ * @param obj The unstructured object to which the class instance was
+ *    converted for transmission via IPC
+ * @return An instance of a class in `restorableClassMap` if `className` is in
+ *    this map, sourced from the provided `obj`, or the provided `obj` itself
+ *    if `className` is not in `restorableClassMap`
+ */
+export function genericRestorer(
+  restorableClassMap: Record<string, RestorableClass<any>>,
+  className: string,
+  obj: Record<string, any>
+): any
 ```
 
 #### function setIpcBindingTimeout()
