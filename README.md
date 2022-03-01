@@ -2,7 +2,7 @@
 
 IPC via simple method calls in Electron
 
-_I'm finishing up the documentation. The code is complete and fully tested._
+_(Now finishing up the documentation... The code is complete and fully tested.)_
 
 ## Introduction
 
@@ -18,7 +18,9 @@ Electron Affinity is a small TypeScript library that makes IPC as simple as poss
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 - Uses context isolation and does not require node integration, maximizing security.
 
-Note: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
+_Special thanks to **[Electron Mocha](https://github.com/jprichardson/electron-mocha)**, which made it possible for me to thoroughly test each iteration of the solution until everything worked as expected._
+
+> NOTE ON JAVASCRIPT: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
 
 ## Problems Addressed
 
