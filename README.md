@@ -2,9 +2,7 @@
 
 IPC via simple method calls in Electron
 
-_WORK IN PROGRESS_
-
-I'm finishing up the documentation. The code is complete and fully tested.
+_I'm finishing up the documentation. The code is complete and fully tested._
 
 ## Introduction
 
@@ -194,8 +192,8 @@ Note the following about this API:
 
 - The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Code within the main process always shows their return values as void.
 - Methods can by asynchronous, but the main process cannot wait for them to resolve.
-- Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `summarize()` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_receiver` from being exposed as an IPC method.
+- Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `generateSummary()` method available.
+- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents the member `_receiver` from being exposed as an IPC method.
 - Exceptions thrown by any of these methods do not get returned to the main process.
 
 The window makes the API available to the main process by calling `exposeWindowApi`:
@@ -316,7 +314,7 @@ let data = await global.mainApis.dataApi.readData();
 await global.mainApis.uploadApi.upload(filename);
 ```
 
-Windows are able to bind to main APIs after the main process has installed them, but a window must wait for each binding to complete before using the binding. This requires the bindings to occur within asynchronous functions. One way to do this is to create a function for just this purpose:
+Windows are able to bind to main APIs after the main process has installed them, but a window must wait for each binding to complete before using the API. This requires API bindings to occur within asynchronous functions. One way to do this is to create a function for just this purpose:
 
 ```ts
 // src/frontend/main_apis.ts
@@ -494,7 +492,7 @@ const restorer = (className: string, obj: Record<string, any>) {
 }
 ```
 
-Proper encapsulation would have us put the restoration functionality on the class itself. Fortunately, Electron Affinity makes this easy to do. First, add a static method called `restoreClass` to each class that is to be restorable, having it take an untyped object and return an instance of the class sourced from that object. Second, bind a class name to class mapping of these classes to the library function `genericRestorer`, and use this bound function as your restoration function. For example:
+Proper encapsulation would have us put the restoration functionality on the class itself. Fortunately, Electron Affinity makes this easy to do. First, add a static method called `restoreClass` to each class that is to be restorable, having it take an untyped object and return an instance of the class sourced from that object. Second, bind a class-name-to-class mapping of these classes to the library function `genericRestorer`, and use this bound function as your restoration function. Here's an example:
 
 ```ts
 import type { genericRestorer } from "electron-affinity/main";
@@ -547,13 +545,13 @@ const uploadApi = await bindMainApi<UploadApi>('UploadApi', restorer);
 
 The restorer function need not be the same for all APIs; each can use its own restorer, or it can opt to use no restorer at all.
 
-You can also use the restorer function to restore exceptions that are relayed to the window for rethrowing in the window.
+You can also use the restorer function to restore the classes of exceptions that are relayed to the window for rethrowing in the window.
 
 ### Relaying Exceptions
 
 Main APIs can cause exceptions to be thrown in the calling window. This is useful for communicating errors for which the window is the cause, such as incorrect login credentials or incorrect file format for a user-selected file.
 
-The mechanism is simple:
+The mechanism is simple. From within the main API:
 
 1. Create the object that is to be thrown in the window.
 2. Wrap that object in an instance of `RelayedError`.
@@ -561,7 +559,7 @@ The mechanism is simple:
 
 If the wrapped object is an instance of a `Error` and you're okay with the window receiving an instance of `Error`, then there is no need to do anything more. However, if you wish to restore the original class, such as for use in `instanceof` checks within a `catch`, you'll need to have a restorer function restore the class. (This is the restorer function passed to `bindMainApi`.)
 
-Here is an example:
+Here is an example, showing a main API and a window calling that main API:
 
 ```ts
 // src/backend/apis/login_api.ts
@@ -604,7 +602,7 @@ async function onSubmit() {
 }
 ```
 
-Whenever an instance (or subclass) of `Error` is created in the one process and transferred via IPC to another process, by any means, the stack trace is removed prior to transfer. Electron does this, and the library does not obviate it.
+Whenever an instance (or subclass) of `Error` is created in the one process and transferred via IPC to another process, by any means, the stack trace and error code (if any) is removed prior to transfer. Electron does this, and the library does not obviate it.
 
 A main API that throws an error not wrapped in `RelayedError` results in an uncaught exception within the main process. Main APIs can return error objects, but Electron strips them of everything but the message.
 
@@ -632,7 +630,7 @@ setIpcBindingTimeout(500); // 500 milliseconds
 
 The timeout applies to all bindings, including in-progress bindings.
 
-The library does not at present provide a timeout for the duration of a main API, and it appears that Electron provides no timeout on `ipcRenderer.invoke` either.
+The library does not at present provide a timeout for the duration of a main API call, and it appears that Electron provides no timeout on `ipcRenderer.invoke` either.
 
 ### Example Repo
 
@@ -648,25 +646,18 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - [Calls from the main window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
 - [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/backend/app/app_menu.ts)
 
-## TBD: Other notes to include / caveats
+## Miscellaneous Notes and Caveats
 
-- Drawback of having to ensure that IPC only used after async initialization.
-- window.apis.apiName.method() may be preferrable to window.apiName.method() because upon typing "window." into VSCode, all available window properties are shown, whereas upon typing "window.apis.", only available APIs are shown.
-- RelayedError is not an instance of Error, so don't extend it.
-- Must take care to bind before all usage, because not static.
-- Supports invoking APIs on ancestor classes of API class
-- // see https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-  Object.setPrototypeOf(this, CustomError.prototype);
-- Electron strips everything but the error message from errors sent to or received from either the main process or the renderer, and I'm not adding them back in.
-- Electron auto-restores some classes (e.g. Date)
-- Installs `window.__ipc`.
-- Relative to sync IPC, introduces possible errors for failing to await result.
+- In order to keep the library simple, I require that all main API methods be asynchronous. A drawback of doing this is that, if you need to wait on the return value, the API can only be called from within an asynchronous method.
+- Being asynchronous, API methods are also prone to the mistake where they are called without using `await`. Unfortunately, that's one problem I couldn't help alleviate.
+- Another drawback of this approach is that APIs are only available after waiting for the binding promise to complete. Fortunately, prior to binding, API methods are undefined, so at least you'll get an error message that makes the issue clear.
+- It may seem excessive to place main APIs on `window.apis` instead of directly on `window`, but the former is more helpful for code completion. If you put each API on `window` directly, not only do you increase the risk of name conflicts, but on VS Code, after typing `window.` you'll be staring at a long list of window properties, not just the APIs. On the other hand, typing `window.apis.` on VS Code will show you all the available APIs, providing a handy reference.
+- The library installs its own internal APIs on `window.__ipc` (two underscores), so don't use this property for any other purpose.
 
-## TBD: Type considerations:
+## Type Considerations (TBD)
 
-- Utility for getting in-place API type errors.
-- Wrapping APIs in functions that reveal type mismatch
-- Is void return enforced?
+- Use of types as conformance specifications
+- Utility for getting in-place API type errors
 - Any way to require an argument to have the class name of a generic?
 - Can't pass multiple different API types to binding
 
