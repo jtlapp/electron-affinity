@@ -9,6 +9,6 @@ import { reportErrorsToMain } from "../lib/renderer_util";
     await bindMainApi<MainApi2>("MainApi2", restorer);
     window.location.reload();
   } catch (err) {
-    window.__ipc.send("test_aborted", err);
+    window._affinity_ipc.send("test_aborted", err);
   }
 })();

@@ -8,7 +8,7 @@
 import { contextBridge } from "electron";
 import { ipcRenderer } from "electron";
 
-contextBridge.exposeInMainWorld("__ipc", {
+contextBridge.exposeInMainWorld("_affinity_ipc", {
   invoke: (channel: string, data: any) => {
     return ipcRenderer.invoke(channel, data);
   },

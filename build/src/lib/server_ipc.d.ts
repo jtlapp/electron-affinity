@@ -21,6 +21,19 @@ export declare type ElectronMainApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => Promise<any> : any;
 };
 /**
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * main API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods returning promises and will be
+ * interpreted as API methods. Returns the argument to allow type-checking
+ * of APIs in their exact place of use.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the main API class to type check
+ * @return The provided main API
+ * @see checkMainApiClass
+ */
+export declare function checkMainApi<T extends ElectronMainApi<T>>(api: T): T;
+/**
  * Type checks the argument to ensure it conforms to the expectations of a
  * main API class. All properties not beginning with `_` or `#` must be
  * methods returning promises and will be interpreted as API methods. Useful
@@ -35,19 +48,6 @@ export declare type ElectronMainApi<T> = {
 export declare function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
     new (...args: any[]): T;
 }): void;
-/**
- * Type checks the argument to ensure it conforms to the expectaions of a
- * main API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods returning promises and will be
- * interpreted as API methods. Returns the argument to allow type-checking
- * of APIs in their exact place of use.
- *
- * @param <T> (inferred type, not specified in call)
- * @param api Instance of the main API class to type check
- * @return The provided main API
- * @see checkMainApiClass
- */
-export declare function checkMainApi<T extends ElectronMainApi<T>>(api: T): T;
 /**
  * Class that wraps exceptions occurring in a main API that are to be
  * relayed as errors back to the calling window. A main API wishing to

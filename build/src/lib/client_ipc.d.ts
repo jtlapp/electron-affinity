@@ -16,7 +16,7 @@ export declare type MainApiBinding<T> = {
 };
 declare global {
     interface Window {
-        __ipc: {
+        _affinity_ipc: {
             invoke: (channel: string, data?: any) => Promise<any>;
             send: (channel: string, data: any) => void;
             on: (channel: string, func: (data: any) => void) => void;
@@ -56,6 +56,19 @@ export declare type ElectronWindowApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
 };
 /**
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * window API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods and will be interpreted as API
+ * methods. Returns the argument to allow type-checking of APIs in their
+ * exact place of use.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see checkWindowApiClass
+ */
+export declare function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T;
+/**
  * Type checks the argument to ensure it conforms to the expectations of a
  * window API class. All properties not beginning with `_` or `#` must be
  * methods and will be interpreted as API methods. Useful for getting type-
@@ -69,19 +82,6 @@ export declare type ElectronWindowApi<T> = {
 export declare function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
     new (...args: any[]): T;
 }): void;
-/**
- * Type checks the argument to ensure it conforms to the expectaions of a
- * window API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods and will be interpreted as API
- * methods. Returns the argument to allow type-checking of APIs in their
- * exact place of use.
- *
- * @param <T> (inferred type, not specified in call)
- * @param api Instance of the window API class to type check
- * @return The provided window API
- * @see checkWindowApiClass
- */
-export declare function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T;
 /**
  * Exposes a window API to the main process for possible binding.
  *

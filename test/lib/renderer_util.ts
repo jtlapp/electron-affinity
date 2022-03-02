@@ -4,7 +4,7 @@ export async function testInvoke(
   testName: string,
   testFunc: () => Promise<any>
 ): Promise<void> {
-  window.__ipc.send("started_test", testName);
+  window._affinity_ipc.send("started_test", testName);
   try {
     const returnValue = await testFunc();
     let replyData: string = typeof returnValue;
@@ -27,29 +27,38 @@ export async function testInvoke(
         }
       }
     }
-    window.__ipc.send("reply_data", replyData);
-    window.__ipc.send("completed_test", null);
+    window._affinity_ipc.send("reply_data", replyData);
+    window._affinity_ipc.send("completed_test", null);
   } catch (err: any) {
-    window.__ipc.send("completed_test", Restorer.makeRethrownReturnValue(err));
+    window._affinity_ipc.send(
+      "completed_test",
+      Restorer.makeRethrownReturnValue(err)
+    );
   }
 }
 
 export function testSend(testName: string, testResultsFunc: () => string[]) {
-  window.__ipc.send("started_test", testName);
+  window._affinity_ipc.send("started_test", testName);
   try {
-    window.__ipc.send("request_data_tests", testResultsFunc().join(";"));
-    window.__ipc.send("completed_test", null);
+    window._affinity_ipc.send(
+      "request_data_tests",
+      testResultsFunc().join(";")
+    );
+    window._affinity_ipc.send("completed_test", null);
   } catch (err: any) {
-    window.__ipc.send("completed_test", Restorer.makeRethrownReturnValue(err));
+    window._affinity_ipc.send(
+      "completed_test",
+      Restorer.makeRethrownReturnValue(err)
+    );
   }
 }
 
 export function reportErrorsToMain(winTag: string) {
   window.onerror = (message) => {
-    window.__ipc.send("test_aborted", `${winTag}: ${message}`);
+    window._affinity_ipc.send("test_aborted", `${winTag}: ${message}`);
   };
 }
 
 export function windowFinished() {
-  window.__ipc.send("completed_all", null);
+  window._affinity_ipc.send("completed_all", null);
 }

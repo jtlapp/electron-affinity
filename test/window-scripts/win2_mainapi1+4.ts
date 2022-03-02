@@ -9,6 +9,6 @@ import { callMainApi4 } from "../api/call_mainapi4";
     await callMainApi4("win2");
     windowFinished();
   } catch (err) {
-    window.__ipc.send("test_aborted", err);
+    window._affinity_ipc.send("test_aborted", err);
   }
 })();

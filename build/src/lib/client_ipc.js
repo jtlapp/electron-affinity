@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.exposeWindowApi = exports.checkWindowApi = exports.checkWindowApiClass = exports.bindMainApi = void 0;
+exports.exposeWindowApi = exports.checkWindowApiClass = exports.checkWindowApi = exports.bindMainApi = void 0;
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
@@ -69,7 +69,7 @@ function bindMainApi(apiClassName, restorer) {
         }
         else {
             // Make only one request, as main must prevously expose the API.
-            window.__ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
+            window._affinity_ipc.send(shared_ipc_1.API_REQUEST_IPC, apiClassName);
             // Client retries so it can bind at earliest possible time.
             (0, shared_ipc_1.retryUntilTimeout)(0, function () {
                 return _attemptBindMainApi(apiClassName, restorer, resolve);
@@ -101,7 +101,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                     switch (_a.label) {
                         case 0:
                             restorer_1.Restorer.makeArgsRestorable(args);
-                            return [4 /*yield*/, window.__ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
+                            return [4 /*yield*/, window._affinity_ipc.invoke((0, shared_ipc_1.toIpcName)(apiClassName, methodName), args)];
                         case 1:
                             response = _a.sent();
                             returnValue = response[0];
@@ -129,19 +129,6 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
 // Structure mapping window API names to the methods each contains.
 var _windowApiMap = {};
 /**
- * Type checks the argument to ensure it conforms to the expectations of a
- * window API class. All properties not beginning with `_` or `#` must be
- * methods and will be interpreted as API methods. Useful for getting type-
- * checking in the same file as the one having the API class. (Does not
- * return the class, because this would not be available for `import type`.)
- *
- * @param <T> (inferred type, not specified in call)
- * @param _class The window API class to type check
- * @see checkWindowApi
- */
-function checkWindowApiClass(_class) { }
-exports.checkWindowApiClass = checkWindowApiClass;
-/**
  * Type checks the argument to ensure it conforms to the expectaions of a
  * window API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods and will be interpreted as API
@@ -158,6 +145,19 @@ function checkWindowApi(api) {
 }
 exports.checkWindowApi = checkWindowApi;
 /**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * window API class. All properties not beginning with `_` or `#` must be
+ * methods and will be interpreted as API methods. Useful for getting type-
+ * checking in the same file as the one having the API class. (Does not
+ * return the class, because this would not be available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The window API class to type check
+ * @see checkWindowApi
+ */
+function checkWindowApiClass(_class) { }
+exports.checkWindowApiClass = checkWindowApiClass;
+/**
  * Exposes a window API to the main process for possible binding.
  *
  * @param <T> (inferred type, not specified in call)
@@ -170,7 +170,7 @@ exports.checkWindowApi = checkWindowApi;
 function exposeWindowApi(windowApi, restorer) {
     _installIpcListeners();
     (0, shared_ipc_1.exposeApi)(_windowApiMap, windowApi, function (ipcName, method) {
-        window.__ipc.on(ipcName, function (args) {
+        window._affinity_ipc.on(ipcName, function (args) {
             restorer_1.Restorer.restoreArgs(args, restorer);
             method.bind(windowApi).apply(void 0, args);
         });
@@ -181,14 +181,14 @@ exports.exposeWindowApi = exposeWindowApi;
 var _listeningForIPC = false;
 function _installIpcListeners() {
     if (!_listeningForIPC) {
-        window.__ipc.on(shared_ipc_1.API_REQUEST_IPC, function (apiClassName) {
+        window._affinity_ipc.on(shared_ipc_1.API_REQUEST_IPC, function (apiClassName) {
             var registration = {
                 className: apiClassName,
                 methodNames: _windowApiMap[apiClassName]
             };
-            window.__ipc.send(shared_ipc_1.API_RESPONSE_IPC, registration);
+            window._affinity_ipc.send(shared_ipc_1.API_RESPONSE_IPC, registration);
         });
-        window.__ipc.on(shared_ipc_1.API_RESPONSE_IPC, function (api) {
+        window._affinity_ipc.on(shared_ipc_1.API_RESPONSE_IPC, function (api) {
             _mainApiMap[api.className] = api.methodNames;
         });
         _listeningForIPC = true;

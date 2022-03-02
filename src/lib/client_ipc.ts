@@ -28,10 +28,10 @@ export type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
 };
 
-// These window.__ipc methods are defined in preload.ts
+// These window._affinity_ipc methods are defined in preload.ts
 declare global {
   interface Window {
-    __ipc: {
+    _affinity_ipc: {
       invoke: (channel: string, data?: any) => Promise<any>;
       send: (channel: string, data: any) => void;
       on: (channel: string, func: (data: any) => void) => void;
@@ -71,7 +71,7 @@ export function bindMainApi<T>(
       resolve(_boundMainApis[apiClassName]);
     } else {
       // Make only one request, as main must prevously expose the API.
-      window.__ipc.send(API_REQUEST_IPC, apiClassName);
+      window._affinity_ipc.send(API_REQUEST_IPC, apiClassName);
       // Client retries so it can bind at earliest possible time.
       retryUntilTimeout(
         0,
@@ -104,7 +104,7 @@ function _attemptBindMainApi<T>(
     const typedMethodName: keyof MainApiBinding<T> = methodName;
     boundApi[typedMethodName] = (async (...args: any[]) => {
       Restorer.makeArgsRestorable(args);
-      const response = await window.__ipc.invoke(
+      const response = await window._affinity_ipc.invoke(
         toIpcName(apiClassName, methodName as string),
         args
       );
@@ -196,7 +196,7 @@ export function exposeWindowApi<T>(
 ): void {
   _installIpcListeners();
   exposeApi(_windowApiMap, windowApi, (ipcName, method) => {
-    window.__ipc.on(ipcName, (args: any[]) => {
+    window._affinity_ipc.on(ipcName, (args: any[]) => {
       Restorer.restoreArgs(args, restorer);
       method.bind(windowApi)(...args);
     });
@@ -209,14 +209,14 @@ let _listeningForIPC = false;
 
 function _installIpcListeners() {
   if (!_listeningForIPC) {
-    window.__ipc.on(API_REQUEST_IPC, (apiClassName: string) => {
+    window._affinity_ipc.on(API_REQUEST_IPC, (apiClassName: string) => {
       const registration: ApiRegistration = {
         className: apiClassName,
         methodNames: _windowApiMap[apiClassName],
       };
-      window.__ipc.send(API_RESPONSE_IPC, registration);
+      window._affinity_ipc.send(API_RESPONSE_IPC, registration);
     });
-    window.__ipc.on(API_RESPONSE_IPC, (api: ApiRegistration) => {
+    window._affinity_ipc.on(API_RESPONSE_IPC, (api: ApiRegistration) => {
       _mainApiMap[api.className] = api.methodNames;
     });
     _listeningForIPC = true;

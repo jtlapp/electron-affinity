@@ -9,6 +9,6 @@ import { sleep } from "../lib/shared_util";
     await sleep(ACCEPTABLE_DELAY_MILLIS * 0.8);
     exposeWindowApi(new WinApi1("win1"), restorer);
   } catch (err) {
-    window.__ipc.send("test_aborted", err);
+    window._affinity_ipc.send("test_aborted", err);
   }
 })();

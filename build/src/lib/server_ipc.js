@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = exports.checkMainApi = exports.checkMainApiClass = void 0;
+exports.bindWindowApi = exports.setIpcErrorLogger = exports.exposeMainApi = exports.RelayedError = exports.checkMainApiClass = exports.checkMainApi = void 0;
 var electron_1 = require("electron");
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
@@ -48,20 +48,6 @@ var restorer_1 = require("./restorer");
 var _mainApiMap = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
-/**
- * Type checks the argument to ensure it conforms to the expectations of a
- * main API class. All properties not beginning with `_` or `#` must be
- * methods returning promises and will be interpreted as API methods. Useful
- * for getting type-checking in the same file as the one having the API class.
- * (Does not return the class, because the returned class would not be
- * available for `import type`.)
- *
- * @param <T> (inferred type, not specified in call)
- * @param _class The main API class to type check
- * @see checkMainApi
- */
-function checkMainApiClass(_class) { }
-exports.checkMainApiClass = checkMainApiClass;
 /**
  * Type checks the argument to ensure it conforms to the expectaions of a
  * main API (which is an instance of the API class). All properties not
@@ -78,6 +64,20 @@ function checkMainApi(api) {
     return api;
 }
 exports.checkMainApi = checkMainApi;
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * main API class. All properties not beginning with `_` or `#` must be
+ * methods returning promises and will be interpreted as API methods. Useful
+ * for getting type-checking in the same file as the one having the API class.
+ * (Does not return the class, because the returned class would not be
+ * available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The main API class to type check
+ * @see checkMainApi
+ */
+function checkMainApiClass(_class) { }
+exports.checkMainApiClass = checkMainApiClass;
 /**
  * Class that wraps exceptions occurring in a main API that are to be
  * relayed as errors back to the calling window. A main API wishing to

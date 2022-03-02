@@ -4,13 +4,13 @@
 import { ApiBinding, PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 declare global {
-    interface Window {
-        __ipc: {
-            invoke: (channel: string, data?: any) => Promise<any>;
-            send: (channel: string, data: any) => void;
-            on: (channel: string, func: (data: any) => void) => void;
-        };
-    }
+  interface Window {
+    _affinity_ipc: {
+      invoke: (channel: string, data?: any) => Promise<any>;
+      send: (channel: string, data: any) => void;
+      on: (channel: string, func: (data: any) => void) => void;
+    };
+  }
 }
 /**
  * Returns a window-side binding for a main API of a given class.
@@ -24,7 +24,10 @@ declare global {
  *    classes not restored arrive as untyped structures.
  * @returns An API of type T that can be called as if T were local.
  */
-export declare function bindMainApi<T>(apiClassName: string, restorer?: RestorerFunction): Promise<ApiBinding<T>>;
+export declare function bindMainApi<T>(
+  apiClassName: string,
+  restorer?: RestorerFunction
+): Promise<ApiBinding<T>>;
 /**
  * Type to which a window API of class T conforms, expecting each API
  * to return void. All properties of the method not beginning with an
@@ -33,7 +36,7 @@ export declare function bindMainApi<T>(apiClassName: string, restorer?: Restorer
  * internal structure on which the APIs rely.
  */
 export declare type ElectronWindowApi<T> = {
-    [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
+  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
 };
 /**
  * Exposes a window API to main for possible binding.
@@ -44,4 +47,7 @@ export declare type ElectronWindowApi<T> = {
  *    arguments passed from main. Instances of classes not restored
  *    arrive as untyped structures.
  */
-export declare function exposeWindowApi<T>(windowApi: ElectronWindowApi<T>, restorer?: RestorerFunction): void;
+export declare function exposeWindowApi<T>(
+  windowApi: ElectronWindowApi<T>,
+  restorer?: RestorerFunction
+): void;

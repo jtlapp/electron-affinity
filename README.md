@@ -158,7 +158,10 @@ Alternatively, preload directly from `node_modules` using the appropriate path:
 
 const window = new BrowserWindow({
   webPreferences: {
-    preload: path.join(__dirname, "../node_modules/electron-affinity/preload.js"),
+    preload: path.join(
+      __dirname,
+      "../node_modules/electron-affinity/preload.js"
+    ),
     nodeIntegration: false,
     contextIsolation: true,
   },
@@ -303,7 +306,7 @@ We'd also like type-checking on calls made to these APIs from within the main pr
 ```ts
 // src/backend/global.d.ts
 
-import { MainApis } from './backend/apis/main_apis';
+import { MainApis } from "./backend/apis/main_apis";
 
 declare global {
   var mainApis: MainApis;
@@ -323,7 +326,7 @@ Windows are able to bind to main APIs after the main process has installed them,
 ```ts
 // src/frontend/main_apis.ts
 
-import { bindMainApi, AwaitedType } from 'electron-affinity/window';
+import { bindMainApi, AwaitedType } from "electron-affinity/window";
 
 import type { DataApi } from "path/to/status_api";
 import type { UploadApi } from "path/to/message_api";
@@ -332,8 +335,8 @@ export type MainApis = AwaitedType<typeof bindMainApis>;
 
 export async function bindMainApis() {
   return {
-    dataApi: await bindMainApi<DataApi>('DataApi'),
-    uploadApi: await bindMainApi<UploadApi>('UploadApi'),
+    dataApi: await bindMainApi<DataApi>("DataApi"),
+    uploadApi: await bindMainApi<UploadApi>("UploadApi"),
     /* ... */
   };
 }
@@ -352,7 +355,7 @@ To get type-checking on these APIs, add the following to `global.d.ts`:
 ```ts
 // src/frontend/global.d.ts
 
-import type { MainApis } from './lib/main_apis';
+import type { MainApis } from "./lib/main_apis";
 
 declare global {
   interface Window {
@@ -414,7 +417,10 @@ export async function bindMainWindowApis(window: BrowserWindow) {
 export async function bindReportWindowApis(window: BrowserWindow) {
   return Object.assign(window, {
     apis: {
-      reportStatusApi: await bindWindowApi<ReportStatusApi>(window, "ReportStatusApi"),
+      reportStatusApi: await bindWindowApi<ReportStatusApi>(
+        window,
+        "ReportStatusApi"
+      ),
     },
   });
 }
@@ -428,13 +434,13 @@ These bind methods place APIs on `window.apis`. Here is how you might attach `ap
 import { MainWindow } from "./window_apis";
 
 function createMainWindow(): MainWindow {
-  const mainWindow = new BrowserWindow({/* ... */}) as MainWindow;
-  mainWindow
-    .loadURL(url)
-    .then(async () => {
-      await bindMainWindowApis(mainWindow);
-      /* ... */
-    })
+  const mainWindow = new BrowserWindow({
+    /* ... */
+  }) as MainWindow;
+  mainWindow.loadURL(url).then(async () => {
+    await bindMainWindowApis(mainWindow);
+    /* ... */
+  });
   /* ... */
   return mainWindow;
 }
@@ -454,9 +460,10 @@ mainWindow.apis.messageApi.sendMessage(message);
 ```ts
 // src/backend/svelte.d.ts
 
-declare module '*.svelte' { // don't change '*.svelte'
-  export { StatusApi } from '../frontend/apis/status_api.svelte';
-  export { MessageApi } from '../frontend/apis/message_api.svelte';
+declare module "*.svelte" {
+  // don't change '*.svelte'
+  export { StatusApi } from "../frontend/apis/status_api.svelte";
+  export { MessageApi } from "../frontend/apis/message_api.svelte";
 }
 ```
 
@@ -476,12 +483,12 @@ The function takes the name of a class and the untyped object into which the ins
 class Catter {
   s1: string;
   s2: string;
-  
+
   constructor(s1: string, s2: string) {
     this.s1 = s1;
     this.s2 = s2;
   }
-  
+
   // this method will be available after restoration
   cat() {
     return s1 + s2;
@@ -503,7 +510,7 @@ import type { genericRestorer } from "electron-affinity/main";
 
 export class Catter {
   /* ...same as above... */
-  
+
   static restoreClass(obj: any): Catter {
     return new Catter(obj.s1, obj.s2);
   }
@@ -512,17 +519,17 @@ export class Catter {
 export class Joiner {
   list: string[];
   delim: string;
-  
+
   constructor(list: string[], delim: string) {
     this.list = list;
     this.delim = delim;
   }
-  
+
   // this method will be available after restoration
   join() {
     return this.list.join(this.delim);
   }
-  
+
   static restoreClass(obj: any): Joiner {
     return new Joiner(obj.list, obj.delim);
   }
@@ -540,11 +547,11 @@ You can restore both API arguments and return values. Arguments are restored by 
 ```ts
 // main process
 exposeMainApi(new DataApi(dataSource), restorer);
-const statusApi = await bindWindowApi<StatusApi>(window, 'StatusApi', restorer);
+const statusApi = await bindWindowApi<StatusApi>(window, "StatusApi", restorer);
 
 // window
 exposeWindowApi(new StatusApi(), restorer);
-const uploadApi = await bindMainApi<UploadApi>('UploadApi', restorer);
+const uploadApi = await bindMainApi<UploadApi>("UploadApi", restorer);
 ```
 
 The restorer function need not be the same for all APIs; each can use its own restorer, or it can opt to use no restorer at all.
@@ -568,20 +575,20 @@ Here is an example, showing a main API and a window calling that main API:
 ```ts
 // src/backend/apis/login_api.ts
 
-import { RelayedError } from 'electron-affinity/main';
+import { RelayedError } from "electron-affinity/main";
 
 export class LoginApi {
   private _site: SiteClient;
-  
+
   constructor(site: SiteClient) {
     this._site = site;
   }
-  
+
   async loginUser(username: string, password: string) {
     try {
       await this._site.login(username, password);
     } catch (err: any) {
-      if (err.code == 'BAD_CREDS') {
+      if (err.code == "BAD_CREDS") {
         throw new RelayedError(err);
       }
       throw err;
@@ -620,14 +627,14 @@ The default timeout is 4 seconds, which should be long enough for either of thes
 
 ```ts
 // main process
-import { setIpcBindingTimeout } from 'electron-affinity/main';
+import { setIpcBindingTimeout } from "electron-affinity/main";
 
 setIpcBindingTimeout(8000); // 8 seconds
 ```
 
 ```ts
 // window
-import { setIpcBindingTimeout } from 'electron-affinity/window';
+import { setIpcBindingTimeout } from "electron-affinity/window";
 
 setIpcBindingTimeout(500); // 500 milliseconds
 ```
@@ -656,7 +663,7 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - Being asynchronous, API methods are also prone to the mistake where they are called without using `await`. Unfortunately, that's one problem I couldn't help alleviate.
 - Another drawback of this approach is that APIs are only available after waiting for the binding promise to complete. Fortunately, prior to binding, API methods are undefined, so at least you'll get an error message that makes the issue clear.
 - It may seem excessive to place main APIs on `window.apis` instead of directly on `window`, but the former is more helpful for code completion. If you put each API on `window` directly, not only do you increase the risk of name conflicts, but on VS Code, after typing `window.` you'll be staring at a long list of window properties, not just the APIs. On the other hand, typing `window.apis.` on VS Code will show you all the available APIs, providing a handy reference.
-- The library installs its own internal APIs on `window.__ipc` (two underscores), so don't use this property for any other purpose.
+- The library installs its own internal APIs on `window._affinity_ipc`, and it sends and receives IPCs over channels `_affinity_api_request` and `_affinity_api_response`.
 
 ## Type Considerations (TBD)
 
@@ -691,7 +698,7 @@ type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
     ? (...args: any[]) => Promise<any>
     : any;
-}
+};
 ```
 
 #### type WindowApiBinding<T>
@@ -711,7 +718,7 @@ type WindowApiBinding<T> = {
   ) => any
     ? (...args: A) => void
     : never;
-}
+};
 ```
 
 #### function bindWindowApi()
@@ -735,7 +742,7 @@ type WindowApiBinding<T> = {
 function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
-): Promise<WindowApiBinding<T>>
+): Promise<WindowApiBinding<T>>;
 ```
 
 #### function checkMainApi()
@@ -753,7 +760,7 @@ function bindWindowApi<T>(
  * @return The provided main API
  * @see checkMainApiClass
  */
-function checkMainApi<T extends ElectronMainApi<T>>(api: T)
+function checkMainApi<T extends ElectronMainApi<T>>(api: T);
 ```
 
 #### function checkMainApiClass()
@@ -792,7 +799,7 @@ function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
 function exposeMainApi<T>(
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
-): void
+): void;
 ```
 
 #### class RelayedError
@@ -811,7 +818,7 @@ function exposeMainApi<T>(
  *    occurring within the window's call to the main API
  */
 export class RelayedError {
-  constructor(errorToRelay: any)
+  constructor(errorToRelay: any);
 }
 ```
 
@@ -837,7 +844,7 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  */
 type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-}
+};
 ```
 
 #### type MainApiBinding
@@ -853,7 +860,7 @@ type ElectronWindowApi<T> = {
  */
 type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-}
+};
 ```
 
 #### function bindMainApi()
@@ -877,7 +884,7 @@ type MainApiBinding<T> = {
 function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
-): Promise<MainApiBinding<T>>
+): Promise<MainApiBinding<T>>;
 ```
 
 #### function checkWindowApi()
@@ -895,7 +902,7 @@ function bindMainApi<T>(
  * @return The provided window API
  * @see checkWindowApiClass
  */
-function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
+function checkWindowApi<T extends ElectronWindowApi<T>>(api: T);
 ```
 
 #### function checkWindowApiClass()
@@ -933,7 +940,7 @@ function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
 function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,
   restorer?: RestorerFunction
-): void
+): void;
 ```
 
 ### import from 'electron-affinity/main' or 'electron-affinity/window'
@@ -949,7 +956,8 @@ function exposeWindowApi<T>(
  * @param <F> Function for which to determine the resolving type.
  */
 type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
-  ? R : never
+  ? R
+  : never;
 ```
 
 #### type RestorableClass<C>
@@ -966,7 +974,7 @@ type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
 type RestorableClass<C> = {
   // static method of the class returning an instance of the class
   restoreClass(obj: Record<string, any>): C;
-}
+};
 ```
 
 #### type RestorerFunction
@@ -987,10 +995,7 @@ type RestorableClass<C> = {
  *    a class instance, or an instance of class `className` sourced from
  *    the data in `obj`
  */
-type RestorerFunction = (
-  className: string,
-  obj: Record<string, any>
-) => any
+type RestorerFunction = (className: string, obj: Record<string, any>) => any;
 ```
 
 #### function genericRestorer()
@@ -1015,7 +1020,7 @@ function genericRestorer(
   restorableClassMap: Record<string, RestorableClass<any>>,
   className: string,
   obj: Record<string, any>
-): any
+): any;
 ```
 
 #### function setIpcBindingTimeout()
@@ -1028,7 +1033,7 @@ function genericRestorer(
  *
  * @param millis Duration of timeout in milliseconds
  */
-function setIpcBindingTimeout(millis: number): void
+function setIpcBindingTimeout(millis: number): void;
 ```
 
 ### import 'electron-affinity/preload'
@@ -1044,7 +1049,10 @@ import "electron-ipc-methods/preload";
 ```ts
 const window = new BrowserWindow({
   webPreferences: {
-    preload: path.join(__dirname, "../node_modules/electron-affinity/preload.js"),
+    preload: path.join(
+      __dirname,
+      "../node_modules/electron-affinity/preload.js"
+    ),
     nodeIntegration: false,
     contextIsolation: true,
   },

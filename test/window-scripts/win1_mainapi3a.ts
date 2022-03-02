@@ -7,6 +7,6 @@ import { callMainApi3A } from "../api/call_mainapi3a";
     await callMainApi3A("win1");
     windowFinished();
   } catch (err) {
-    window.__ipc.send("test_aborted", err);
+    window._affinity_ipc.send("test_aborted", err);
   }
 })();
