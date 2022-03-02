@@ -649,7 +649,7 @@ export class ExtendedDataApi extends DataApi {
   }
   /* ... */
 }
-checkMainApiClass(DataApi);
+checkMainApiClass(ExtendedDataApi);
 ```
 
 (It is not helpful to define the API class within the call to the class checker and then return the class argument, because the remote process must import type to get the type without pulling in runtime code.)
