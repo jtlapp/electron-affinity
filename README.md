@@ -675,7 +675,8 @@ export function installMainApis() {
     exposeMainApi(api as any);
   }
   global.mainApis = apis as any;
-}```
+}
+```
 
 If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
 
@@ -724,7 +725,7 @@ type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
     ? (...args: any[]) => Promise<any>
     : any;
-};
+}
 ```
 
 #### type WindowApiBinding<T>
@@ -744,7 +745,7 @@ type WindowApiBinding<T> = {
   ) => any
     ? (...args: A) => void
     : never;
-};
+}
 ```
 
 #### function bindWindowApi()
@@ -768,7 +769,7 @@ type WindowApiBinding<T> = {
 function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
-): Promise<WindowApiBinding<T>>;
+): Promise<WindowApiBinding<T>>
 ```
 
 #### function checkMainApi()
@@ -825,7 +826,7 @@ function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
 function exposeMainApi<T>(
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
-): void;
+): void
 ```
 
 #### class RelayedError
@@ -867,7 +868,7 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  */
 type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-};
+}
 ```
 
 #### type MainApiBinding
@@ -883,7 +884,7 @@ type ElectronWindowApi<T> = {
  */
 type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
+}
 ```
 
 #### function bindMainApi()
@@ -907,7 +908,7 @@ type MainApiBinding<T> = {
 function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
-): Promise<MainApiBinding<T>>;
+): Promise<MainApiBinding<T>>
 ```
 
 #### function checkWindowApi()
@@ -963,7 +964,7 @@ function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
 function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,
   restorer?: RestorerFunction
-): void;
+): void
 ```
 
 ### import from 'electron-affinity/main' or 'electron-affinity/window'
@@ -980,7 +981,7 @@ function exposeWindowApi<T>(
  */
 type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
   ? R
-  : never;
+  : never
 ```
 
 #### type RestorableClass<C>
@@ -997,7 +998,7 @@ type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
 type RestorableClass<C> = {
   // static method of the class returning an instance of the class
   restoreClass(obj: Record<string, any>): C;
-};
+}
 ```
 
 #### type RestorerFunction
@@ -1018,7 +1019,7 @@ type RestorableClass<C> = {
  *    a class instance, or an instance of class `className` sourced from
  *    the data in `obj`
  */
-type RestorerFunction = (className: string, obj: Record<string, any>) => any;
+type RestorerFunction = (className: string, obj: Record<string, any>) => any
 ```
 
 #### function genericRestorer()
@@ -1043,7 +1044,7 @@ function genericRestorer(
   restorableClassMap: Record<string, RestorableClass<any>>,
   className: string,
   obj: Record<string, any>
-): any;
+): any
 ```
 
 #### function setIpcBindingTimeout()
@@ -1056,7 +1057,7 @@ function genericRestorer(
  *
  * @param millis Duration of timeout in milliseconds
  */
-function setIpcBindingTimeout(millis: number): void;
+function setIpcBindingTimeout(millis: number): void
 ```
 
 ### import 'electron-affinity/preload'
