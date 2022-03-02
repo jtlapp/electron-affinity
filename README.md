@@ -2,8 +2,6 @@
 
 IPC via simple method calls in Electron
 
-_(Now finishing up the documentation... The code is complete and fully tested.)_
-
 ## Introduction
 
 Electron Affinity is a small TypeScript library that makes IPC as simple as possible in Electron. It has the following features:
@@ -657,6 +655,49 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - [Calls from the main window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
 - [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/backend/app/app_menu.ts)
 
+## Type Considerations
+
+TypeScript provides only limited support the type usage on which this library relies. Main API classes are restricted to having all properties not beginning with `_` or `#` be methods returning promises, and window API classes are restricted to having all properties not beginning with `_` or `#` be methods. The identifiers, arguments, and return values of these methods are otherwise unrestricted, whereas TypeScript normally expects a type to specify these features too. As a result, our efforts to type-check IPC APIs are a bit inconvenienced.
+
+Normally when we create a class that must conform to some shape, we extend another class or implement an interface. TypeScript then tells us of any conformance failure right there in the class having the mistake. That's mighty convenient. Unfortunately, I have not found a way to provide in-place type-checking of API classes for this library. The good news is that the TypeScript team is exploring possible solutions to problems akin to these (see TS issues [#7481](https://github.com/microsoft/TypeScript/issues/7481) and [#47920](https://github.com/microsoft/TypeScript/issues/47920)).
+
+In the meantime, I've provided the following utility functions to help make up for this shortcoming:
+
+- [checkMainApiClass()](#function-checkmainapiclass)
+- [checkWindowApiClass()](#function-checkwindowapiclass)
+- [checkMainApi()](#function-checkmainapi)
+- [checkWindowApi()](#function-checkwindowapi)
+
+The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
+
+The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API. For example:
+
+```ts
+import { checkMainApiClass } from 'electron-affinity/main';
+
+export class DataApi {  
+  async readData() {
+    /* ... */
+  }
+  /* ... */
+}
+checkMainApiClass(DataApi);
+```
+
+(It is not helpful to define the API class within the call to the class checker, because the remote process must `import type` to get the type without pulling in runtime code.)
+
+The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the API checker for this next API. See [Organizing Main APIs](#organizing-main-apis) for an example.
+
+If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
+
+It would also have been convenient to provide a library function takes an array of APIs to expose, but it is not possible to do this in TypeScript without losing type-checking of those APIs. Hence, each API must be exposed individually.
+
+Finally, the binding functions each require a type argument and a parameter argument that must agree in name. I would love to find a way to enforce this at compile time, but I have not found a way to do so. Recall the following example:
+
+```ts
+const dataApi = await bindMainApi<DataApi>("DataApi");
+```
+
 ## Miscellaneous Notes and Caveats
 
 - In order to keep the library simple, I require that all main API methods be asynchronous. A drawback of doing this is that, if you need to wait on the return value, the API can only be called from within an asynchronous method.
@@ -664,13 +705,6 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - Another drawback of this approach is that APIs are only available after waiting for the binding promise to complete. Fortunately, prior to binding, API methods are undefined, so at least you'll get an error message that makes the issue clear.
 - It may seem excessive to place main APIs on `window.apis` instead of directly on `window`, but the former is more helpful for code completion. If you put each API on `window` directly, not only do you increase the risk of name conflicts, but on VS Code, after typing `window.` you'll be staring at a long list of window properties, not just the APIs. On the other hand, typing `window.apis.` on VS Code will show you all the available APIs, providing a handy reference.
 - The library installs its own internal APIs on `window._affinity_ipc`, and it sends and receives IPCs over channels `_affinity_api_request` and `_affinity_api_response`.
-
-## Type Considerations (TBD)
-
-- Use of types as conformance specifications
-- Utility for getting in-place API type errors
-- Any way to require an argument to have the class name of a generic?
-- Can't pass multiple different API types to binding
 
 ## Reference
 
