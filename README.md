@@ -94,7 +94,7 @@ export class DataApi implements ElectronMainApi<DataApi> {
 
 Here are a few things to note about this API:
 
-- The API must implement `ElectronMainApi<T>` to get enforcement of main API type constraints.
+- The API must implement `ElectronMainApi<T>` to get enforcement of main API type constraints, replacing `T` with the API's own class name.
 - All methods return promises even when they don't need to. This allows all IPC calls to the main process to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
 - Even though `writeData()` received `data` via IPC, it exists as an instance of class `Data` with the `format()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
@@ -196,7 +196,7 @@ export class StatusApi implements ElectronWindowApi<StatusApi> {
 
 Note the following about this API:
 
-- The API must implement `ElectronWindowApi<T>` to get enforcement of window API type constraints.
+- The API must implement `ElectronWindowApi<T>` to get enforcement of window API type constraints, replacing `T` with the API's own class name.
 - The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Code within the main process always shows their return values as void.
 - Methods can by asynchronous, but the main process cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `generateSummary()` method available.
