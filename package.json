@@ -1,6 +1,6 @@
 {
   "name": "electron-affinity",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "IPC via method calls in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",

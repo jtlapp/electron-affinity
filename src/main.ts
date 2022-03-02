@@ -7,6 +7,7 @@ export {
   WindowApiBinding,
   exposeMainApi,
   checkMainApi,
+  checkMainApiClass,
   bindWindowApi,
   RelayedError,
 } from "./lib/server_ipc";

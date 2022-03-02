@@ -7,6 +7,7 @@ export {
   MainApiBinding,
   exposeWindowApi,
   checkWindowApi,
+  checkWindowApiClass,
   bindMainApi,
 } from "./lib/client_ipc";
 export { AwaitedType, setIpcBindingTimeout } from "./lib/shared_ipc";
