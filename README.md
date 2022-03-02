@@ -670,7 +670,9 @@ In the meantime, I've provided the following utility functions to help make up f
 
 The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
 
-The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API. For example:
+The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API.
+
+Here's how you can use a class checker:
 
 ```ts
 import { checkMainApiClass } from 'electron-affinity/main';
@@ -684,15 +686,15 @@ export class DataApi {
 checkMainApiClass(DataApi);
 ```
 
-(It is not helpful to define the API class within the call to the class checker, because the remote process must `import type` to get the type without pulling in runtime code.)
+(It is not helpful to define the API class within the call to the class checker and then return the class argument, because the remote process must `import type` to get the type without pulling in runtime code.)
 
-The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the API checker for this next API. See [Organizing Main APIs](#organizing-main-apis) for an example.
+The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the API checker for your next API. See [Organizing Main APIs](#organizing-main-apis) for an example.
 
 If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
 
-It would also have been convenient to provide a library function takes an array of APIs to expose, but it is not possible to do this in TypeScript without losing type-checking of those APIs. Hence, each API must be exposed individually.
+It would also have been convenient to provide a library function takes an array of APIs to expose, but it is not possible to do this in TypeScript without losing type-checking of those APIs; TypeScript will require that all APIs of the array be identical. Hence, each API must be exposed individually.
 
-Finally, the binding functions each require a type argument and a parameter argument that must agree in name. I would love to find a way to enforce this at compile time, but I have not found a way to do so. Recall the following example:
+Finally, the binding functions each require a type argument and a parameter argument that must agree in name. I'd love to find a way to enforce this at compile time, but I have not found a way to do so. Recall this example:
 
 ```ts
 const dataApi = await bindMainApi<DataApi>("DataApi");
