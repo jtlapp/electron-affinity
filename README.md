@@ -320,6 +320,8 @@ export async function bindMainApis() {
 }
 ```
 
+However, if you want to allow API classes that inherit from other API classes, you'll want a more typesafe solution. See [Inheriting API Classes](#inheriting-api-classes).
+
 During initialization, have the window script call `bindMainApis`:
 
 ```ts
@@ -621,6 +623,62 @@ The timeout applies to all bindings, including in-progress bindings.
 
 The library does not provide a timeout for the duration of a main API call, and it appears that Electron provides no timeout on the underlying `ipcRenderer.invoke` either.
 
+### Inheriting API Classes
+
+Electron Affinity also exposes and binds the methods of ancestor API classes of an API class, but it does not provide type checking directly on the descendant API classes. Instead, you you'll need to use one of the following utility functions:
+
+```ts
+checkMainApiClass(classObject)
+checkWindowApiClass(classObject)
+checkMainApi(instanceObject)
+checkWindowApi(instanceObject)
+```
+
+The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
+
+The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API.
+
+Here's how you can use a class checker:
+
+```ts
+import { checkMainApiClass } from 'electron-affinity/main';
+
+export class ExtendedDataApi extends DataApi {
+  async readData() {
+    /* ... */
+  }
+  /* ... */
+}
+checkMainApiClass(DataApi);
+```
+
+(It is not helpful to define the API class within the call to the class checker and then return the class argument, because the remote process must import type to get the type without pulling in runtime code.)
+
+The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the instance checker for your next API. Here's how you might use `checkMainApi` when installing a collection of main APIs:
+
+```ts
+// src/backend/apis/main_apis.ts
+
+import { exposeMainApi, checkMainApi } from "electron-affinity/main";
+import { DataApi } from "path/to/status_api";
+import { UploadApi } from "path/to/message_api";
+
+export type MainApis = ReturnType<typeof installMainApis>;
+
+export function installMainApis() {
+  const apis = {
+    dataApi: checkMainApi(new DataApi()),
+    uploadApi: checkMainApi(new UploadApi()),
+    /* ... */
+  };
+  for (const api of Object.values(apis)) {
+    exposeMainApi(api as any);
+  }
+  global.mainApis = apis as any;
+}```
+
+If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
+
 ### Example Repo
 
 The library was developed for the [ut-entomology/spectool](https://github.com/ut-entomology/spectool) repo, where you'll find plenty of code exmplifying how to use it. See the following files and directories:
@@ -711,6 +769,44 @@ function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
 ): Promise<WindowApiBinding<T>>;
+```
+
+#### function checkMainApi()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * main API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods returning promises and will be
+ * interpreted as API methods. Returns the argument to allow type-checking
+ * of APIs in their exact place of use.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the main API class to type check
+ * @return The provided main API
+ * @see checkMainApiClass
+ */
+function checkMainApi<T extends ElectronMainApi<T>>(api: T)
+```
+
+#### function checkMainApiClass()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * main API class. All properties not beginning with `_` or `#` must be
+ * methods returning promises and will be interpreted as API methods. Useful
+ * for getting type-checking in the same file as the one having the API class.
+ * (Does not return the class, because the returned class would not be
+ * available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The main API class to type check
+ * @see checkMainApi
+ */
+function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 ```
 
 #### function exposeMainApi()
@@ -812,6 +908,43 @@ function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>>;
+```
+
+#### function checkWindowApi()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * window API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods and will be interpreted as API
+ * methods. Returns the argument to allow type-checking of APIs in their
+ * exact place of use.
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param api Instance of the window API class to type check
+ * @return The provided window API
+ * @see checkWindowApiClass
+ */
+function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
+```
+
+#### function checkWindowApiClass()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * window API class. All properties not beginning with `_` or `#` must be
+ * methods and will be interpreted as API methods. Useful for getting type-
+ * checking in the same file as the one having the API class. (Does not
+ * return the class, because this would not be available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The window API class to type check
+ * @see checkWindowApi
+ */
+function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 ```
 
 #### function exposeWindowApi()
