@@ -18,8 +18,6 @@ Electron Affinity is a small TypeScript library that makes IPC as simple as poss
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 - Uses context isolation and does not require node integration, maximizing security.
 
-_Special thanks to **[Electron Mocha](https://github.com/jprichardson/electron-mocha)**, which made it possible for me to thoroughly test each iteration of the solution until everything worked as expected._
-
 > NOTE ON JAVASCRIPT: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
 
 ## Problems Addressed
@@ -34,6 +32,8 @@ This library was designed to address many of the problems that can arise when us
 - Extra effort is required to make local IPC functionality locally available.
 - Exceptions are local, with no mechanism for transferring caller-caused errors back to the caller to be rethrown.
 - Coding IPC with context isolation, without node integration is typically complex.
+
+_Special thanks to **[Electron Mocha](https://github.com/jprichardson/electron-mocha)**, which made it possible for me to thoroughly test each iteration of the solution until everything worked as expected._
 
 ## Installation
 
@@ -142,7 +142,7 @@ Note the following about calling the API:
 - The code imports the _type_ `DataApi` rather than the class `DataApi`. This keeps the renderer from pulling in main process code.
 - `bindMainApi()` takes both the type parameter `DataApi` and the string name of the API `"DataApi"`. The names must agree.
 - The main process must have previously exposed the API. The window will not wait for the main process to subsequently expose it.
-- The code calls an API method as if the method were local to the window.
+- The code calls a main API method as if it were local to the window.
 - There is no need to wait on APIs, particularly those that technically didn't need to be declared asynchronous (but were to satisfy Electron Affinity).
 
 Finally, include the following line in your `preload.js`:
@@ -230,8 +230,10 @@ Note the following about calling the API:
 - The code imports the _type_ `StatusApi` rather than the class `StatusApi`. This keeps the main process from pulling in window-side code.
 - `bindWindowApi()` takes both the type parameter `StatusApi` and the string name of the API `"StatusApi"`. The names must agree.
 - `bindWindowApi()` takes a reference to the `BrowserWindow` to which the API is bound. Each API is bound to a single window and messages only that window.
-- The code calls an API method as if the method were local to the window.
+- The code calls a window API method as if it were local to the main process.
 - The main process does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
+
+Window APIs also require that you preload `electron-ipc-methods/preload`.
 
 ### Organizing Main APIs
 
@@ -462,7 +464,7 @@ declare module '*.svelte' { // don't change '*.svelte'
 
 Electron Affinity allows class instances to be sent and received via IPC so that they arrive as class instances instead of as untyped, methodless objects. Electron already provides this functionality for basic, built-in classes, such as `Date`, but you can use this library's class restoration mechanism to restore any custom class.
 
-You only restore the classes you want to restore, letting all other class instances transfer as untyped objects. Do so by defining a restorer function conforming to the `RestorerFunction` type (available to both the main process and windows):
+You only restore the classes you want to restore, letting all other class instances transfer as untyped objects. Do so by defining a restorer function conforming to the `RestorerFunction` type, available to both the main process and windows:
 
 ```ts
 type RestorerFunction = (className: string, obj: Record<string, any>) => any;
@@ -606,15 +608,15 @@ async function onSubmit() {
 
 Whenever an instance (or subclass) of `Error` is created in the one process and transferred via IPC to another process, by any means, the stack trace and error code (if any) is removed prior to transfer. Electron does this, and the library does not obviate it.
 
-A main API that throws an error not wrapped in `RelayedError` results in an uncaught exception within the main process. Main APIs can return error objects, but Electron strips them of everything but the message.
+A main API that throws an error not wrapped in `RelayedError` results in an uncaught exception within the main process. Main APIs can return error objects as return values, but Electron strips them of everything but the message.
 
 Exceptions thrown within window APIs are never returned to the main process.
 
 ### Managing Timeout
 
-The library will time out if it takes too long for the main process to bind to a window API or if it takes too long for a window to bind to a main API. The former can happen if the main process attempts to bind before a window has finished initializing and it takes a long time for the window to initialize. The latter can happen if the main process is too busy to respond or has gone unresponsive.
+The library will time out if it takes too long for the main process to bind to a window API or if it takes too long for a window to bind to a main API. The former can happen if the main process attempts to bind before a window has finished initializing and it takes a long time for the window to initialize. The latter can happen if the main process is too busy to respond or has gone unresponsive. An attempt to bind a main API will also time out if the main process never exposed the API.
 
-The default timeout is 4 seconds, which should be long enough for either of these bindings; if it takes more than 4 seconds, it's likely that there's another problem requiring correction. Even so, there may be scenarios I haven't anticipated requiring a longer timeout, and possibly scenerios where a shorter timeout is desirable. The main process and each window sets its own timeout via the `setIpcBindingTimeout()` function, as follows:
+The default timeout is 4 seconds, which should be long enough for either of these bindings; if it takes more than 4 seconds, there's likely another problem requiring correction. Even so, there may be scenarios I haven't anticipated requiring a longer timeout, and possibly scenerios where a shorter timeout is desirable. The main process and each window sets its own timeout via the `setIpcBindingTimeout()` function, as follows:
 
 ```ts
 // main process
@@ -632,7 +634,7 @@ setIpcBindingTimeout(500); // 500 milliseconds
 
 The timeout applies to all bindings, including in-progress bindings.
 
-The library does not at present provide a timeout for the duration of a main API call, and it appears that Electron provides no timeout on `ipcRenderer.invoke` either.
+The library does not provide a timeout for the duration of a main API call, and it appears that Electron provides no timeout on the underlying `ipcRenderer.invoke` either.
 
 ### Example Repo
 
