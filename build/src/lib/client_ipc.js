@@ -39,7 +39,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.exposeWindowApi = exports.checkWindowApi = exports.bindMainApi = void 0;
+exports.exposeWindowApi = exports.checkWindowApi = exports.checkWindowApiClass = exports.bindMainApi = void 0;
 var shared_ipc_1 = require("./shared_ipc");
 var restorer_1 = require("./restorer");
 // Structure mapping API names to the methods they contain.
@@ -59,6 +59,7 @@ var _boundMainApis = {};
  *    values. Return values not restored arrive as untyped objects.
  * @returns An API of type T that can be called as if T were local to
  *    the window.
+ * @see setIpcBindingTimeout
  */
 function bindMainApi(apiClassName, restorer) {
     _installIpcListeners();
@@ -128,13 +129,29 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
 // Structure mapping window API names to the methods each contains.
 var _windowApiMap = {};
 /**
- * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
- * and returns the argument for the convenience of the caller.
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * window API class. All properties not beginning with `_` or `#` must be
+ * methods and will be interpreted as API methods. Useful for getting type-
+ * checking in the same file as the one having the API class. (Does not
+ * return the class, because this would not be available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The window API class to type check
+ * @see checkWindowApi
+ */
+function checkWindowApiClass(_class) { }
+exports.checkWindowApiClass = checkWindowApiClass;
+/**
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * window API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods and will be interpreted as API
+ * methods. Returns the argument to allow type-checking of APIs in their
+ * exact place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
  * @return The provided window API
- * @see ElectronWindowApi
+ * @see checkWindowApiClass
  */
 function checkWindowApi(api) {
     return api;

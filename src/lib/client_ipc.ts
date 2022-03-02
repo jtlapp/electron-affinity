@@ -58,6 +58,7 @@ const _boundMainApis: Record<string, MainApiBinding<any>> = {};
  *    values. Return values not restored arrive as untyped objects.
  * @returns An API of type T that can be called as if T were local to
  *    the window.
+ * @see setIpcBindingTimeout
  */
 export function bindMainApi<T>(
   apiClassName: string,
@@ -136,28 +137,48 @@ let _windowApiMap: ApiRegistrationMap = {};
  * properties of the class not beginning with `_` or `#` be functions, which
  * will be exposed as API methods. All properties beginning with `_` or `#`
  * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkWindowApi` to type-check window API classes.
+ * which the APIs rely. Use `checkWindowApi` or `checkWindowApiClass` to
+ * type-check window API classes.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
  * @see checkWindowApi
+ * @see checkWindowApiClass
  */
 export type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
 };
 
 /**
- * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
- * and returns the argument for the convenience of the caller.
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * window API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods and will be interpreted as API
+ * methods. Returns the argument to allow type-checking of APIs in their
+ * exact place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
  * @return The provided window API
- * @see ElectronWindowApi
+ * @see checkWindowApiClass
  */
 export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T) {
   return api;
 }
+
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * window API class. All properties not beginning with `_` or `#` must be
+ * methods and will be interpreted as API methods. Useful for getting type-
+ * checking in the same file as the one having the API class. (Does not
+ * return the class, because this would not be available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The window API class to type check
+ * @see checkWindowApi
+ */
+export function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 
 /**
  * Exposes a window API to the main process for possible binding.

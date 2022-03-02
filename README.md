@@ -679,17 +679,19 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  * to return a promise. All properties of the method not beginning with `_`
  * or `#` will be exposed as API methods. All properties beginning with `_` or
  * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkMainApi` to type-check main API classes.
+ * which the APIs rely. Use `checkMainApi` or `checkMainApiClass` to type-
+ * check main API classes.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
  * @see checkMainApi
+ * @see checkMainApiClass
  */
-export type ElectronMainApi<T> = {
+type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
     ? (...args: any[]) => Promise<any>
     : any;
-};
+}
 ```
 
 #### type WindowApiBinding<T>
@@ -703,13 +705,13 @@ export type ElectronMainApi<T> = {
  *
  * @param <T> Type of the window API class
  */
-export type WindowApiBinding<T> = {
+type WindowApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (
     ...args: infer A
   ) => any
     ? (...args: A) => void
     : never;
-};
+}
 ```
 
 #### function bindWindowApi()
@@ -730,7 +732,7 @@ export type WindowApiBinding<T> = {
  *    main process.
  * @see setIpcBindingTimeout
  */
-export function bindWindowApi<T>(
+function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
 ): Promise<WindowApiBinding<T>>
@@ -740,15 +742,38 @@ export function bindWindowApi<T>(
 
 ```ts
 /**
- * Type checks the argument to ensure it conforms with `ElectronMainApi`,
- * and returns the argument for the convenience of the caller.
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * main API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods returning promises and will be
+ * interpreted as API methods. Returns the argument to allow type-checking
+ * of APIs in their exact place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the main API class to type check
  * @return The provided main API
- * @see ElectronMainApi
+ * @see checkMainApiClass
  */
-export function checkMainApi<T extends ElectronMainApi<T>>(api: T)
+function checkMainApi<T extends ElectronMainApi<T>>(api: T)
+```
+
+#### function checkMainApiClass()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * main API class. All properties not beginning with `_` or `#` must be
+ * methods returning promises and will be interpreted as API methods. Useful
+ * for getting type-checking in the same file as the one having the API class.
+ * (Does not return the class, because the returned class would not be
+ * available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The main API class to type check
+ * @see checkMainApi
+ */
+function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 ```
 
 #### function exposeMainApi()
@@ -764,7 +789,7 @@ export function checkMainApi<T extends ElectronMainApi<T>>(api: T)
  *    arguments passed to APIs from the window. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-export function exposeMainApi<T>(
+function exposeMainApi<T>(
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
 ): void
@@ -802,15 +827,17 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  * properties of the class not beginning with `_` or `#` be functions, which
  * will be exposed as API methods. All properties beginning with `_` or `#`
  * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkWindowApi` to type-check window API classes.
+ * which the APIs rely. Use `checkWindowApi` or `checkWindowApiClass` to
+ * type-check window API classes.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
  * @see checkWindowApi
+ * @see checkWindowApiClass
  */
-export type ElectronWindowApi<T> = {
+type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-};
+}
 ```
 
 #### type MainApiBinding
@@ -824,9 +851,9 @@ export type ElectronWindowApi<T> = {
  *
  * @param <T> Type of the main API class
  */
-export type MainApiBinding<T> = {
+type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
+}
 ```
 
 #### function bindMainApi()
@@ -845,8 +872,9 @@ export type MainApiBinding<T> = {
  *    values. Return values not restored arrive as untyped objects.
  * @returns An API of type T that can be called as if T were local to
  *    the window.
+ * @see setIpcBindingTimeout
  */
-export function bindMainApi<T>(
+function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>>
@@ -856,15 +884,37 @@ export function bindMainApi<T>(
 
 ```ts
 /**
- * Type checks the argument to ensure it conforms with `ElectronWindowApi`,
- * and returns the argument for the convenience of the caller.
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * window API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods and will be interpreted as API
+ * methods. Returns the argument to allow type-checking of APIs in their
+ * exact place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
  * @return The provided window API
- * @see ElectronWindowApi
+ * @see checkWindowApiClass
  */
-export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
+function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
+```
+
+#### function checkWindowApiClass()
+
+```ts
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * window API class. All properties not beginning with `_` or `#` must be
+ * methods and will be interpreted as API methods. Useful for getting type-
+ * checking in the same file as the one having the API class. (Does not
+ * return the class, because this would not be available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The window API class to type check
+ * @see checkWindowApi
+ */
+function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 ```
 
 #### function exposeWindowApi()
@@ -880,7 +930,7 @@ export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T)
  *    arguments passed to APIs from the main process. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-export function exposeWindowApi<T>(
+function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,
   restorer?: RestorerFunction
 ): void
@@ -898,9 +948,8 @@ export function exposeWindowApi<T>(
  *
  * @param <F> Function for which to determine the resolving type.
  */
-export type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
-  ? R
-  : never;
+type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
+  ? R : never
 ```
 
 #### type RestorableClass<C>
@@ -914,10 +963,10 @@ export type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
  *
  * @param <C> The class that conforms to this type.
  */
-export type RestorableClass<C> = {
+type RestorableClass<C> = {
   // static method of the class returning an instance of the class
   restoreClass(obj: Record<string, any>): C;
-};
+}
 ```
 
 #### type RestorerFunction
@@ -938,10 +987,10 @@ export type RestorableClass<C> = {
  *    a class instance, or an instance of class `className` sourced from
  *    the data in `obj`
  */
-export type RestorerFunction = (
+type RestorerFunction = (
   className: string,
   obj: Record<string, any>
-) => any;
+) => any
 ```
 
 #### function genericRestorer()
@@ -962,7 +1011,7 @@ export type RestorerFunction = (
  *    this map, sourced from the provided `obj`, or the provided `obj` itself
  *    if `className` is not in `restorableClassMap`
  */
-export function genericRestorer(
+function genericRestorer(
   restorableClassMap: Record<string, RestorableClass<any>>,
   className: string,
   obj: Record<string, any>
@@ -979,7 +1028,7 @@ export function genericRestorer(
  *
  * @param millis Duration of timeout in milliseconds
  */
-export function setIpcBindingTimeout(millis: number): void
+function setIpcBindingTimeout(millis: number): void
 ```
 
 ### import 'electron-affinity/preload'

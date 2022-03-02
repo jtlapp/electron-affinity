@@ -31,11 +31,13 @@ let _errorLoggerFunc: (err: Error) => void;
  * to return a promise. All properties of the method not beginning with `_`
  * or `#` will be exposed as API methods. All properties beginning with `_` or
  * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkMainApi` to type-check main API classes.
+ * which the APIs rely. Use `checkMainApi` or `checkMainApiClass` to type-
+ * check main API classes.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
  * @see checkMainApi
+ * @see checkMainApiClass
  */
 export type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
@@ -44,17 +46,36 @@ export type ElectronMainApi<T> = {
 };
 
 /**
- * Type checks the argument to ensure it conforms with `ElectronMainApi`,
- * and returns the argument for the convenience of the caller.
+ * Type checks the argument to ensure it conforms to the expectaions of a
+ * main API (which is an instance of the API class). All properties not
+ * beginning with `_` or `#` must be methods returning promises and will be
+ * interpreted as API methods. Returns the argument to allow type-checking
+ * of APIs in their exact place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the main API class to type check
  * @return The provided main API
- * @see ElectronMainApi
+ * @see checkMainApiClass
  */
 export function checkMainApi<T extends ElectronMainApi<T>>(api: T) {
   return api;
 }
+
+/**
+ * Type checks the argument to ensure it conforms to the expectations of a
+ * main API class. All properties not beginning with `_` or `#` must be
+ * methods returning promises and will be interpreted as API methods. Useful
+ * for getting type-checking in the same file as the one having the API class.
+ * (Does not return the class, because the returned class would not be
+ * available for `import type`.)
+ *
+ * @param <T> (inferred type, not specified in call)
+ * @param _class The main API class to type check
+ * @see checkMainApi
+ */
+export function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
+  new (...args: any[]): T;
+}): void {}
 
 /**
  * Class that wraps exceptions occurring in a main API that are to be
