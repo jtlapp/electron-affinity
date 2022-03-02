@@ -56,9 +56,9 @@ Each main API method can take any number of parameters, including none, but must
 Here is an example main API called `DataApi`:
 
 ```ts
-import { RelayedError } from "electron-affinity/main";
+import { ElectronMainApi, RelayedError } from "electron-affinity/main";
 
-export class DataApi {
+export class DataApi implements ElectronMainApi<DataApi> {
   private _dataSource: DataSource;
   private _dataset: Dataset | null = null;
 
@@ -94,6 +94,7 @@ export class DataApi {
 
 Here are a few things to note about this API:
 
+- The API must implement `ElectronMainApi<T>` to get enforcement of main API type constraints.
 - All methods return promises even when they don't need to. This allows all IPC calls to the main process to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
 - Even though `writeData()` received `data` via IPC, it exists as an instance of class `Data` with the `format()` method available.
 - The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
@@ -173,7 +174,9 @@ Window APIs are analogous to main APIs, except that they are defined in the rend
 Here is an example window API called `StatusApi`:
 
 ```ts
-export class StatusApi {
+import type { ElectronWindowApi } from 'electron-affinity/window';
+
+export class StatusApi implements ElectronWindowApi<StatusApi> {
   private _receiver: StatusReceiver;
 
   constructor(receiver: StatusReceiver) {
@@ -193,6 +196,7 @@ export class StatusApi {
 
 Note the following about this API:
 
+- The API must implement `ElectronWindowApi<T>` to get enforcement of window API type constraints.
 - The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Code within the main process always shows their return values as void.
 - Methods can by asynchronous, but the main process cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `generateSummary()` method available.
@@ -275,31 +279,7 @@ export function installMainApis() {
 }
 ```
 
-Because this solution requires passing each API to `exposeMainApi` as type `any`, it loses the type-checking that makes sure the APIs are valid. The `checkMainApi` function remedies this:
-
-```ts
-// src/backend/apis/main_apis.ts
-
-import { exposeMainApi, checkMainApi } from "electron-affinity/main";
-import { DataApi } from "path/to/status_api";
-import { UploadApi } from "path/to/message_api";
-
-export type MainApis = ReturnType<typeof installMainApis>;
-
-export function installMainApis() {
-  const apis = {
-    dataApi: checkMainApi(new DataApi()),
-    uploadApi: checkMainApi(new UploadApi()),
-    /* ... */
-  };
-  for (const api of Object.values(apis)) {
-    exposeMainApi(api as any);
-  }
-  global.mainApis = apis as any;
-}
-```
-
-We'd also like type-checking on calls made to these APIs from within the main process. To accomplish this, put the following in a `global.d.ts` file:
+This approach doesn't give us type-checking on calls to the APIs made from within the main process. To get this, put the following in a `global.d.ts` file:
 
 ```ts
 // src/backend/global.d.ts
@@ -348,7 +328,7 @@ During initialization, have the window script call `bindMainApis`:
 window.apis = await bindMainApis();
 ```
 
-To get type-checking on these APIs, add the following to `global.d.ts`:
+To get type-checking on calls to these APIs, add the following to `global.d.ts`:
 
 ```ts
 // src/frontend/global.d.ts
@@ -573,9 +553,9 @@ Here is an example, showing a main API and a window calling that main API:
 ```ts
 // src/backend/apis/login_api.ts
 
-import { RelayedError } from "electron-affinity/main";
+import { ElectronMainApi, RelayedError } from "electron-affinity/main";
 
-export class LoginApi {
+export class LoginApi implements ElectronMainApi<LoginApi> {
   private _site: SiteClient;
 
   constructor(site: SiteClient) {
@@ -655,51 +635,6 @@ The library was developed for the [ut-entomology/spectool](https://github.com/ut
 - [Calls from the main window to main APIs](https://github.com/ut-entomology/spectool/search?q=window.apis)
 - [Calls from the main process to the main window APIs](https://github.com/ut-entomology/spectool/blob/main/src/backend/app/app_menu.ts)
 
-## Type Considerations
-
-TypeScript provides only limited support the type usage on which this library relies. Main API classes are restricted to having all properties not beginning with `_` or `#` be methods returning promises, and window API classes are restricted to having all properties not beginning with `_` or `#` be methods. The identifiers, arguments, and return values of these methods are otherwise unrestricted, whereas TypeScript normally expects a type to specify these features too. As a result, our efforts to type-check IPC APIs are a bit inconvenienced.
-
-Normally when we create a class that must conform to some shape, we extend another class or implement an interface. TypeScript then tells us of any conformance failure right there in the class having the mistake. That's mighty convenient. Unfortunately, I have not found a way to provide in-place type-checking of API classes for this library. The good news is that the TypeScript team is exploring possible solutions to problems akin to these (see TS issues [#7481](https://github.com/microsoft/TypeScript/issues/7481) and [#47920](https://github.com/microsoft/TypeScript/issues/47920)).
-
-In the meantime, I've provided the following utility functions to help make up for this shortcoming:
-
-- [checkMainApiClass()](#function-checkmainapiclass)
-- [checkWindowApiClass()](#function-checkwindowapiclass)
-- [checkMainApi()](#function-checkmainapi)
-- [checkWindowApi()](#function-checkwindowapi)
-
-The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
-
-The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API.
-
-Here's how you can use a class checker:
-
-```ts
-import { checkMainApiClass } from 'electron-affinity/main';
-
-export class DataApi {  
-  async readData() {
-    /* ... */
-  }
-  /* ... */
-}
-checkMainApiClass(DataApi);
-```
-
-(It is not helpful to define the API class within the call to the class checker and then return the class argument, because the remote process must `import type` to get the type without pulling in runtime code.)
-
-The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the API checker for your next API. See [Organizing Main APIs](#organizing-main-apis) for an example.
-
-If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
-
-It would also have been convenient to provide a library function takes an array of APIs to expose, but it is not possible to do this in TypeScript without losing type-checking of those APIs; TypeScript will require that all APIs of the array be identical. Hence, each API must be exposed individually.
-
-Finally, the binding functions each require a type argument and a parameter argument that must agree in name. I'd love to find a way to enforce this at compile time, but I have not found a way to do so. Recall this example:
-
-```ts
-const dataApi = await bindMainApi<DataApi>("DataApi");
-```
-
 ## Miscellaneous Notes and Caveats
 
 - In order to keep the library simple, I require that all main API methods be asynchronous. A drawback of doing this is that, if you need to wait on the return value, the API can only be called from within an asynchronous method.
@@ -718,17 +653,14 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
 
 ```ts
 /**
- * Type to which a main API class must conform. It requres each API method
+ * Type that main API classes must implement. It requires each API method
  * to return a promise. All properties of the method not beginning with `_`
  * or `#` will be exposed as API methods. All properties beginning with `_` or
  * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkMainApi` or `checkMainApiClass` to type-
- * check main API classes.
+ * which the APIs rely.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
- * @see checkMainApi
- * @see checkMainApiClass
  */
 type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
@@ -781,44 +713,6 @@ function bindWindowApi<T>(
 ): Promise<WindowApiBinding<T>>;
 ```
 
-#### function checkMainApi()
-
-```ts
-/**
- * Type checks the argument to ensure it conforms to the expectaions of a
- * main API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods returning promises and will be
- * interpreted as API methods. Returns the argument to allow type-checking
- * of APIs in their exact place of use.
- *
- * @param <T> (inferred type, not specified in call)
- * @param api Instance of the main API class to type check
- * @return The provided main API
- * @see checkMainApiClass
- */
-function checkMainApi<T extends ElectronMainApi<T>>(api: T);
-```
-
-#### function checkMainApiClass()
-
-```ts
-/**
- * Type checks the argument to ensure it conforms to the expectations of a
- * main API class. All properties not beginning with `_` or `#` must be
- * methods returning promises and will be interpreted as API methods. Useful
- * for getting type-checking in the same file as the one having the API class.
- * (Does not return the class, because the returned class would not be
- * available for `import type`.)
- *
- * @param <T> (inferred type, not specified in call)
- * @param _class The main API class to type check
- * @see checkMainApi
- */
-function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
-  new (...args: any[]): T;
-}): void {}
-```
-
 #### function exposeMainApi()
 
 ```ts
@@ -866,17 +760,14 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
 
 ```ts
 /**
- * Type to which a window API class must conform. It requires that all
+ * Type that window API classes must implement. It requires that all
  * properties of the class not beginning with `_` or `#` be functions, which
  * will be exposed as API methods. All properties beginning with `_` or `#`
  * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkWindowApi` or `checkWindowApiClass` to
- * type-check window API classes.
+ * which the APIs rely.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
- * @see checkWindowApi
- * @see checkWindowApiClass
  */
 type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
@@ -921,43 +812,6 @@ function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>>;
-```
-
-#### function checkWindowApi()
-
-```ts
-/**
- * Type checks the argument to ensure it conforms to the expectaions of a
- * window API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods and will be interpreted as API
- * methods. Returns the argument to allow type-checking of APIs in their
- * exact place of use.
- *
- * @param <T> (inferred type, not specified in call)
- * @param api Instance of the window API class to type check
- * @return The provided window API
- * @see checkWindowApiClass
- */
-function checkWindowApi<T extends ElectronWindowApi<T>>(api: T);
-```
-
-#### function checkWindowApiClass()
-
-```ts
-/**
- * Type checks the argument to ensure it conforms to the expectations of a
- * window API class. All properties not beginning with `_` or `#` must be
- * methods and will be interpreted as API methods. Useful for getting type-
- * checking in the same file as the one having the API class. (Does not
- * return the class, because this would not be available for `import type`.)
- *
- * @param <T> (inferred type, not specified in call)
- * @param _class The window API class to type check
- * @see checkWindowApi
- */
-function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
-  new (...args: any[]): T;
-}): void {}
 ```
 
 #### function exposeWindowApi()

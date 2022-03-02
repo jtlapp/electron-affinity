@@ -1,7 +1,9 @@
+import { ElectronWindowApi } from "../../src/window";
+
 import { testSend } from "../lib/renderer_util";
 import { Catter } from "../lib/shared_util";
 
-export class WinApi2 {
+export class WinApi2 implements ElectronWindowApi<WinApi2> {
   _winTag: string;
 
   constructor(winTag: string) {

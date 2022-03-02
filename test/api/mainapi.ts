@@ -1,6 +1,7 @@
+import { ElectronMainApi } from "../../src/main";
 import { ResultCollector } from "../lib/main_util";
 
-export abstract class MainApi {
+export abstract class MainApi implements ElectronMainApi<MainApi> {
   _collector: ResultCollector;
 
   constructor(collector: ResultCollector) {
