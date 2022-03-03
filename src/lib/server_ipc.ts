@@ -50,32 +50,35 @@ export type ElectronMainApi<T> = {
  * main API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods returning promises and will be
  * interpreted as API methods. Returns the argument to allow type-checking
- * of APIs in their exact place of use.
+ * of APIs in their place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the main API class to type check
- * @return The provided main API
+ * @return The provided main API instance
  * @see checkMainApiClass
  */
-export function checkMainApi<T extends ElectronMainApi<T>>(api: T) {
+export function checkMainApi<T extends ElectronMainApi<T>>(api: T): T {
   return api;
 }
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
  * main API class. All properties not beginning with `_` or `#` must be
- * methods returning promises and will be interpreted as API methods. Useful
- * for getting type-checking in the same file as the one having the API class.
- * (Does not return the class, because the returned class would not be
- * available for `import type`.)
+ * methods returning promises and will be interpreted as API methods. Returns
+ * the argument to allow type-checking of APIs in their place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The main API class to type check
+ * @return The provided main API class
  * @see checkMainApi
  */
 export function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
   new (...args: any[]): T;
-}): void {}
+}): {
+  new (...args: any[]): T;
+} {
+  return _class;
+}
 
 /**
  * Class that wraps exceptions occurring in a main API that are to be
@@ -85,13 +88,14 @@ export function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
  * will ignore the throw except for transferring it to the calling window.
  * Exceptions thrown within a main API not wrapped in `RelayedError` are
  * thrown within the main process as "uncaught" exceptions.
- *
- * @param errorToRelay The error to throw within the calling window,
- *    occurring within the window's call to the main API
  */
 export class RelayedError {
   errorToRelay: any;
 
+  /**
+   * @param errorToRelay The error to throw within the calling window,
+   *    occurring within the window's call to the main API
+   */
   constructor(errorToRelay: any) {
     this.errorToRelay = errorToRelay;
   }

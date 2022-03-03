@@ -154,31 +154,35 @@ export type ElectronWindowApi<T> = {
  * window API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods and will be interpreted as API
  * methods. Returns the argument to allow type-checking of APIs in their
- * exact place of use.
+ * place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
- * @return The provided window API
+ * @return The provided window API instance
  * @see checkWindowApiClass
  */
-export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T) {
+export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T {
   return api;
 }
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
  * window API class. All properties not beginning with `_` or `#` must be
- * methods and will be interpreted as API methods. Useful for getting type-
- * checking in the same file as the one having the API class. (Does not
- * return the class, because this would not be available for `import type`.)
+ * methods and will be interpreted as API methods. Returns the argument to
+ * allow type-checking of APIs in their place of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The window API class to type check
+ * @return The provided window API class
  * @see checkWindowApi
  */
 export function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
   new (...args: any[]): T;
-}): void {}
+}): {
+  new (...args: any[]): T;
+} {
+  return _class;
+}
 
 /**
  * Exposes a window API to the main process for possible binding.
