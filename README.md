@@ -279,6 +279,8 @@ export function installMainApis() {
 }
 ```
 
+(See [Generic Use of APIs](#generic-use-of-apis) for how to provide type-checking on APIs in the above code without relying on the API classes to have properly implemented `ElectronMainApi` or `ElectronWindowApi`.)
+
 This approach doesn't give us type-checking on calls to the APIs made from within the main process. To get this, put the following in a `global.d.ts` file:
 
 ```ts
