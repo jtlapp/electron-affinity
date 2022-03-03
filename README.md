@@ -320,8 +320,6 @@ export async function bindMainApis() {
 }
 ```
 
-However, if you want to allow API classes that inherit from other API classes, you'll want a more typesafe solution. See [Inheriting API Classes](#inheriting-api-classes).
-
 During initialization, have the window script call `bindMainApis`:
 
 ```ts
@@ -444,6 +442,30 @@ declare module "*.svelte" {
   // don't change '*.svelte'
   export { StatusApi } from "../frontend/apis/status_api.svelte";
   export { MessageApi } from "../frontend/apis/message_api.svelte";
+}
+```
+
+### Inheriting API Classes
+
+Electron Affinity also exposes and binds the methods of ancestor API classes of an API class, but subclasses do not inherit the library's API type constraints. To get type constraints on a subclass, just append the appropriate `implements` clause to its defintion. For example:
+
+```ts
+import { ElectronMainApi } from "electron-affinity/main";
+
+export class ExtendedDataApi extends DataApi
+    implements ElectronMainApi<ExtendedDataApi>
+{
+  /* ... */
+}
+```
+
+```ts
+import { ElectronWindowApi } from "electron-affinity/window";
+
+export class ExtendedStatusApi extends StatusApi
+    implements ElectronWindowApi<ExtendedStatusApi>
+{
+  /* ... */
 }
 ```
 
@@ -623,9 +645,17 @@ The timeout applies to all bindings, including in-progress bindings.
 
 The library does not provide a timeout for the duration of a main API call, and it appears that Electron provides no timeout on the underlying `ipcRenderer.invoke` either.
 
-### Inheriting API Classes
+### Generic Use of APIs
 
-Electron Affinity also exposes and binds the methods of ancestor API classes of an API class, but it does not provide type checking directly on the descendant API classes. Instead, you you'll need to use one of the following utility functions:
+TypeScript provides only limited support for the type usage on which this library relies. Main API classes are restricted to having all properties not beginning with `_` or` `#` be methods returning promises, and window API classes are restricted to having all properties not beginning with `_` or` `#` be methods. The identifiers, arguments, and return values of these methods are otherwise unrestricted, whereas TypeScript normally expects a type to specify these features too.
+
+We are able to enforce API types in the API class definition (with an `implements` clause), and we are able to enforce them when the APIs or their classes are arguments to generic functions, but we cannot enforce them in variable assignments. For example, the following does not work because type `any` does not provide the class members that need to be type-checked:
+
+```ts
+let someApi: ElectronMainApi<any> = new DataApi(); // DOES NOT WORK
+```
+
+To deal with this, Electron Affinity provides the following utility functions:
 
 ```ts
 checkMainApiClass(classObject)
@@ -636,25 +666,7 @@ checkWindowApi(instanceObject)
 
 The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
 
-The class checkers are useful for type-checking the API class in the file that defines the class. They allow you to get your type errors next to the code that has the errors. Unfortunately, you have to remember to add the class check to the code. If you forget, and if you aren't passing the API directly to an API-exposing method, then you could get type-related errors at runtime when using the API.
-
-Here's how you can use a class checker:
-
-```ts
-import { checkMainApiClass } from 'electron-affinity/main';
-
-export class ExtendedDataApi extends DataApi {
-  async readData() {
-    /* ... */
-  }
-  /* ... */
-}
-checkMainApiClass(ExtendedDataApi);
-```
-
-(It is not helpful to define the API class within the call to the class checker and then return the class argument, because the remote process must import type to get the type without pulling in runtime code.)
-
-The instance checkers are useful for checking the API instance at the time you use the instance. You can't use them to show your errors alongside the code that has the errors, but when it comes time to add a binding for any API after the first API, you'll see that you used the instance checker for prior APIs and will be reminded to use the instance checker for your next API. Here's how you might use `checkMainApi` when installing a collection of main APIs:
+Consider the `installMainApis()` function previously defined in [Organizing Main APIs](#organizing-main-apis). Because it pulls each API into a variable called `api`, no type-checking occurs when this variable is passed to `exposeMainApi()`. The function relies on each API class having properly implemented an API type. If you didn't want to trust the API classes to have done this, you could type-check the APIs using `checkMainApi()` as follows:
 
 ```ts
 // src/backend/apis/main_apis.ts
@@ -677,8 +689,6 @@ export function installMainApis() {
   global.mainApis = apis as any;
 }
 ```
-
-If the purpose of type-checking is to eliminate runtime errors that could have been eliminated at compile time, then the instance checkers are a surer way to have confidence that you've done so. Of course, you can use both class checkers and instance checkers to get the benefit of both approaches, perhaps adding the class checkers when the instance checkers indicate type errors.
 
 ### Example Repo
 
