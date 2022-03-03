@@ -1,6 +1,6 @@
 import * as fs from "fs";
 
-import { RelayedError } from "../../src/main";
+import { ElectronMainApi, RelayedError } from "../../src/main";
 import { MainApi } from "./mainapi";
 import {
   Catter,
@@ -9,7 +9,7 @@ import {
   NonErrorObject,
 } from "../lib/shared_util";
 
-export class MainApi1 extends MainApi {
+export class MainApi1 extends MainApi implements ElectronMainApi<MainApi1> {
   async noReplyNoError() {}
 
   async doubleNumber(x: number) {

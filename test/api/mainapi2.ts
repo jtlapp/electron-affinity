@@ -1,8 +1,8 @@
-import { RelayedError } from "../../src/main";
+import { ElectronMainApi, RelayedError } from "../../src/main";
 import { MainApi } from "./mainapi";
 import { Catter } from "../lib/shared_util";
 
-export class MainApi2 extends MainApi {
+export class MainApi2 extends MainApi implements ElectronMainApi<MainApi2> {
   async sendCatter2(catter: Catter) {
     this._setRequestData(catter);
     return catter.cat();
