@@ -647,7 +647,7 @@ The library does not provide a timeout for the duration of a main API call, and 
 
 ### Generic Use of APIs
 
-TypeScript provides only limited support for the type usage on which this library relies. Main API classes are restricted to having all properties not beginning with `_` or` `#` be methods returning promises, and window API classes are restricted to having all properties not beginning with `_` or` `#` be methods. The identifiers, arguments, and return values of these methods are otherwise unrestricted, whereas TypeScript normally expects a type to specify these features too.
+TypeScript provides only limited support for the type usage on which this library relies. Main API classes are restricted to having all properties not beginning with `_` or `#` be methods returning promises, and window API classes are restricted to having all properties not beginning with `_` or `#` be methods. The identifiers, arguments, and return values of these methods are otherwise unrestricted, whereas TypeScript normally expects a type to specify these features too.
 
 We are able to enforce API types in the API class definition (with an `implements` clause), and we are able to enforce them when the APIs or their classes are arguments to generic functions, but we cannot enforce them in variable assignments. For example, the following does not work because type `any` does not provide the class members that need to be type-checked:
 
