@@ -447,7 +447,7 @@ declare module "*.svelte" {
 
 ### Subclass APIs
 
-API classes may subclass other API classes. Electron Affinity exposes and binds the methods of ancestor API classes, but subclasses do not inherit the library's API type constraints. To get type constraints on a subclass, append the appropriate `implements` clause to its defintion. Examples:
+API classes may subclass other API classes. Electron Affinity exposes and binds the methods of ancestor API classes, but subclasses do not inherit the library's API type constraints. To get type constraints on a subclass, append the appropriate `implements` clause to its definition. Examples:
 
 ```ts
 import { ElectronMainApi } from "electron-affinity/main";
