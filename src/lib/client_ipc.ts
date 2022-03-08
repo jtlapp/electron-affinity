@@ -137,8 +137,9 @@ let _windowApiMap: ApiRegistrationMap = {};
  * properties of the class not beginning with `_` or `#` be functions, which
  * will be exposed as API methods. All properties beginning with `_` or `#`
  * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkWindowApi` or `checkWindowApiClass` to
- * type-check window API classes.
+ * which the APIs rely. Have your window APIs 'implement' this type to get
+ * type-checking in the APIs themselves. Use `checkWindowApi` or
+ * `checkWindowApiClass` to type-check variables containing window APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
@@ -150,7 +151,7 @@ export type ElectronWindowApi<T> = {
 };
 
 /**
- * Type checks the argument to ensure it conforms to the expectaions of a
+ * Type checks the argument to ensure it conforms to the expectations of a
  * window API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods and will be interpreted as API
  * methods. Returns the argument to allow type-checking of APIs in their
