@@ -49,7 +49,7 @@ var _mainApiMap = {};
 // Error logger mainly of value for debugging the test suite.
 var _errorLoggerFunc;
 /**
- * Type checks the argument to ensure it conforms to the expectaions of a
+ * Type checks the argument to ensure it conforms to the expectations of a
  * main API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods returning promises and will be
  * interpreted as API methods. Returns the argument to allow type-checking

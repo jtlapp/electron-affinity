@@ -129,7 +129,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
 // Structure mapping window API names to the methods each contains.
 var _windowApiMap = {};
 /**
- * Type checks the argument to ensure it conforms to the expectaions of a
+ * Type checks the argument to ensure it conforms to the expectations of a
  * window API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods and will be interpreted as API
  * methods. Returns the argument to allow type-checking of APIs in their

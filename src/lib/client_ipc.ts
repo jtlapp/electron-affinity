@@ -190,7 +190,8 @@ export function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
  *
  * @param <T> (inferred type, not specified in call)
  * @param windowApi The API to expose to the main process, which must be
- *    an instance of a class conforming to type `ElectronWindowApi`
+ *    an instance of a class conforming to type `ElectronWindowApi`. Only
+ *    one instance of any given class can ever be exposed.
  * @param restorer Optional function for restoring the classes of
  *    arguments passed to APIs from the main process. Arguments not
  *    restored to original classes arrive as untyped objects.

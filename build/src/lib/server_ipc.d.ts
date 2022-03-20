@@ -5,12 +5,13 @@ import { BrowserWindow } from "electron";
 import { PublicProperty } from "./shared_ipc";
 import { RestorerFunction } from "./restorer";
 /**
- * Type to which a main API class must conform. It requres each API method
+ * Type to which a main API class must conform. It requires each API method
  * to return a promise. All properties of the method not beginning with `_`
  * or `#` will be exposed as API methods. All properties beginning with `_` or
  * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Use `checkMainApi` or `checkMainApiClass` to type-
- * check main API classes.
+ * which the APIs rely. Have your main APIs 'implement' this type to get
+ * type-checking in the APIs themselves. Use `checkMainApi` or
+ * `checkMainApiClass` to type-check variables containing main APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
@@ -21,7 +22,7 @@ export declare type ElectronMainApi<T> = {
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => Promise<any> : any;
 };
 /**
- * Type checks the argument to ensure it conforms to the expectaions of a
+ * Type checks the argument to ensure it conforms to the expectations of a
  * main API (which is an instance of the API class). All properties not
  * beginning with `_` or `#` must be methods returning promises and will be
  * interpreted as API methods. Returns the argument to allow type-checking
