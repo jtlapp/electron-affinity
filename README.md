@@ -43,7 +43,7 @@ or
 
 ## Usage
 
-Electron Affinity supports main APIs and window APIs. Main APIs are defined in the main process and callable from renderer windows. Window APIs are defined in renderer windows and callable from the main process. Window-to-window calling is not supported.
+Electron Affinity supports main APIs and window APIs. Main APIs are defined in the main process and callable from renderer windows. Window APIs are defined in renderer windows and callable from the main process. Window-to-window calling is not supported, as [JavaScript allows for messaging between windows](https://stackoverflow.com/a/68868073/650894), and it is an option to relay all communication through the main process.
 
 The first two sections on usage, "Main APIs" and "Window APIs", are all you need to read to get an understanding of this library.
 
