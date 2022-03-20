@@ -174,7 +174,7 @@ Window APIs are analogous to main APIs, except that they are defined in the rend
 Here is an example window API called `StatusApi`:
 
 ```ts
-import type { ElectronWindowApi } from "electron-affinity/window";
+import type { ElectronWindowApi } from 'electron-affinity/window';
 
 export class StatusApi implements ElectronWindowApi<StatusApi> {
   private _receiver: StatusReceiver;
@@ -454,9 +454,9 @@ API classes may subclass other API classes. Electron Affinity exposes and binds 
 ```ts
 import { ElectronMainApi } from "electron-affinity/main";
 
-export class ExtendedDataApi
-  extends DataApi
-  implements ElectronMainApi<ExtendedDataApi> {
+export class ExtendedDataApi extends DataApi
+    implements ElectronMainApi<ExtendedDataApi>
+{
   /* ... */
 }
 ```
@@ -464,9 +464,9 @@ export class ExtendedDataApi
 ```ts
 import { ElectronWindowApi } from "electron-affinity/window";
 
-export class ExtendedStatusApi
-  extends StatusApi
-  implements ElectronWindowApi<ExtendedStatusApi> {
+export class ExtendedStatusApi extends StatusApi
+    implements ElectronWindowApi<ExtendedStatusApi>
+{
   /* ... */
 }
 ```
@@ -660,10 +660,10 @@ let someApi: ElectronMainApi<any> = new DataApi(); // DOES NOT WORK
 To deal with this, Electron Affinity provides the following utility functions:
 
 ```ts
-checkMainApiClass(classObject);
-checkWindowApiClass(classObject);
-checkMainApi(instanceObject);
-checkWindowApi(instanceObject);
+checkMainApiClass(classObject)
+checkWindowApiClass(classObject)
+checkMainApi(instanceObject)
+checkWindowApi(instanceObject)
 ```
 
 The first two&mdash;the class checkers&mdash;take the API class as an argument and return no value. The last two&mdash;the instance checkers&mdash;take an instance of the API class as an argument and return that instance.
@@ -741,7 +741,7 @@ type ElectronMainApi<T> = {
   [K in keyof T]: K extends PublicProperty<K>
     ? (...args: any[]) => Promise<any>
     : any;
-};
+}
 ```
 
 #### type WindowApiBinding<T>
@@ -761,7 +761,7 @@ type WindowApiBinding<T> = {
   ) => any
     ? (...args: A) => void
     : never;
-};
+}
 ```
 
 #### function bindWindowApi()
@@ -785,7 +785,7 @@ type WindowApiBinding<T> = {
 function bindWindowApi<T>(
   window: BrowserWindow,
   apiClassName: string
-): Promise<WindowApiBinding<T>>;
+): Promise<WindowApiBinding<T>>
 ```
 
 #### function checkMainApi()
@@ -803,7 +803,7 @@ function bindWindowApi<T>(
  * @return The provided main API instance
  * @see checkMainApiClass
  */
-function checkMainApi<T extends ElectronMainApi<T>>(api: T): T;
+function checkMainApi<T extends ElectronMainApi<T>>(api: T): T
 ```
 
 #### function checkMainApiClass()
@@ -824,7 +824,7 @@ function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
   new (...args: any[]): T;
 }): {
   new (...args: any[]): T;
-};
+}
 ```
 
 #### function exposeMainApi()
@@ -844,7 +844,7 @@ function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
 function exposeMainApi<T>(
   mainApi: ElectronMainApi<T>,
   restorer?: RestorerFunction
-): void;
+): void
 ```
 
 #### class RelayedError
@@ -891,7 +891,7 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  */
 type ElectronWindowApi<T> = {
   [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-};
+}
 ```
 
 #### type MainApiBinding
@@ -907,7 +907,7 @@ type ElectronWindowApi<T> = {
  */
 type MainApiBinding<T> = {
   [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
+}
 ```
 
 #### function bindMainApi()
@@ -931,7 +931,7 @@ type MainApiBinding<T> = {
 function bindMainApi<T>(
   apiClassName: string,
   restorer?: RestorerFunction
-): Promise<MainApiBinding<T>>;
+): Promise<MainApiBinding<T>>
 ```
 
 #### function checkWindowApi()
@@ -949,7 +949,7 @@ function bindMainApi<T>(
  * @return The provided window API instance
  * @see checkWindowApiClass
  */
-function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T;
+function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T
 ```
 
 #### function checkWindowApiClass()
@@ -970,7 +970,7 @@ function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
   new (...args: any[]): T;
 }): {
   new (...args: any[]): T;
-};
+}
 ```
 
 #### function exposeWindowApi()
@@ -990,7 +990,7 @@ function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
 function exposeWindowApi<T>(
   windowApi: ElectronWindowApi<T>,
   restorer?: RestorerFunction
-): void;
+): void
 ```
 
 ### import from 'electron-affinity/main' or 'electron-affinity/window'
@@ -1007,7 +1007,7 @@ function exposeWindowApi<T>(
  */
 type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
   ? R
-  : never;
+  : never
 ```
 
 #### type RestorableClass<C>
@@ -1024,7 +1024,7 @@ type AwaitedType<F> = F extends (...args: any[]) => Promise<infer R>
 type RestorableClass<C> = {
   // static method of the class returning an instance of the class
   restoreClass(obj: Record<string, any>): C;
-};
+}
 ```
 
 #### type RestorerFunction
@@ -1045,7 +1045,7 @@ type RestorableClass<C> = {
  *    a class instance, or an instance of class `className` sourced from
  *    the data in `obj`
  */
-type RestorerFunction = (className: string, obj: Record<string, any>) => any;
+type RestorerFunction = (className: string, obj: Record<string, any>) => any
 ```
 
 #### function genericRestorer()
@@ -1070,7 +1070,7 @@ function genericRestorer(
   restorableClassMap: Record<string, RestorableClass<any>>,
   className: string,
   obj: Record<string, any>
-): any;
+): any
 ```
 
 #### function setIpcBindingTimeout()
@@ -1083,7 +1083,7 @@ function genericRestorer(
  *
  * @param millis Duration of timeout in milliseconds
  */
-function setIpcBindingTimeout(millis: number): void;
+function setIpcBindingTimeout(millis: number): void
 ```
 
 ### import 'electron-affinity/preload'
