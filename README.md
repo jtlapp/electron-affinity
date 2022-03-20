@@ -16,6 +16,8 @@ Electron Affinity is a small TypeScript library that makes IPC as simple as poss
 - Main APIs are all asynchronous functions using Electron's `ipcRenderer.invoke`, while window APIs all use Electron's `window.webContents.send` and return no value.
 - Uses context isolation and does not require node integration, maximizing security.
 
+In short, this library implements IPC as remote procedure calls (RPC).
+
 > NOTE ON JAVASCRIPT: The library should work with plain JavaScript, but I have not tried it, so I don't know what special considerations might require documentation.
 
 ## Problems Addressed
