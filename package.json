@@ -1,7 +1,7 @@
 {
   "name": "electron-affinity",
   "version": "1.1.8",
-  "description": "IPC via method calls in Electron",
+  "description": "IPC via simple method calls in Electron",
   "license": "MIT",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "private": false,
@@ -32,6 +32,7 @@
   "keywords": [
     "electron",
     "ipc",
+    "rpc",
     "typescript",
     "typed"
   ]
