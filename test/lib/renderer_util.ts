@@ -1,4 +1,4 @@
-import { Restorer } from "../../src/lib/restorer";
+import { Restorer } from "../../src/lib/restorer_lib";
 
 export async function testInvoke(
   testName: string,

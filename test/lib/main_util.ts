@@ -2,8 +2,8 @@ import { ipcMain, BrowserWindow } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 
-import { Restorer, RestorerFunction } from "../../src/lib/restorer";
-import { setIpcErrorLogger } from "../../src/lib/server_ipc";
+import { Restorer, RestorerFunction } from "../../src/lib/restorer_lib";
+import { setIpcErrorLogger } from "../../src/lib/main_lib";
 
 const COMPLETION_CHECK_INTERVAL_MILLIS = 100;
 const TEST_TIMEOUT_MILLIS = 5000;

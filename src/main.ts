@@ -10,10 +10,10 @@ export {
   checkMainApiClass,
   bindWindowApi,
   RelayedError,
-} from "./lib/server_ipc";
-export { AwaitedType, setIpcBindingTimeout } from "./lib/shared_ipc";
+} from "./lib/main_lib";
+export { AwaitedType, setIpcBindingTimeout } from "./lib/shared_lib";
 export {
   RestorableClass,
   RestorerFunction,
   genericRestorer,
-} from "./lib/restorer";
+} from "./lib/restorer_lib";

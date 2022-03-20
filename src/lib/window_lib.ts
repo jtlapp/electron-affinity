@@ -11,8 +11,8 @@ import {
   retryUntilTimeout,
   toIpcName,
   exposeApi,
-} from "./shared_ipc";
-import { Restorer, RestorerFunction } from "./restorer";
+} from "./shared_lib";
+import { Restorer, RestorerFunction } from "./restorer_lib";
 
 //// MAIN API SUPPORT //////////////////////////////////////////////////////
 

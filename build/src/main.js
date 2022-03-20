@@ -11,14 +11,14 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 }));
 exports.__esModule = true;
 exports.genericRestorer = exports.setIpcBindingTimeout = exports.RelayedError = exports.bindWindowApi = exports.checkMainApiClass = exports.checkMainApi = exports.exposeMainApi = void 0;
-var server_ipc_1 = require("./lib/server_ipc");
-__createBinding(exports, server_ipc_1, "exposeMainApi");
-__createBinding(exports, server_ipc_1, "checkMainApi");
-__createBinding(exports, server_ipc_1, "checkMainApiClass");
-__createBinding(exports, server_ipc_1, "bindWindowApi");
-__createBinding(exports, server_ipc_1, "RelayedError");
-var shared_ipc_1 = require("./lib/shared_ipc");
-__createBinding(exports, shared_ipc_1, "setIpcBindingTimeout");
-var restorer_1 = require("./lib/restorer");
-__createBinding(exports, restorer_1, "genericRestorer");
+var main_lib_1 = require("./lib/main_lib");
+__createBinding(exports, main_lib_1, "exposeMainApi");
+__createBinding(exports, main_lib_1, "checkMainApi");
+__createBinding(exports, main_lib_1, "checkMainApiClass");
+__createBinding(exports, main_lib_1, "bindWindowApi");
+__createBinding(exports, main_lib_1, "RelayedError");
+var shared_lib_1 = require("./lib/shared_lib");
+__createBinding(exports, shared_lib_1, "setIpcBindingTimeout");
+var restorer_lib_1 = require("./lib/restorer_lib");
+__createBinding(exports, restorer_lib_1, "genericRestorer");
 //# sourceMappingURL=main.js.map

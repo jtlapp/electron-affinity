@@ -13,10 +13,8 @@ import {
   toIpcName,
   retryUntilTimeout,
   exposeApi,
-} from "./shared_ipc";
-import { Restorer } from "./restorer";
-// Use the publicly-exposed RestorerFunction type
-import { RestorerFunction } from "./restorer";
+} from "./shared_lib";
+import { Restorer, RestorerFunction } from "./restorer_lib";
 
 //// MAIN API SUPPORT ////////////////////////////////////////////////////////
 

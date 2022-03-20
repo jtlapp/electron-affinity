@@ -1,4 +1,4 @@
-import { genericRestorer } from "../../src/lib/restorer";
+import { genericRestorer } from "../../src/lib/restorer_lib";
 
 export class Catter {
   s1: string;
