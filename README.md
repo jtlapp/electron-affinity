@@ -1,6 +1,6 @@
 # electron-affinity
 
-IPC via simple method calls in Electron
+Electron IPC via simple method calls
 
 ## Introduction
 
