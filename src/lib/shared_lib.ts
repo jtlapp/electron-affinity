@@ -36,19 +36,12 @@ export function setIpcBindingTimeout(millis: number): void {
   _bindingTimeoutMillis = millis;
 }
 
-// Matches object properties beginning with an underscore or pound.
-export type PrivateProperty<P> = P extends `_${string}`
-  ? P
-  : P extends `#${string}`
-  ? P
-  : never;
-
 // Matches object properties beginning with neither underscore nor pound.
-export type PublicProperty<P> = P extends PrivateProperty<P>
+export type PublicProperty<P> = P extends `_${string}`
   ? never
-  : P extends string
-  ? P
-  : never;
+  : P extends `#${string}`
+  ? never
+  : P;
 
 // Information needed to bind to a remote API.
 export type ApiRegistration = {

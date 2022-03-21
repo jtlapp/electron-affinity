@@ -19,8 +19,7 @@ export declare type AwaitedType<F> = F extends (...args: any[]) => Promise<infer
  * @param millis Duration of timeout in milliseconds
  */
 export declare function setIpcBindingTimeout(millis: number): void;
-export declare type PrivateProperty<P> = P extends `_${string}` ? P : P extends `#${string}` ? P : never;
-export declare type PublicProperty<P> = P extends PrivateProperty<P> ? never : P extends string ? P : never;
+export declare type PublicProperty<P> = P extends `_${string}` ? never : P extends `#${string}` ? never : P;
 export declare type ApiRegistration = {
     className: string;
     methodNames: string[];
