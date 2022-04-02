@@ -1,6 +1,5 @@
 .DS_Store
-build/src/*.map
-build/test
+build/
 
 # Logs
 logs
