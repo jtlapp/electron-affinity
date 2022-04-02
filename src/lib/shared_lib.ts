@@ -53,9 +53,7 @@ export type ApiRegistration = {
 export type ApiRegistrationMap = Record<string, string[]>;
 
 // Generic API type, for either main or window.
-type ElectronApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => any : any;
-};
+type ElectronApi<T> = { [K in PublicProperty<keyof T>]: any };
 
 // Makes an API available for remote binding, installing method handlers.
 export function exposeApi<T>(
@@ -69,7 +67,7 @@ export function exposeApi<T>(
   }
   const methodNames: string[] = [];
   for (const methodName of getPropertyNames(api)) {
-    if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+    if (methodName != "constructor" && "_#".indexOf(methodName[0]) < 0) {
       const method = (api as any)[methodName];
       if (typeof method == "function") {
         installHandler(toIpcName(apiClassName, methodName), method);

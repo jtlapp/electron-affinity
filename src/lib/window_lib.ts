@@ -24,9 +24,7 @@ import { Restorer, RestorerFunction } from "./restorer_lib";
  *
  * @param <T> Type of the main API class
  */
-export type MainApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-};
+export type MainApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] };
 
 // These window._affinity_ipc methods are defined in preload.ts
 declare global {
@@ -101,8 +99,7 @@ function _attemptBindMainApi<T>(
 
   const boundApi = {} as MainApiBinding<T>;
   for (const methodName of methodNames) {
-    const typedMethodName: keyof MainApiBinding<T> = methodName;
-    boundApi[typedMethodName] = (async (...args: any[]) => {
+    boundApi[methodName] = (async (...args: any[]) => {
       Restorer.makeArgsRestorable(args);
       const response = await window._affinity_ipc.invoke(
         toIpcName(apiClassName, methodName as string),
@@ -114,7 +111,7 @@ function _attemptBindMainApi<T>(
         throw Restorer.restoreThrownValue(returnValue, info, restorer);
       }
       return Restorer.restoreValue(returnValue, info, restorer);
-    }) as any; // typescript can't confirm the method signature
+    }) as any; // 'any' makes it compatible with the method's signature
   }
 
   // Save the binding to return on duplicate binding requests.
@@ -146,9 +143,14 @@ let _windowApiMap: ApiRegistrationMap = {};
  * @see checkWindowApi
  * @see checkWindowApiClass
  */
-export type ElectronWindowApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-};
+export type ElectronWindowApi<T> = Pick<
+  {
+    [K in keyof T]: K extends PublicProperty<K>
+      ? (...args: any[]) => void
+      : any;
+  },
+  PublicProperty<keyof T>
+>;
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a

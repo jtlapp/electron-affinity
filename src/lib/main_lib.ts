@@ -38,11 +38,14 @@ let _errorLoggerFunc: (err: Error) => void;
  * @see checkMainApi
  * @see checkMainApiClass
  */
-export type ElectronMainApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K>
-    ? (...args: any[]) => Promise<any>
-    : any;
-};
+export type ElectronMainApi<T> = Pick<
+  {
+    [K in keyof T]: K extends PublicProperty<K>
+      ? (...args: any[]) => Promise<any>
+      : any;
+  },
+  PublicProperty<keyof T>
+>;
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
@@ -150,17 +153,11 @@ export function setIpcErrorLogger(loggerFunc: (err: any) => void): void {
  * Type to which a bound window API conforms within the main process, as
  * determined from the provided window API class. This type only exposes the
  * methods of the class not starting with `_` or `#`, and regardless of what
- * the method returns, the API returns void.
+ * the method returns, the API returns no value (void).
  *
  * @param <T> Type of the window API class
  */
-export type WindowApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (
-    ...args: infer A
-  ) => any
-    ? (...args: A) => void
-    : never;
-};
+export type WindowApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] };
 
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.

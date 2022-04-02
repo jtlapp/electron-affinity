@@ -26,7 +26,7 @@ export declare type ApiRegistration = {
 };
 export declare type ApiRegistrationMap = Record<string, string[]>;
 declare type ElectronApi<T> = {
-    [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => any : any;
+    [K in PublicProperty<keyof T>]: any;
 };
 export declare function exposeApi<T>(apiMap: ApiRegistrationMap, api: ElectronApi<T>, installHandler: (ipcName: string, method: any) => void): void;
 export declare function getPropertyNames(obj: any): string[];

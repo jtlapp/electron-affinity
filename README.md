@@ -739,11 +739,14 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  * @see checkMainApi
  * @see checkMainApiClass
  */
-type ElectronMainApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K>
-    ? (...args: any[]) => Promise<any>
-    : any;
-}
+type ElectronMainApi<T> = Pick<
+  {
+    [K in keyof T]: K extends PublicProperty<K>
+      ? (...args: any[]) => Promise<any>
+      : any;
+  },
+  PublicProperty<keyof T>
+>
 ```
 
 #### type WindowApiBinding<T>
@@ -753,17 +756,11 @@ type ElectronMainApi<T> = {
  * Type to which a bound window API conforms within the main process, as
  * determined from the provided window API class. This type only exposes the
  * methods of the class not starting with `_` or `#`, and regardless of what
- * the method returns, the API returns void.
+ * the method returns, the API returns no value (void).
  *
  * @param <T> Type of the window API class
  */
-type WindowApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (
-    ...args: infer A
-  ) => any
-    ? (...args: A) => void
-    : never;
-}
+type WindowApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] }
 ```
 
 #### function bindWindowApi()
@@ -891,9 +888,14 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
  * @see checkWindowApi
  * @see checkWindowApiClass
  */
-type ElectronWindowApi<T> = {
-  [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-}
+type ElectronWindowApi<T> = Pick<
+  {
+    [K in keyof T]: K extends PublicProperty<K>
+      ? (...args: any[]) => void
+      : any;
+  },
+  PublicProperty<keyof T>
+>
 ```
 
 #### type MainApiBinding
@@ -907,9 +909,7 @@ type ElectronWindowApi<T> = {
  *
  * @param <T> Type of the main API class
  */
-type MainApiBinding<T> = {
-  [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
-}
+type MainApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] }
 ```
 
 #### function bindMainApi()

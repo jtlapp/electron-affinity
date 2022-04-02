@@ -12,7 +12,7 @@ import { RestorerFunction } from "./restorer_lib";
  * @param <T> Type of the main API class
  */
 export declare type MainApiBinding<T> = {
-    [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K];
+    [K in PublicProperty<keyof T>]: T[K];
 };
 declare global {
     interface Window {
@@ -53,9 +53,9 @@ export declare function bindMainApi<T>(apiClassName: string, restorer?: Restorer
  * @see checkWindowApi
  * @see checkWindowApiClass
  */
-export declare type ElectronWindowApi<T> = {
+export declare type ElectronWindowApi<T> = Pick<{
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => void : any;
-};
+}, PublicProperty<keyof T>>;
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
  * window API (which is an instance of the API class). All properties not

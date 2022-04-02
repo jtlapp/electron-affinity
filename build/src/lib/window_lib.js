@@ -89,8 +89,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
     // Construct the main API binding.
     var boundApi = {};
     var _loop_1 = function (methodName) {
-        var typedMethodName = methodName;
-        boundApi[typedMethodName] = (function () {
+        boundApi[methodName] = (function () {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i] = arguments[_i];
@@ -113,7 +112,7 @@ function _attemptBindMainApi(apiClassName, restorer, resolve) {
                     }
                 });
             });
-        }); // typescript can't confirm the method signature
+        }); // 'any' makes it compatible with the method's signature
     };
     for (var _i = 0, methodNames_1 = methodNames; _i < methodNames_1.length; _i++) {
         var methodName = methodNames_1[_i];

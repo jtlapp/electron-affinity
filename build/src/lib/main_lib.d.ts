@@ -18,9 +18,9 @@ import { RestorerFunction } from "./restorer_lib";
  * @see checkMainApi
  * @see checkMainApiClass
  */
-export declare type ElectronMainApi<T> = {
+export declare type ElectronMainApi<T> = Pick<{
     [K in keyof T]: K extends PublicProperty<K> ? (...args: any[]) => Promise<any> : any;
-};
+}, PublicProperty<keyof T>>;
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
  * main API (which is an instance of the API class). All properties not
@@ -84,12 +84,12 @@ export declare function setIpcErrorLogger(loggerFunc: (err: any) => void): void;
  * Type to which a bound window API conforms within the main process, as
  * determined from the provided window API class. This type only exposes the
  * methods of the class not starting with `_` or `#`, and regardless of what
- * the method returns, the API returns void.
+ * the method returns, the API returns no value (void).
  *
  * @param <T> Type of the window API class
  */
 export declare type WindowApiBinding<T> = {
-    [K in Extract<keyof T, PublicProperty<keyof T>>]: T[K] extends (...args: infer A) => any ? (...args: A) => void : never;
+    [K in PublicProperty<keyof T>]: T[K];
 };
 /**
  * Returns a main-side binding for a window API of a given class, restricting

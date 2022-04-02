@@ -4,7 +4,9 @@ import { testSend } from "../lib/renderer_util";
 import { Catter } from "../lib/shared_util";
 
 export class WinApi1 implements ElectronWindowApi<WinApi1> {
-  _winTag: string;
+  private _winTag: string;
+
+  _unused = "for testing compilation";
 
   constructor(winTag: string) {
     this._winTag = winTag + " ";

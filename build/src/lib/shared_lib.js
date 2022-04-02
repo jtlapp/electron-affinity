@@ -32,7 +32,7 @@ function exposeApi(apiMap, api, installHandler) {
     var methodNames = [];
     for (var _i = 0, _a = getPropertyNames(api); _i < _a.length; _i++) {
         var methodName = _a[_i];
-        if (methodName != "constructor" && !["_", "#"].includes(methodName[0])) {
+        if (methodName != "constructor" && "_#".indexOf(methodName[0]) < 0) {
             var method = api[methodName];
             if (typeof method == "function") {
                 installHandler(toIpcName(apiClassName, methodName), method);

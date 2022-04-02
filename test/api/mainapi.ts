@@ -2,7 +2,8 @@ import { ElectronMainApi } from "../../src/main";
 import { ResultCollector } from "../lib/main_util";
 
 export abstract class MainApi implements ElectronMainApi<MainApi> {
-  _collector: ResultCollector;
+  // use 'private' designator to make sure it can be used
+  private _collector: ResultCollector;
 
   constructor(collector: ResultCollector) {
     this._collector = collector;
@@ -16,6 +17,8 @@ export abstract class MainApi implements ElectronMainApi<MainApi> {
     return data;
   }
 
+  // private, but don't designate with TypeScript, so that compilation
+  // guarantees that the 'private' designator is not required.
   _setRequestData(...args: any[]) {
     this._collector.setRequestData(args);
   }
