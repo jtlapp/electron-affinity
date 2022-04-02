@@ -760,7 +760,11 @@ type ElectronMainApi<T> = Pick<
  *
  * @param <T> Type of the window API class
  */
-type WindowApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] }
+type WindowApiBinding<T> = {
+  [K in PublicProperty<keyof T>]: T[K] extends (...args: infer A) => any
+    ? (...args: A) => void
+    : never;
+}
 ```
 
 #### function bindWindowApi()

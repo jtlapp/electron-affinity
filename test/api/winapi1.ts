@@ -19,6 +19,7 @@ export class WinApi1 implements ElectronWindowApi<WinApi1> {
 
   sendStringSameMethod(s: string) {
     testSend(this._winTag + "same method (win api1)", () => [s]);
+    return s; // return value should not make it into the bound API
   }
 
   sendCoordinates(x: number, y: number) {

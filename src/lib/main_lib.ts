@@ -157,7 +157,11 @@ export function setIpcErrorLogger(loggerFunc: (err: any) => void): void {
  *
  * @param <T> Type of the window API class
  */
-export type WindowApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] };
+export type WindowApiBinding<T> = {
+  [K in PublicProperty<keyof T>]: T[K] extends (...args: infer A) => any
+    ? (...args: A) => void
+    : never;
+};
 
 // Structure mapping window API names to the methods they contain, indexed by
 // web contents ID.
