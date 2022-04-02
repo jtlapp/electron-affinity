@@ -69,3 +69,10 @@ export async function sleep(delayMillis: number) {
     setTimeout(() => resolve(), delayMillis);
   });
 }
+
+// because Node's assert isn't available in a window
+export function assertIdentical(obj1: any, obj2: any) {
+  if (obj1 !== obj2) {
+    throw new Error("Objects not identical");
+  }
+}

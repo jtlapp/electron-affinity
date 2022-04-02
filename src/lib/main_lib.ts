@@ -4,6 +4,7 @@
 
 import { ipcMain, BrowserWindow } from "electron";
 
+import type { ElectronWindowApi } from "./window_lib";
 import {
   API_REQUEST_IPC,
   API_RESPONSE_IPC,
@@ -26,33 +27,27 @@ let _errorLoggerFunc: (err: Error) => void;
 
 /**
  * Type to which a main API class must conform. It requires each API method
- * to return a promise. All properties of the method not beginning with `_`
- * or `#` will be exposed as API methods. All properties beginning with `_` or
- * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Have your main APIs 'implement' this type to get
- * type-checking in the APIs themselves. Use `checkMainApi` or
- * `checkMainApiClass` to type-check variables containing main APIs.
+ * to return a promise. All public properties of the method not beginning with
+ * `_`or `#` will be exposed as API methods; all properties declared 'private'
+ * and all properties beginning with `_` or `#` are ignored, allowing the API
+ * class to have internal structure on which the API methods rely. Have main APIs
+ * 'implement' this type to get type-checking in the APIs themselves, passing in
+ * the API class itself for T. Use `checkMainApi` or `checkMainApiClass` to
+ * type-check variables containing main APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
  * @see checkMainApi
  * @see checkMainApiClass
  */
-export type ElectronMainApi<T> = Pick<
-  {
-    [K in keyof T]: K extends PublicProperty<K>
-      ? (...args: any[]) => Promise<any>
-      : any;
-  },
-  PublicProperty<keyof T>
->;
+export type ElectronMainApi<T> = {
+  [K in PublicProperty<keyof T>]: (...args: any[]) => Promise<any>;
+};
 
 /**
- * Type checks the argument to ensure it conforms to the expectations of a
- * main API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods returning promises and will be
- * interpreted as API methods. Returns the argument to allow type-checking
- * of APIs in their place of use.
+ * Type checks the argument to ensure it conforms to the expectations of an
+ * instance of a main API class. Returns the argument to allow type-checking
+ * of APIs in their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the main API class to type check
@@ -65,9 +60,8 @@ export function checkMainApi<T extends ElectronMainApi<T>>(api: T): T {
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
- * main API class. All properties not beginning with `_` or `#` must be
- * methods returning promises and will be interpreted as API methods. Returns
- * the argument to allow type-checking of APIs in their place of use.
+ * main API class. Returns the argument to allow type-checking of APIs in
+ * their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The main API class to type check
@@ -114,8 +108,8 @@ export class RelayedError {
  *    arguments passed to APIs from the window. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-export function exposeMainApi<T>(
-  mainApi: ElectronMainApi<T>,
+export function exposeMainApi<T extends ElectronMainApi<T>>(
+  mainApi: T,
   restorer?: RestorerFunction
 ): void {
   _installIpcListeners();
@@ -152,8 +146,8 @@ export function setIpcErrorLogger(loggerFunc: (err: any) => void): void {
 /**
  * Type to which a bound window API conforms within the main process, as
  * determined from the provided window API class. This type only exposes the
- * methods of the class not starting with `_` or `#`, and regardless of what
- * the method returns, the API returns no value (void).
+ * API methods of the class. Regardless of what the implementation of any
+ * given method returns, the API method returns no value (void).
  *
  * @param <T> Type of the window API class
  */
@@ -177,8 +171,8 @@ const _boundWindowApisByWindowID: Record<
  * Returns a main-side binding for a window API of a given class, restricting
  * the binding to the given window. Failure of the window to expose the API
  * before timeout results in an exception. There is a default timeout, but
- * you can override it with `setIpcBindingTimeout()`. (The function takes no
- * restorer parameter because window APIs do not return values.)
+ * you can override it with `setIpcBindingTimeout()`. (The function does not
+ * take a restorer parameter because window APIs do not return values.)
  *
  * @param <T> Type of the window API class to bind
  * @param window Window to which to bind the window API
@@ -188,7 +182,7 @@ const _boundWindowApisByWindowID: Record<
  *    main process.
  * @see setIpcBindingTimeout
  */
-export function bindWindowApi<T>(
+export function bindWindowApi<T extends ElectronWindowApi<T>>(
   window: BrowserWindow,
   apiClassName: string
 ): Promise<WindowApiBinding<T>> {

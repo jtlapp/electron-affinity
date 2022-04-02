@@ -2,6 +2,7 @@
  * Code specific to handling IPC in the renderer process.
  */
 
+import type { ElectronMainApi } from "./main_lib";
 import {
   API_REQUEST_IPC,
   API_RESPONSE_IPC,
@@ -18,9 +19,9 @@ import { Restorer, RestorerFunction } from "./restorer_lib";
 
 /**
  * Type to which a bound main API conforms within a window, as determined by
- * the provided main API class. The type only exposes the methods of the
- * class not starting with `_` or `#`, and it returns the exact
- * return types of the individual methods, which are necessarily promises.
+ * the provided main API class. The type only exposes the API methods of the
+ * class, exposing the methods with the exact return types given by their
+ * implementations, which are necessarily promises.
  *
  * @param <T> Type of the main API class
  */
@@ -58,7 +59,7 @@ const _boundMainApis: Record<string, MainApiBinding<any>> = {};
  *    the window.
  * @see setIpcBindingTimeout
  */
-export function bindMainApi<T>(
+export function bindMainApi<T extends ElectronMainApi<T>>(
   apiClassName: string,
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>> {
@@ -130,34 +131,28 @@ function _attemptBindMainApi<T>(
 let _windowApiMap: ApiRegistrationMap = {};
 
 /**
- * Type to which a window API class must conform. It requires that all
- * properties of the class not beginning with `_` or `#` be functions, which
- * will be exposed as API methods. All properties beginning with `_` or `#`
- * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Have your window APIs 'implement' this type to get
- * type-checking in the APIs themselves. Use `checkWindowApi` or
- * `checkWindowApiClass` to type-check variables containing window APIs.
+ * Type to which a window API class must conform. All public properties of the
+ * method and all properties not beginning with `_` or `#` will be exposed as
+ * API methods; all properties declared 'private' and all properties beginning
+ * with `_` or `#` are ignored, allowing the API class to have internal structure
+ * on which the API methods rely. Have your window APIs 'implement' this type to
+ * get type-checking in the APIs themselves, passing in the API class itself for
+ * T. Use `checkWindowApi` or  `checkWindowApiClass` to type-check variables
+ * containing window APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
  * @see checkWindowApi
  * @see checkWindowApiClass
  */
-export type ElectronWindowApi<T> = Pick<
-  {
-    [K in keyof T]: K extends PublicProperty<K>
-      ? (...args: any[]) => void
-      : any;
-  },
-  PublicProperty<keyof T>
->;
+export type ElectronWindowApi<T> = {
+  [K in PublicProperty<keyof T>]: (...args: any[]) => void;
+};
 
 /**
- * Type checks the argument to ensure it conforms to the expectations of a
- * window API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods and will be interpreted as API
- * methods. Returns the argument to allow type-checking of APIs in their
- * place of use.
+ * Type checks the argument to ensure it conforms to the expectations of an
+ * instance of a window API class. Returns the argument to allow type-checking
+ * of APIs in their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
@@ -170,9 +165,8 @@ export function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T {
 
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
- * window API class. All properties not beginning with `_` or `#` must be
- * methods and will be interpreted as API methods. Returns the argument to
- * allow type-checking of APIs in their place of use.
+ * window API class. Returns the argument to allow type-checking of APIs in
+ * their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The window API class to type check
@@ -198,8 +192,8 @@ export function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
  *    arguments passed to APIs from the main process. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-export function exposeWindowApi<T>(
-  windowApi: ElectronWindowApi<T>,
+export function exposeWindowApi<T extends ElectronWindowApi<T>>(
+  windowApi: T,
   restorer?: RestorerFunction
 ): void {
   _installIpcListeners();

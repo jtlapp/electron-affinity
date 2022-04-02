@@ -1,36 +1,35 @@
-import { ElectronWindowApi } from "../../src/window";
-
+import { ElectronWindowApi, checkWindowApiClass } from "../../src/window";
 import { testSend } from "../lib/renderer_util";
-import { Catter } from "../lib/shared_util";
+import { Catter, assertIdentical } from "../lib/shared_util";
 
 export class WinApi1 implements ElectronWindowApi<WinApi1> {
-  private _winTag: string;
+  private winTag: string; // test private property without prefix
 
   _unused = "for testing compilation";
 
   constructor(winTag: string) {
-    this._winTag = winTag + " ";
+    this.winTag = winTag + " ";
   }
 
   // also ensures it's not a problem for window APIs to be async
   async sendNoParams() {
-    testSend(this._winTag + "no params (win api1)", () => [""]);
+    testSend(this.winTag + "no params (win api1)", () => [""]);
   }
 
   sendStringSameMethod(s: string) {
-    testSend(this._winTag + "same method (win api1)", () => [s]);
+    testSend(this.winTag + "same method (win api1)", () => [s]);
     return s; // return value should not make it into the bound API
   }
 
   sendCoordinates(x: number, y: number) {
-    testSend(this._winTag + "multi param (win api1)", () => [
+    testSend(this.winTag + "multi param (win api1)", () => [
       x.toString(),
       y.toString(),
     ]);
   }
 
   sendCatter(catter: Catter) {
-    testSend(this._winTag + "send catter (win api1)", () => {
+    testSend(this.winTag + "send catter (win api1)", () => {
       const results: string[] = [];
       results.push((catter instanceof Catter).toString());
       results.push(catter.s1);
@@ -40,29 +39,27 @@ export class WinApi1 implements ElectronWindowApi<WinApi1> {
   }
 
   sendNull(value: any) {
-    testSend(this._winTag + "null (win api1)", () => [
+    testSend(this.winTag + "null (win api1)", () => [
       value === null ? "null" : "nope",
     ]);
   }
 
   sendTrue(value: any) {
-    testSend(this._winTag + "boolean (win api1)", () => [
+    testSend(this.winTag + "boolean (win api1)", () => [
       value === true ? "true" : "nope",
     ]);
   }
 
   sendDate(date: Date) {
-    testSend(this._winTag + "built-in type (win api1)", () => [
-      date.toString(),
-    ]);
+    testSend(this.winTag + "built-in type (win api1)", () => [date.toString()]);
   }
 
   sendArray(value: any) {
-    testSend(this._winTag + "array (win api1)", () => [value.toString()]);
+    testSend(this.winTag + "array (win api1)", () => [value.toString()]);
   }
 
   sendFSError(err: Error) {
-    testSend(this._winTag + "structured error (win api1)", () => {
+    testSend(this.winTag + "structured error (win api1)", () => {
       const expectedMessage = "ENOENT: no such file or directory";
       const results: string[] = [];
       results.push((err instanceof Error).toString());
@@ -73,7 +70,7 @@ export class WinApi1 implements ElectronWindowApi<WinApi1> {
   }
 
   sendCustomError(err: Error) {
-    testSend(this._winTag + "custom error (win api1)", () => {
+    testSend(this.winTag + "custom error (win api1)", () => {
       const results: string[] = [];
       results.push((err instanceof Error).toString());
       results.push(err.message);
@@ -82,3 +79,5 @@ export class WinApi1 implements ElectronWindowApi<WinApi1> {
     });
   }
 }
+
+assertIdentical(WinApi1, checkWindowApiClass(WinApi1));

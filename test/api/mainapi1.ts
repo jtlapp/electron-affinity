@@ -1,12 +1,17 @@
 import * as fs from "fs";
 
-import { ElectronMainApi, RelayedError } from "../../src/main";
+import {
+  ElectronMainApi,
+  RelayedError,
+  checkMainApiClass,
+} from "../../src/main";
 import { MainApi } from "./mainapi";
 import {
   Catter,
   CustomError,
   NoMessageError,
   NonErrorObject,
+  assertIdentical,
 } from "../lib/shared_util";
 
 export class MainApi1 extends MainApi implements ElectronMainApi<MainApi1> {
@@ -78,3 +83,5 @@ class NonRestoredCustomError extends Error {
     super("non-restored");
   }
 }
+
+assertIdentical(MainApi1, checkMainApiClass(MainApi1));

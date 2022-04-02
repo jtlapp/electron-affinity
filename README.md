@@ -51,7 +51,7 @@ The first two sections on usage, "Main APIs" and "Window APIs", are all you need
 
 ### Main APIs
 
-A main API is an instance of a class defined in the main process. All methods of this class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). You can use these prefixes to define private methods and properties on which the IPC methods rely.
+A main API is an instance of a class defined in the main process. All methods of this class, including ancestor class methods, are treated as IPC methods except for those declared `private` or prefixed with underscore (`_`) or pound (`#`). You can therefore define private properties and methods on which the IPC methods rely.
 
 Each main API method can take any number of parameters, including none, but must return a promise. The promise need not resolve to a value.
 
@@ -61,34 +61,35 @@ Here is an example main API called `DataApi`:
 import { ElectronMainApi, RelayedError } from "electron-affinity/main";
 
 export class DataApi implements ElectronMainApi<DataApi> {
-  private _dataSource: DataSource;
-  private _dataset: Dataset | null = null;
+  private dataSource: DataSource;
+  _dataset: Dataset | null = null; // also private
 
   constructor(dataSource: DataSource) {
-    this._dataSource = dataSource;
+    this.dataSource = dataSource;
   }
 
   async openDataset(setName: string, timeout: number) {
-    this._dataset = this._dataSource.open(setName, timeout);
+    this._dataset = this.dataSource.open(setName, timeout);
   }
 
   async readData() {
-    data = await this._dataset.read();
+    const data = await this._dataset!.read();
     this.__checkForError();
     return data;
   }
 
   async writeData(data: Data) {
-    await this._dataset.write(data.format());
+    await this._dataset!.write(data.format());
     this.__checkForError();
   }
 
   async closeDataset() {
-    this._dataset.close();
+    this._dataset!.close();
+    this._dataset = null;
   }
 
-  private _checkForError() {
-    const err: DataError | null = this._dataSource.getError();
+  private _checkForError() {  // okay to use 'private' with '_'
+    const err: DataError | null = this.dataSource.getError();
     if (err) throw new RelayedError(err);
   }
 }
@@ -99,7 +100,7 @@ Here are a few things to note about this API:
 - The API implements `ElectronMainApi<T>` to get enforcement of main API type constraints, replacing `T` with the API's own class name.
 - All methods return promises even when they don't need to. This allows all IPC calls to the main process to use `ipcRenderer.invoke()`, keeping Electron Affinity simple.
 - Even though `writeData()` received `data` via IPC, it exists as an instance of class `Data` with the `format()` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents members `_dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
+- The `private` modifier has the same effect as prefixing with `_` or `#`, which here prevents members `dataSource`, `_dataset`, and `_checkforError()` from being exposed as IPC methods.
 - If the data source encounters an error, `_checkForError()` returns the error (sans stack trace) to the window to be thrown from within the renderer.
 - Exceptions thrown by `open()`, `read()`, or `write()` do not get returned to the window and instead cause exceptions within the main process.
 
@@ -171,7 +172,7 @@ const window = new BrowserWindow({
 
 ### Window APIs
 
-Window APIs are analogous to main APIs, except that they are defined in the renderer and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those prefixed with underscore (`_`) or pound (`#`). As with main APIs, they can take any number of parameters, including none.
+Window APIs are analogous to main APIs, except that they are defined in the renderer and don't return a value. All methods of a window API class, including ancestor class methods, are treated as IPC methods except for those declared `private` or prefixed with underscore (`_`) or pound (`#`). As with main APIs, they can take any number of parameters, including none.
 
 Here is an example window API called `StatusApi`:
 
@@ -179,7 +180,7 @@ Here is an example window API called `StatusApi`:
 import type { ElectronWindowApi } from 'electron-affinity/window';
 
 export class StatusApi implements ElectronWindowApi<StatusApi> {
-  private _receiver: StatusReceiver;
+  _receiver: StatusReceiver;
 
   constructor(receiver: StatusReceiver) {
     this._receiver = receiver;
@@ -202,7 +203,7 @@ Note the following about this API:
 - The methods are implemented as `window.webContents.send()` calls; the return values of window API methods are not returned. Code within the main process always shows their return values as void.
 - Methods can by asynchronous, but the main process cannot wait for them to resolve.
 - Even though `systemReport` received `report` via IPC, it exists as an instance of `SystemReport` with the `generateSummary()` method available.
-- The usage of the `private` modifier has no effect on Electon Affinity. Instead, it is the `_` prefix that prevents the member `_receiver` from being exposed as an IPC method.
+- The `_` prefix prevents the member `_receiver` from being exposed as an IPC method. The prefix `#` would have done the same, as would declaring the property `private`, with or without a prefix.
 - Exceptions thrown by any of these methods do not get returned to the main process.
 
 The window makes the API available to the main process by calling `exposeWindowApi`:
@@ -584,15 +585,15 @@ Here is an example, showing a main API and a window calling that main API:
 import { ElectronMainApi, RelayedError } from "electron-affinity/main";
 
 export class LoginApi implements ElectronMainApi<LoginApi> {
-  private _site: SiteClient;
+  private site: SiteClient;
 
   constructor(site: SiteClient) {
-    this._site = site;
+    this.site = site;
   }
 
   async loginUser(username: string, password: string) {
     try {
-      await this._site.login(username, password);
+      await this.site.login(username, password);
     } catch (err: any) {
       if (err.code == "BAD_CREDS") {
         throw new RelayedError(err);
@@ -727,26 +728,22 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
 ```ts
 /**
  * Type to which a main API class must conform. It requires each API method
- * to return a promise. All properties of the method not beginning with `_`
- * or `#` will be exposed as API methods. All properties beginning with `_` or
- * `#` are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Have your main APIs 'implement' this type to get
- * type-checking in the APIs themselves. Use `checkMainApi` or
- * `checkMainApiClass` to type-check variables containing main APIs.
+ * to return a promise. All public properties of the method not beginning with
+ * `_`or `#` will be exposed as API methods; all properties declared 'private'
+ * and all properties beginning with `_` or `#` are ignored, allowing the API
+ * class to have internal structure on which the API methods rely. Have main APIs
+ * 'implement' this type to get type-checking in the APIs themselves, passing in
+ * the API class itself for T. Use `checkMainApi` or `checkMainApiClass` to
+ * type-check variables containing main APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
  * @see checkMainApi
  * @see checkMainApiClass
  */
-type ElectronMainApi<T> = Pick<
-  {
-    [K in keyof T]: K extends PublicProperty<K>
-      ? (...args: any[]) => Promise<any>
-      : any;
-  },
-  PublicProperty<keyof T>
->
+type ElectronMainApi<T> = {
+  [K in PublicProperty<keyof T>]: (...args: any[]) => Promise<any>;
+}
 ```
 
 #### type WindowApiBinding<T>
@@ -755,8 +752,8 @@ type ElectronMainApi<T> = Pick<
 /**
  * Type to which a bound window API conforms within the main process, as
  * determined from the provided window API class. This type only exposes the
- * methods of the class not starting with `_` or `#`, and regardless of what
- * the method returns, the API returns no value (void).
+ * API methods of the class. Regardless of what the implementation of any
+ * given method returns, the API method returns no value (void).
  *
  * @param <T> Type of the window API class
  */
@@ -774,8 +771,8 @@ type WindowApiBinding<T> = {
  * Returns a main-side binding for a window API of a given class, restricting
  * the binding to the given window. Failure of the window to expose the API
  * before timeout results in an exception. There is a default timeout, but
- * you can override it with `setIpcBindingTimeout()`. (The function takes no
- * restorer parameter because window APIs do not return values.)
+ * you can override it with `setIpcBindingTimeout()`. (The function does not
+ * take a restorer parameter because window APIs do not return values.)
  *
  * @param <T> Type of the window API class to bind
  * @param window Window to which to bind the window API
@@ -785,7 +782,7 @@ type WindowApiBinding<T> = {
  *    main process.
  * @see setIpcBindingTimeout
  */
-function bindWindowApi<T>(
+function bindWindowApi<T extends ElectronWindowApi<T>>(
   window: BrowserWindow,
   apiClassName: string
 ): Promise<WindowApiBinding<T>>
@@ -795,11 +792,9 @@ function bindWindowApi<T>(
 
 ```ts
 /**
- * Type checks the argument to ensure it conforms to the expectations of a
- * main API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods returning promises and will be
- * interpreted as API methods. Returns the argument to allow type-checking
- * of APIs in their place of use.
+ * Type checks the argument to ensure it conforms to the expectations of an
+ * instance of a main API class. Returns the argument to allow type-checking
+ * of APIs in their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the main API class to type check
@@ -814,9 +809,8 @@ function checkMainApi<T extends ElectronMainApi<T>>(api: T): T
 ```ts
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
- * main API class. All properties not beginning with `_` or `#` must be
- * methods returning promises and will be interpreted as API methods. Returns
- * the argument to allow type-checking of APIs in their place of use.
+ * main API class. Returns the argument to allow type-checking of APIs in
+ * their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The main API class to type check
@@ -844,8 +838,8 @@ function checkMainApiClass<T extends ElectronMainApi<T>>(_class: {
  *    arguments passed to APIs from the window. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-function exposeMainApi<T>(
-  mainApi: ElectronMainApi<T>,
+function exposeMainApi<T extends ElectronMainApi<T>>(
+  mainApi: T,
   restorer?: RestorerFunction
 ): void
 ```
@@ -879,27 +873,23 @@ See also [the library common to '/main' and '/window'](#import-from-electron-aff
 
 ```ts
 /**
- * Type to which a window API class must conform. It requires that all
- * properties of the class not beginning with `_` or `#` be functions, which
- * will be exposed as API methods. All properties beginning with `_` or `#`
- * are ignored, which allows the API class to have internal structure on
- * which the APIs rely. Have your window APIs 'implement' this type to get
- * type-checking in the APIs themselves. Use `checkWindowApi` or
- * `checkWindowApiClass` to type-check variables containing window APIs.
+ * Type to which a window API class must conform. All public properties of the
+ * method and all properties not beginning with `_` or `#` will be exposed as
+ * API methods; all properties declared 'private' and all properties beginning
+ * with `_` or `#` are ignored, allowing the API class to have internal structure
+ * on which the API methods rely. Have your window APIs 'implement' this type to
+ * get type-checking in the APIs themselves, passing in the API class itself for
+ * T. Use `checkWindowApi` or  `checkWindowApiClass` to type-check variables
+ * containing window APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.
  * @see checkWindowApi
  * @see checkWindowApiClass
  */
-type ElectronWindowApi<T> = Pick<
-  {
-    [K in keyof T]: K extends PublicProperty<K>
-      ? (...args: any[]) => void
-      : any;
-  },
-  PublicProperty<keyof T>
->
+type ElectronWindowApi<T> = {
+  [K in PublicProperty<keyof T>]: (...args: any[]) => void;
+}
 ```
 
 #### type MainApiBinding
@@ -907,9 +897,9 @@ type ElectronWindowApi<T> = Pick<
 ```ts
 /**
  * Type to which a bound main API conforms within a window, as determined by
- * the provided main API class. The type only exposes the methods of the
- * class not starting with `_` or `#`, and it returns the exact
- * return types of the individual methods, which are necessarily promises.
+ * the provided main API class. The type only exposes the API methods of the
+ * class, exposing the methods with the exact return types given by their
+ * implementations, which are necessarily promises.
  *
  * @param <T> Type of the main API class
  */
@@ -934,7 +924,7 @@ type MainApiBinding<T> = { [K in PublicProperty<keyof T>]: T[K] }
  *    the window.
  * @see setIpcBindingTimeout
  */
-function bindMainApi<T>(
+function bindMainApi<T extends ElectronMainApi<T>>(
   apiClassName: string,
   restorer?: RestorerFunction
 ): Promise<MainApiBinding<T>>
@@ -944,11 +934,9 @@ function bindMainApi<T>(
 
 ```ts
 /**
- * Type checks the argument to ensure it conforms to the expectations of a
- * window API (which is an instance of the API class). All properties not
- * beginning with `_` or `#` must be methods and will be interpreted as API
- * methods. Returns the argument to allow type-checking of APIs in their
- * place of use.
+ * Type checks the argument to ensure it conforms to the expectations of an
+ * instance of a window API class. Returns the argument to allow type-checking
+ * of APIs in their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param api Instance of the window API class to type check
@@ -963,9 +951,8 @@ function checkWindowApi<T extends ElectronWindowApi<T>>(api: T): T
 ```ts
 /**
  * Type checks the argument to ensure it conforms to the expectations of a
- * window API class. All properties not beginning with `_` or `#` must be
- * methods and will be interpreted as API methods. Returns the argument to
- * allow type-checking of APIs in their place of use.
+ * window API class. Returns the argument to allow type-checking of APIs in
+ * their places of use.
  *
  * @param <T> (inferred type, not specified in call)
  * @param _class The window API class to type check
@@ -993,8 +980,8 @@ function checkWindowApiClass<T extends ElectronWindowApi<T>>(_class: {
  *    arguments passed to APIs from the main process. Arguments not
  *    restored to original classes arrive as untyped objects.
  */
-function exposeWindowApi<T>(
-  windowApi: ElectronWindowApi<T>,
+function exposeWindowApi<T extends ElectronWindowApi<T>>(
+  windowApi: T,
   restorer?: RestorerFunction
 ): void
 ```

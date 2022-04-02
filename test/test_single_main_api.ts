@@ -4,14 +4,15 @@
 
 import { BrowserWindow } from "electron";
 
-import { exposeMainApi } from "../src/main";
+import { exposeMainApi, checkMainApi } from "../src/main";
 import { createWindow, createResultCollector } from "./lib/main_util";
 import { MainApi1 } from "./api/mainapi1";
-import { restorer } from "./lib/shared_util";
+import { restorer, assertIdentical } from "./lib/shared_util";
 import verifyMainApi1 from "./api/verify_mainapi1";
 
 const resultCollector = createResultCollector(restorer);
 const mainApi1 = new MainApi1(resultCollector);
+assertIdentical(mainApi1, checkMainApi(mainApi1));
 
 describe("window invoking an exposed main API", () => {
   let window1: BrowserWindow;
