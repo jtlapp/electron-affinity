@@ -133,12 +133,13 @@ let _windowApiMap: ApiRegistrationMap = {};
 /**
  * Type to which a window API class must conform. All public properties of the
  * method and all properties not beginning with `_` or `#` will be exposed as
- * API methods; all properties declared 'private' and all properties beginning
- * with `_` or `#` are ignored, allowing the API class to have internal structure
- * on which the API methods rely. Have your window APIs 'implement' this type to
- * get type-checking in the APIs themselves, passing in the API class itself for
- * T. Use `checkWindowApi` or  `checkWindowApiClass` to type-check variables
- * containing window APIs.
+ * API methods, allowing the API class to have private properties on which the
+ * API methods rely. This type will not expose properties declared `protected`
+ * or `private`, but `bindWindowApi()` will still generate bindings for those
+ * whose names don't begin with `_` or `#`. Have your window APIs `implement`
+ * this type to get type-checking in the APIs themselves, passing in the API
+ * class itself for T. Use `checkWindowApi` or  `checkWindowApiClass` to
+ * type-check variables containing window APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronWindowApi`.

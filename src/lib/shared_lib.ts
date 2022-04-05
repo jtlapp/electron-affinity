@@ -37,6 +37,9 @@ export function setIpcBindingTimeout(millis: number): void {
 }
 
 // Matches object properties beginning with neither underscore nor pound.
+// Because this library only ever uses this type in the context of `keyof`,
+// the `#` test is unncessary, as `keyof` won't pull it out. I've included
+// the test here just to emphasize its equivalence to `_`.
 export type PublicProperty<P> = P extends `_${string}`
   ? never
   : P extends `#${string}`

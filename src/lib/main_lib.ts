@@ -28,12 +28,13 @@ let _errorLoggerFunc: (err: Error) => void;
 /**
  * Type to which a main API class must conform. It requires each API method
  * to return a promise. All public properties of the method not beginning with
- * `_`or `#` will be exposed as API methods; all properties declared 'private'
- * and all properties beginning with `_` or `#` are ignored, allowing the API
- * class to have internal structure on which the API methods rely. Have main APIs
- * 'implement' this type to get type-checking in the APIs themselves, passing in
- * the API class itself for T. Use `checkMainApi` or `checkMainApiClass` to
- * type-check variables containing main APIs.
+ * `_`or `#` will be exposed as API methods, allowing the API class to have
+ * private properties on which the API methods rely. This type will not expose
+ * properties declared `protected` or `private`, but `bindMainApi()` will still
+ * generate bindings for those whose names don't begin with `_` or `#`. Have
+ * your main APIs `implement` this type to get type-checking in the APIs
+ * themselves, passing in the API class itself for T. Use `checkMainApi` or
+ * `checkMainApiClass` to type-check variables containing main APIs.
  *
  * @param <T> The type of the API class itself, typically inferred from a
  *    function that accepts an argument of type `ElectronMainApi`.
