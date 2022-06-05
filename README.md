@@ -151,7 +151,7 @@ Note the following about calling the API:
 Finally, include the following line in your `preload.js`:
 
 ```ts
-import "electron-ipc-methods/preload";
+import "electron-affinity/preload";
 ```
 
 Alternatively, preload directly from `node_modules` using the appropriate path:
@@ -242,7 +242,7 @@ Note the following about calling the API:
 - The code calls a window API method as if it were local to the main process.
 - The main process does not need to do anything special to wait for the window to finish loading. `bindWindowApi` will keep attempting to bind until timing out.
 
-Window APIs also require that you preload `electron-ipc-methods/preload`.
+Window APIs also require that you preload `electron-affinity/preload`.
 
 ### Organizing Main APIs
 
@@ -1087,7 +1087,7 @@ function setIpcBindingTimeout(millis: number): void
 This is the JavaScript to preload into each window in order to enable the window to support IPC. Either include the following line in your `preload.js`:
 
 ```ts
-import "electron-ipc-methods/preload";
+import "electron-affinity/preload";
 ```
 
 ... or preload directly from `node_modules` using the appropriate path:
